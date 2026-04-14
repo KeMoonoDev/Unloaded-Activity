@@ -124,7 +124,7 @@ public class SimulateProperty {
         this.buddingBlocks = List.of();
 
         switch (this.simulationType) {
-            case INT_PROPERTY -> {
+            case PROPERTY -> {
             }
             case BUDDING -> {
                 if (incomplete.buddingBlocks.isEmpty()) {

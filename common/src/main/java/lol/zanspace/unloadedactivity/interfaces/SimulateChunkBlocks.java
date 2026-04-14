@@ -114,45 +114,37 @@ public interface SimulateChunkBlocks {
         }
 
         switch (simulateProperty.simulationType) {
-            case INT_PROPERTY -> {
+            case PROPERTY -> {
                 Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
 
                 if (maybeProperty.isPresent()) {
                     Property<?> property = maybeProperty.get();
+
+                    int propertyMax;
+                    int max;
+                    int current;
 
                     if (property instanceof IntegerProperty integerProperty) {
-                        int propertyMax = ((IntegerPropertyAccessor)integerProperty).unloaded_activity$getMax();
-                        int max = propertyMax;
-
-                        if (simulateProperty.maxValue.isPresent()) {
-                            CalculateValue maxValue = simulateProperty.maxValue.get();
-                            double calculated = maxValue.calculateValue(level, state, pos, 0, false, false);
-                            max = Math.min(propertyMax, (int)calculated);
-                        }
-
-                        int current = state.getValue(integerProperty);
-
-                        if (current >= max) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        propertyMax = ((IntegerPropertyAccessor)integerProperty).unloaded_activity$getMax();
+                        max = propertyMax;
+                        current = state.getValue(integerProperty);
+                    } else if (property instanceof BooleanProperty booleanProperty) {
+                        propertyMax = 1;
+                        max = 1;
+                        current = state.getValue(booleanProperty) ? 1 : 0;
+                    } else {
+                        return true;
                     }
+
+                    if (simulateProperty.maxValue.isPresent()) {
+                        CalculateValue maxValue = simulateProperty.maxValue.get();
+                        double calculated = maxValue.calculateValue(level, state, pos, 0, false, false);
+                        max = Math.min(propertyMax, (int)calculated);
+                    }
+
+                    return current >= max;
                 }
             }
-
-            case BOOL_PROPERTY -> {
-                Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
-
-                if (maybeProperty.isPresent()) {
-                    Property<?> property = maybeProperty.get();
-
-                    if (property instanceof BooleanProperty booleanProperty) {
-                        return state.getValue(booleanProperty);
-                    }
-                }
-            }
-
             case BUDDING -> {
                 var buddingBlocks = simulateProperty.buddingBlocks;
                 Block finalBlock = buddingBlocks.get(buddingBlocks.size()-1);
