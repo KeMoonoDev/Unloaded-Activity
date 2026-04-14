@@ -1,6 +1,6 @@
 {
   "age": {
-    "simulation_type": "int_property",
+    "simulation_type": "property",
     "increase_per_height": true,
     "block_replacement": "minecraft:kelp_plant",
     "only_in_water": true,

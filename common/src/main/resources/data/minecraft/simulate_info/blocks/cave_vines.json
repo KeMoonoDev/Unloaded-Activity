@@ -1,6 +1,6 @@
 {
   "age": {
-    "simulation_type": "int_property",
+    "simulation_type": "property",
     "increase_per_height": true,
     "block_replacement": "minecraft:cave_vines_plant",
     "reverse_height_growth_direction": true,

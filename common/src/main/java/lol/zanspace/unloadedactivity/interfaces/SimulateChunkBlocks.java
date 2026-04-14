@@ -188,295 +188,50 @@ public interface SimulateChunkBlocks {
     default @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration) {
 
         switch (simulateProperty.simulationType) {
-            case INT_PROPERTY -> {
+            case PROPERTY -> {
                 Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
 
                 if (maybeProperty.isEmpty())
                     return Triple.of(state, OccurrencesAndDuration.empty(), pos);
 
                 Property<?> property = maybeProperty.get();
+
+                Block thisBlock = state.getBlock();
+                int propertyMax;
+                int max;
+                int current;
+                int updateCount;
 
                 if (property instanceof IntegerProperty integerProperty) {
-                    Block thisBlock = state.getBlock();
+                    propertyMax = ((IntegerPropertyAccessor)integerProperty).unloaded_activity$getMax();
+                    max = propertyMax;
+                    current = state.getValue(integerProperty);
+                    updateCount = max - current;
 
-                    int propertyMax = ((IntegerPropertyAccessor)integerProperty).unloaded_activity$getMax();
-                    int max = propertyMax;
+                } else if (property instanceof BooleanProperty booleanProperty) {
+                    propertyMax = 1;
+                    max = 1;
+                    current = state.getValue(booleanProperty) ? 1 : 0;
+                    updateCount = 1 - current;
 
-                    if (simulateProperty.maxValue.isPresent()) {
-                        CalculateValue maxValue = simulateProperty.maxValue.get();
-                        double calculated = maxValue.calculateValue(level, state, pos, 0, false, false);
-                        max = Math.min(propertyMax, (int)calculated);
-                    }
-
-                    int current = state.getValue(integerProperty);
-
-                    int updateCount = max - current;
-
-                    if (simulateProperty.maxHeight.isPresent() || simulateProperty.increasePerHeight) {
-                        Block lowerBlock = simulateProperty.blockReplacement.orElse(thisBlock);
-
-                        int freeSpaceLimit = Integer.MAX_VALUE;
-
-                        if (simulateProperty.maxHeight.isPresent()) {
-                            int maxHeight = simulateProperty.maxHeight.get();
-
-                            int height;
-                            if (simulateProperty.reverseHeightGrowthDirection) {
-                                for(height = 1; level.getBlockState(pos.above(height)).is(lowerBlock) && height <= maxHeight; ++height) {}
-                            } else {
-                                for(height = 1; level.getBlockState(pos.below(height)).is(lowerBlock) && height <= maxHeight; ++height) {}
-                            }
-
-                            freeSpaceLimit = Math.min(freeSpaceLimit, maxHeight - height);
-                        }
-
-                        if (simulateProperty.increasePerHeight) {
-                            freeSpaceLimit = Math.min(freeSpaceLimit, updateCount);
-                        }
-
-
-
-                        int freeSpace;
-                        if (simulateProperty.onlyInWater) {
-                            if (simulateProperty.reverseHeightGrowthDirection) {
-                                for(freeSpace = 1; level.getBlockState(pos.below(freeSpace)).is(Blocks.WATER) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
-                            } else {
-                                for(freeSpace = 1; level.getBlockState(pos.above(freeSpace)).is(Blocks.WATER) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
-                            }
-                        } else {
-                            if (simulateProperty.reverseHeightGrowthDirection) {
-                                for(freeSpace = 1; level.isEmptyBlock(pos.below(freeSpace)) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
-                            } else {
-                                for(freeSpace = 1; level.isEmptyBlock(pos.above(freeSpace)) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
-                            }
-                        }
-                        --freeSpace;
-
-                        // Updates for growing in height
-                        if (simulateProperty.increasePerHeight) {
-                            updateCount = freeSpace;
-                        } else {
-                            updateCount += freeSpace;
-
-                            boolean stopUpdatingAfterMaxHeight = !simulateProperty.keepUpdatingAfterMaxHeight;
-
-                            if (stopUpdatingAfterMaxHeight) {
-                                updateCount += max * Math.max(freeSpace - 1, 0);
-                            } else {
-                                updateCount += max * freeSpace;
-                            }
-                        }
-                    }
-
-                    if (updateCount <= 0)
-                        return Triple.of(state, OccurrencesAndDuration.empty(), pos);
-
-                    OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random);
-
-                    if (result.occurrences() == 0)
-                        return Triple.of(state, result, pos);
-
-                    int newPropertyValue = current + result.occurrences();
-
-                    if (simulateProperty.increasePerHeight) {
-                        if (simulateProperty.blockReplacement.isPresent()) {
-                            BlockState newState = simulateProperty.blockReplacement.get().defaultBlockState();
-                            for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                                Optional<Property<?>> maybeNewRandomProperty = getProperty(newState, randomProperty.propertyName);
-                                if (maybeNewRandomProperty.isPresent()) {
-                                    switch (randomProperty.propertyType) {
-                                        case BOOL -> {
-                                            if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                                Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
-                                                if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof BooleanProperty oldBooleanProperty) {
-                                                    boolean oldValue = state.getValue(oldBooleanProperty);
-                                                    newState = newState.setValue(newBooleanProperty, oldValue);
-                                                } else {
-                                                    int value = randomProperty.getRandomValue(random);
-                                                    newState = newState.setValue(newBooleanProperty, value != 0);
-                                                }
-                                            }
-                                        }
-                                        case INT -> {
-                                            if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                                Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
-                                                if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof IntegerProperty oldIntegerProperty) {
-                                                    int oldValue = state.getValue(oldIntegerProperty);
-                                                    newState = newState.setValue(newIntegerProperty, oldValue);
-                                                } else {
-                                                    int value = randomProperty.getRandomValue(random);
-                                                    newState = newState.setValue(newIntegerProperty, value);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            state = newState;
-                            level.setBlock(pos, state, simulateProperty.updateType);
-                        }
-
-
-                        for (int i=0;i<result.occurrences();i++) {
-                            if (simulateProperty.reverseHeightGrowthDirection) {
-                                pos = pos.below();
-                            } else {
-                                pos = pos.above();
-                            }
-
-                            boolean isFinal = i+1 == result.occurrences();
-
-                            if (simulateProperty.blockReplacement.isPresent() && !isFinal) {
-                                state = simulateProperty.blockReplacement.get().defaultBlockState();
-                            } else {
-                                state = thisBlock.defaultBlockState().setValue(integerProperty, current + i + 1);
-                            }
-
-                            for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                                Optional<Property<?>> maybeNewRandomProperty = getProperty(state, randomProperty.propertyName);
-                                if (maybeNewRandomProperty.isPresent()) {
-                                    switch (randomProperty.propertyType) {
-                                        case BOOL -> {
-                                            if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                                int value = randomProperty.getRandomValue(random);
-                                                state = state.setValue(newBooleanProperty, value != 0);
-                                            }
-                                        }
-                                        case INT -> {
-                                            if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                                int value = randomProperty.getRandomValue(random);
-                                                state = state.setValue(newIntegerProperty, value);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            level.setBlockAndUpdate(pos, state);
-                            boolean updateNeighbors = simulateProperty.updateNeighbors;
-                            if (updateNeighbors) {
-                                level.neighborChanged(state, pos, thisBlock, pos, false);
-                                level.scheduleTick(pos, thisBlock, 1);
-                            }
-                        }
-                    } else if (simulateProperty.maxHeight.isPresent()) {
-                        int growBlocks = newPropertyValue/(max + 1);
-                        int valueRemainer = newPropertyValue % (max + 1);
-
-                        boolean resetOnHeightChange = simulateProperty.resetOnHeightChange;
-
-                        int belowValue = resetOnHeightChange ? 0 : max;
-
-                        if (growBlocks == 0) {
-                            state = state.setValue(integerProperty, valueRemainer);
-                        } else if (simulateProperty.blockReplacement.isPresent()) {
-                            BlockState newState = simulateProperty.blockReplacement.get().defaultBlockState();
-                            for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                                Optional<Property<?>> maybeNewRandomProperty = getProperty(newState, randomProperty.propertyName);
-                                if (maybeNewRandomProperty.isPresent()) {
-                                    switch (randomProperty.propertyType) {
-                                        case BOOL -> {
-                                            if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                                Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
-                                                if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof BooleanProperty oldBooleanProperty) {
-                                                    boolean oldValue = state.getValue(oldBooleanProperty);
-                                                    newState = newState.setValue(newBooleanProperty, oldValue);
-                                                } else {
-                                                    int value = randomProperty.getRandomValue(random);
-                                                    newState = newState.setValue(newBooleanProperty, value != 0);
-                                                }
-                                            }
-                                        }
-                                        case INT -> {
-                                            if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                                Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
-                                                if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof IntegerProperty oldIntegerProperty) {
-                                                    int oldValue = state.getValue(oldIntegerProperty);
-                                                    newState = newState.setValue(newIntegerProperty, oldValue);
-                                                } else {
-                                                    int value = randomProperty.getRandomValue(random);
-                                                    newState = newState.setValue(newIntegerProperty, value);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            state = newState;
-                        } else {
-                            state = state.setValue(integerProperty, belowValue);
-                        }
-
-                        level.setBlock(pos, state, simulateProperty.updateType);
-
-                        for (int i=0;i<growBlocks;i++) {
-                            if (simulateProperty.reverseHeightGrowthDirection) {
-                                pos = pos.below();
-                            } else {
-                                pos = pos.above();
-                            }
-
-                            if (i+1==growBlocks) {
-                                state = thisBlock.defaultBlockState().setValue(integerProperty, valueRemainer);
-                            } else if (simulateProperty.blockReplacement.isPresent()) {
-                                state = simulateProperty.blockReplacement.get().defaultBlockState();
-                            } else {
-                                state = thisBlock.defaultBlockState().setValue(integerProperty, belowValue);
-                            }
-
-                            for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                                Optional<Property<?>> maybeNewRandomProperty = getProperty(state, randomProperty.propertyName);
-                                if (maybeNewRandomProperty.isPresent()) {
-                                    switch (randomProperty.propertyType) {
-                                        case BOOL -> {
-                                            if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                                int value = randomProperty.getRandomValue(random);
-                                                state = state.setValue(newBooleanProperty, value != 0);
-                                            }
-                                        }
-                                        case INT -> {
-                                            if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                                int value = randomProperty.getRandomValue(random);
-                                                state = state.setValue(newIntegerProperty, value);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            level.setBlockAndUpdate(pos, state);
-                            boolean updateNeighbors = simulateProperty.updateNeighbors;
-                            if (updateNeighbors) {
-                                level.neighborChanged(state, pos, thisBlock, pos, false);
-                                level.scheduleTick(pos, thisBlock, 1);
-                            }
-                        }
-                    } else {
-                        state = state.setValue(integerProperty, newPropertyValue);
-                        level.setBlock(pos, state, simulateProperty.updateType);
-                    }
-
-
-                    return Triple.of(state, result, pos);
-                }
-            }
-            case BOOL_PROPERTY -> {
-                Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
-
-                if (maybeProperty.isEmpty())
+                } else {
                     return Triple.of(state, OccurrencesAndDuration.empty(), pos);
+                }
 
-                Property<?> property = maybeProperty.get();
+                if (simulateProperty.maxValue.isPresent()) {
+                    CalculateValue maxValue = simulateProperty.maxValue.get();
+                    double calculated = maxValue.calculateValue(level, state, pos, 0, false, false);
+                    max = Math.min(propertyMax, (int)calculated);
+                }
 
-                if (property instanceof BooleanProperty booleanProperty) {
-                    Block thisBlock = state.getBlock();
 
-                    int current = state.getValue(booleanProperty) ? 1 : 0;
-                    int updateCount = 1 - current;
+                if (simulateProperty.maxHeight.isPresent() || simulateProperty.increasePerHeight) {
+                    Block lowerBlock = simulateProperty.blockReplacement.orElse(thisBlock);
+
+                    int freeSpaceLimit = Integer.MAX_VALUE;
 
                     if (simulateProperty.maxHeight.isPresent()) {
                         int maxHeight = simulateProperty.maxHeight.get();
-                        Block lowerBlock = simulateProperty.blockReplacement.orElse(thisBlock);
 
                         int height;
                         if (simulateProperty.reverseHeightGrowthDirection) {
@@ -485,96 +240,267 @@ public interface SimulateChunkBlocks {
                             for(height = 1; level.getBlockState(pos.below(height)).is(lowerBlock) && height <= maxHeight; ++height) {}
                         }
 
-                        int heightDifference = maxHeight - height;
+                        freeSpaceLimit = Math.min(freeSpaceLimit, maxHeight - height);
+                    }
 
-                        int freeSpace;
-                        if (simulateProperty.onlyInWater) {
-                            if (simulateProperty.reverseHeightGrowthDirection) {
-                                for(freeSpace = 1; level.getBlockState(pos.below(freeSpace)).is(Blocks.WATER) && freeSpace <= heightDifference; ++freeSpace) {}
-                            } else {
-                                for(freeSpace = 1; level.getBlockState(pos.above(freeSpace)).is(Blocks.WATER) && freeSpace <= heightDifference; ++freeSpace) {}
-                            }
+                    if (simulateProperty.increasePerHeight) {
+                        freeSpaceLimit = Math.min(freeSpaceLimit, updateCount);
+                    }
+
+
+
+                    int freeSpace;
+                    if (simulateProperty.onlyInWater) {
+                        if (simulateProperty.reverseHeightGrowthDirection) {
+                            for(freeSpace = 1; level.getBlockState(pos.below(freeSpace)).is(Blocks.WATER) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
                         } else {
-                            if (simulateProperty.reverseHeightGrowthDirection) {
-                                for(freeSpace = 1; level.isEmptyBlock(pos.below(freeSpace)) && freeSpace <= heightDifference; ++freeSpace) {}
-                            } else {
-                                for(freeSpace = 1; level.isEmptyBlock(pos.above(freeSpace)) && freeSpace <= heightDifference; ++freeSpace) {}
-                            }
+                            for(freeSpace = 1; level.getBlockState(pos.above(freeSpace)).is(Blocks.WATER) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
                         }
-                        --freeSpace;
+                    } else {
+                        if (simulateProperty.reverseHeightGrowthDirection) {
+                            for(freeSpace = 1; level.isEmptyBlock(pos.below(freeSpace)) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
+                        } else {
+                            for(freeSpace = 1; level.isEmptyBlock(pos.above(freeSpace)) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
+                        }
+                    }
+                    --freeSpace;
 
-                        // Updates for growing in height
+                    // Updates for growing in height
+                    if (simulateProperty.increasePerHeight) {
+                        updateCount = freeSpace;
+                    } else {
                         updateCount += freeSpace;
 
                         boolean stopUpdatingAfterMaxHeight = !simulateProperty.keepUpdatingAfterMaxHeight;
 
                         if (stopUpdatingAfterMaxHeight) {
-                            updateCount += Math.max(freeSpace - 1, 0);
+                            updateCount += max * Math.max(freeSpace - 1, 0);
                         } else {
-                            updateCount += freeSpace;
+                            updateCount += max * freeSpace;
                         }
+                    }
+                }
 
+                if (updateCount <= 0)
+                    return Triple.of(state, OccurrencesAndDuration.empty(), pos);
 
+                OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random);
+
+                if (result.occurrences() == 0)
+                    return Triple.of(state, result, pos);
+
+                int newPropertyValue = current + result.occurrences();
+
+                if (simulateProperty.increasePerHeight) {
+                    if (simulateProperty.blockReplacement.isPresent()) {
+                        BlockState newState = simulateProperty.blockReplacement.get().defaultBlockState();
+                        for (RandomProperty randomProperty : simulateProperty.randomProperties) {
+                            Optional<Property<?>> maybeNewRandomProperty = getProperty(newState, randomProperty.propertyName);
+                            if (maybeNewRandomProperty.isPresent()) {
+                                switch (randomProperty.propertyType) {
+                                    case BOOL -> {
+                                        if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
+                                            Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
+                                            if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof BooleanProperty oldBooleanProperty) {
+                                                boolean oldValue = state.getValue(oldBooleanProperty);
+                                                newState = newState.setValue(newBooleanProperty, oldValue);
+                                            } else {
+                                                int value = randomProperty.getRandomValue(random);
+                                                newState = newState.setValue(newBooleanProperty, value != 0);
+                                            }
+                                        }
+                                    }
+                                    case INT -> {
+                                        if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
+                                            Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
+                                            if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof IntegerProperty oldIntegerProperty) {
+                                                int oldValue = state.getValue(oldIntegerProperty);
+                                                newState = newState.setValue(newIntegerProperty, oldValue);
+                                            } else {
+                                                int value = randomProperty.getRandomValue(random);
+                                                newState = newState.setValue(newIntegerProperty, value);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        state = newState;
+                        level.setBlock(pos, state, simulateProperty.updateType);
                     }
 
-                    if (updateCount <= 0)
-                        return Triple.of(state, OccurrencesAndDuration.empty(), pos);
 
-                    OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random);
+                    for (int i=0;i<result.occurrences();i++) {
+                        if (simulateProperty.reverseHeightGrowthDirection) {
+                            pos = pos.below();
+                        } else {
+                            pos = pos.above();
+                        }
 
-                    if (result.occurrences() == 0)
-                        return Triple.of(state, result, pos);
+                        boolean isFinal = i+1 == result.occurrences();
 
-                    int newPropertyValue = current + result.occurrences();
+                        if (simulateProperty.blockReplacement.isPresent() && !isFinal) {
+                            state = simulateProperty.blockReplacement.get().defaultBlockState();
+                        } else {
+                            int newValue = current + (i + 1);
+                            if (property instanceof IntegerProperty integerProperty) {
+                                state = thisBlock.defaultBlockState().setValue(integerProperty, newValue);
+                            } else if (property instanceof BooleanProperty booleanProperty) {
+                                state = thisBlock.defaultBlockState().setValue(booleanProperty, newValue > 0);
+                            }
+                        }
 
-                    if (simulateProperty.maxHeight.isPresent()) {
-                        int growBlocks = newPropertyValue / 2;
-                        int valueRemainer = newPropertyValue % 2;
+                        for (RandomProperty randomProperty : simulateProperty.randomProperties) {
+                            Optional<Property<?>> maybeNewRandomProperty = getProperty(state, randomProperty.propertyName);
+                            if (maybeNewRandomProperty.isPresent()) {
+                                switch (randomProperty.propertyType) {
+                                    case BOOL -> {
+                                        if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
+                                            int value = randomProperty.getRandomValue(random);
+                                            state = state.setValue(newBooleanProperty, value != 0);
+                                        }
+                                    }
+                                    case INT -> {
+                                        if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
+                                            int value = randomProperty.getRandomValue(random);
+                                            state = state.setValue(newIntegerProperty, value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
-                        boolean resetOnHeightChange = simulateProperty.resetOnHeightChange;
+                        level.setBlockAndUpdate(pos, state);
+                        boolean updateNeighbors = simulateProperty.updateNeighbors;
+                        if (updateNeighbors) {
+                            level.neighborChanged(state, pos, thisBlock, pos, false);
+                            level.scheduleTick(pos, thisBlock, 1);
+                        }
+                    }
+                } else if (simulateProperty.maxHeight.isPresent()) {
+                    int growBlocks = newPropertyValue/(max + 1);
+                    int valueRemainer = newPropertyValue % (max + 1);
 
-                        boolean belowValue = resetOnHeightChange ? false : true;
+                    boolean resetOnHeightChange = simulateProperty.resetOnHeightChange;
 
-                        if (growBlocks == 0) {
-                            state = state.setValue(booleanProperty, valueRemainer != 0);
+                    int belowValue = resetOnHeightChange ? 0 : max;
+
+                    if (growBlocks == 0) {
+                        if (property instanceof IntegerProperty integerProperty) {
+                            state = state.setValue(integerProperty, valueRemainer);
+                        } else if (property instanceof BooleanProperty booleanProperty) {
+                            state = state.setValue(booleanProperty, valueRemainer > 0);
+                        }
+                    } else if (simulateProperty.blockReplacement.isPresent()) {
+                        BlockState newState = simulateProperty.blockReplacement.get().defaultBlockState();
+                        for (RandomProperty randomProperty : simulateProperty.randomProperties) {
+                            Optional<Property<?>> maybeNewRandomProperty = getProperty(newState, randomProperty.propertyName);
+                            if (maybeNewRandomProperty.isPresent()) {
+                                switch (randomProperty.propertyType) {
+                                    case BOOL -> {
+                                        if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
+                                            Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
+                                            if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof BooleanProperty oldBooleanProperty) {
+                                                boolean oldValue = state.getValue(oldBooleanProperty);
+                                                newState = newState.setValue(newBooleanProperty, oldValue);
+                                            } else {
+                                                int value = randomProperty.getRandomValue(random);
+                                                newState = newState.setValue(newBooleanProperty, value != 0);
+                                            }
+                                        }
+                                    }
+                                    case INT -> {
+                                        if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
+                                            Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
+                                            if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof IntegerProperty oldIntegerProperty) {
+                                                int oldValue = state.getValue(oldIntegerProperty);
+                                                newState = newState.setValue(newIntegerProperty, oldValue);
+                                            } else {
+                                                int value = randomProperty.getRandomValue(random);
+                                                newState = newState.setValue(newIntegerProperty, value);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        state = newState;
+                    } else {
+                        if (property instanceof IntegerProperty integerProperty) {
+                            state = state.setValue(integerProperty, belowValue);
+                        } else if (property instanceof BooleanProperty booleanProperty) {
+                            state = state.setValue(booleanProperty, belowValue > 0);
+                        }
+                    }
+
+                    level.setBlock(pos, state, simulateProperty.updateType);
+
+                    for (int i=0;i<growBlocks;i++) {
+                        if (simulateProperty.reverseHeightGrowthDirection) {
+                            pos = pos.below();
+                        } else {
+                            pos = pos.above();
+                        }
+
+                        if (i+1==growBlocks) {
+                            if (property instanceof IntegerProperty integerProperty) {
+                                state = thisBlock.defaultBlockState().setValue(integerProperty, valueRemainer);
+                            } else if (property instanceof BooleanProperty booleanProperty) {
+                                state = thisBlock.defaultBlockState().setValue(booleanProperty, valueRemainer > 0);
+                            }
                         } else if (simulateProperty.blockReplacement.isPresent()) {
                             state = simulateProperty.blockReplacement.get().defaultBlockState();
                         } else {
-                            state = state.setValue(booleanProperty, belowValue);
-                        }
-                        level.setBlock(pos, state, simulateProperty.updateType);
-
-                        for (int i=0;i<growBlocks;i++) {
-
-                            if (simulateProperty.reverseHeightGrowthDirection) {
-                                pos = pos.below();
-                            } else {
-                                pos = pos.above();
-                            }
-
-                            if (i+1==growBlocks) {
-                                state = thisBlock.defaultBlockState().setValue(booleanProperty, valueRemainer != 0);
-                            } else if (simulateProperty.blockReplacement.isPresent()) {
-                                state = simulateProperty.blockReplacement.get().defaultBlockState();
-                            } else {
-                                state = thisBlock.defaultBlockState().setValue(booleanProperty, belowValue);
-                            }
-
-                            level.setBlockAndUpdate(pos, state);
-                            boolean updateNeighbors = simulateProperty.updateNeighbors;
-                            if (updateNeighbors) {
-                                level.neighborChanged(state, pos, thisBlock, pos, false);
-                                level.scheduleTick(pos, thisBlock, 1);
+                            if (property instanceof IntegerProperty integerProperty) {
+                                state = thisBlock.defaultBlockState().setValue(integerProperty, belowValue);
+                            } else if (property instanceof BooleanProperty booleanProperty) {
+                                state = thisBlock.defaultBlockState().setValue(booleanProperty, belowValue > 0);
                             }
                         }
-                    } else {
-                        state = state.setValue(booleanProperty, newPropertyValue != 0);
-                        level.setBlock(pos, state, simulateProperty.updateType);
+
+                        for (RandomProperty randomProperty : simulateProperty.randomProperties) {
+                            Optional<Property<?>> maybeNewRandomProperty = getProperty(state, randomProperty.propertyName);
+                            if (maybeNewRandomProperty.isPresent()) {
+                                switch (randomProperty.propertyType) {
+                                    case BOOL -> {
+                                        if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
+                                            int value = randomProperty.getRandomValue(random);
+                                            state = state.setValue(newBooleanProperty, value != 0);
+                                        }
+                                    }
+                                    case INT -> {
+                                        if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
+                                            int value = randomProperty.getRandomValue(random);
+                                            state = state.setValue(newIntegerProperty, value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        level.setBlockAndUpdate(pos, state);
+                        boolean updateNeighbors = simulateProperty.updateNeighbors;
+                        if (updateNeighbors) {
+                            level.neighborChanged(state, pos, thisBlock, pos, false);
+                            level.scheduleTick(pos, thisBlock, 1);
+                        }
                     }
-
-
-                    return Triple.of(state, result, pos);
+                } else {
+                    if (property instanceof IntegerProperty integerProperty) {
+                        state = state.setValue(integerProperty, newPropertyValue);
+                    } else if (property instanceof BooleanProperty booleanProperty) {
+                        state = state.setValue(booleanProperty, newPropertyValue > 0);
+                    }
+                    if (property instanceof IntegerProperty integerProperty) {
+                        state = state.setValue(integerProperty, newPropertyValue);
+                    } else if (property instanceof BooleanProperty booleanProperty) {
+                        state = state.setValue(booleanProperty, newPropertyValue > 0);
+                    }
+                    level.setBlock(pos, state, simulateProperty.updateType);
                 }
+
+
+                return Triple.of(state, result, pos);
             }
             case BUDDING -> {
                 List<Direction> availableDirections = Arrays.stream(Direction.values()).filter(direction -> !simulateProperty.ignoreBuddingDirections.contains(direction)).toList();

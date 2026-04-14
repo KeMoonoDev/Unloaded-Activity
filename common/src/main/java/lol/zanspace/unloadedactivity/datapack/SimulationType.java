@@ -3,19 +3,15 @@ package lol.zanspace.unloadedactivity.datapack;
 import java.util.Optional;
 
 public enum SimulationType {
-    INT_PROPERTY,
-    BOOL_PROPERTY,
+    PROPERTY,
     BUDDING,
     DECAY,
     ACTION;
 
     public static Optional<SimulationType> fromString(String string) {
         switch (string.toLowerCase()) {
-            case "int_property" -> {
-                return Optional.of(INT_PROPERTY);
-            }
-            case "bool_property" -> {
-                return Optional.of(BOOL_PROPERTY);
+            case "property" -> {
+                return Optional.of(PROPERTY);
             }
             case "budding" -> {
                 return Optional.of(BUDDING);

@@ -1,7 +1,7 @@
 {
   "layers": {
     "is_precipitation": true,
-    "simulation_type": "int_property",
+    "simulation_type": "property",
     "conditions": [
       {
         "check": "should_snow",

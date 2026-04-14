@@ -1,6 +1,6 @@
 {
   "hatch": {
-    "simulation_type": "int_property",
+    "simulation_type": "property",
     "advance_probability": {
       "21061": 1,
       "21905": 0.002
