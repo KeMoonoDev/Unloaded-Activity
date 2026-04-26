@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 #else
 import net.minecraft.core.Registry;
 #endif
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Block;
@@ -51,6 +52,8 @@ public class SimulateProperty {
 
     public List<Block> buddingBlocks;
 
+    public Optional<ResourceLocation> simulateWithGroup;
+
     public SimulateProperty(IncompleteSimulateProperty incomplete, String targetFallback) {
         // Required fields for all simulation types
         this.target = incomplete.target.orElse(targetFallback);
@@ -75,6 +78,7 @@ public class SimulateProperty {
         this.buddingDirectionProperty = incomplete.buddingDirectionProperty;
         this.startingAge = incomplete.startingAge;
         this.hatchCount = incomplete.hatchCount;
+        this.simulateWithGroup = incomplete.simulateWithGroup;
 
         // Convert types.
         this.blockReplacement = incomplete.blockReplacement.map(id -> {

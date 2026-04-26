@@ -43,6 +43,7 @@ public class IncompleteSimulateProperty {
     public HashMap<String, IncompleteRandomProperty> randomProperties = new HashMap<>();
     public Optional<CalculateValue> hatchCount = Optional.empty();
     public Optional<Integer> startingAge = Optional.empty();
+    public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > simulateWithGroup = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > hatchEntity = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > blockReplacement = Optional.empty();
     public Optional<ArrayList< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif >> buddingBlocks = Optional.empty();
@@ -71,6 +72,7 @@ public class IncompleteSimulateProperty {
         this.increasePerHeight = otherSimulateProperty.increasePerHeight.or(() -> this.increasePerHeight);
         this.hatchEntity = otherSimulateProperty.hatchEntity.or(() -> this.hatchEntity);
         this.startingAge = otherSimulateProperty.startingAge.or(() -> this.startingAge);
+        this.simulateWithGroup = otherSimulateProperty.simulateWithGroup.or(() -> this.simulateWithGroup);
 
         for (var entry : otherSimulateProperty.randomProperties.entrySet()) {
             IncompleteRandomProperty thisRandomProperty = this.randomProperties.computeIfAbsent(entry.getKey(), k -> new IncompleteRandomProperty());
@@ -490,6 +492,18 @@ public class IncompleteSimulateProperty {
 
                     simulateProperty.randomProperties.put(keyResult.result().get(), valueResult.result().get());
                 }
+            }
+        }
+
+        {
+            T mapValue = propertyInfo.get("simulate_with_group");
+            if (mapValue != null) {
+                var result = ResourceLocation.CODEC.decode(ops, mapValue);
+                if (result.result().isEmpty()) {
+                    returnError(result);
+                }
+
+                simulateProperty.simulateWithGroup = result.result().map(Pair::getFirst);
             }
         }
 
