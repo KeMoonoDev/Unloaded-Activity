@@ -113,6 +113,24 @@ public enum FetchValue implements CalculateValue {
         }
     },
 
+    GROUP_SUM {
+        @Override
+        public double calculateValue(CalculationData data) {
+            double sum = 0;
+
+            if (data.activeGroupSimulateData == null)
+                return sum;
+
+            sum += data.activeGroupSimulateData.groupMemberInfo.value;
+
+            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
+                sum += surrounding.groupMemberInfo.value;
+            }
+
+            return sum;
+        }
+    },
+
     SUPER {
         @Override
         public boolean isSuper() {
@@ -179,6 +197,9 @@ public enum FetchValue implements CalculateValue {
             }
             case "max_snow_height" -> {
                 return Optional.of(MAX_SNOW_HEIGHT);
+            }
+            case "group_sum" -> {
+                return Optional.of(GROUP_SUM);
             }
             case "super" -> {
                 return Optional.of(SUPER);
