@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.mixin.GameRulesAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -23,8 +24,8 @@ public class GameRuleValue implements CalculateValue {
     }
 
     @Override
-    public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        GameRules gameRules = level.getGameRules();
+    public double calculateValue(CalculationData data) {
+        GameRules gameRules = data.level.getGameRules();
 
         for (var entry : ((GameRulesAccessor)gameRules).unloaded_activity$getRules().entrySet()) {
             String gameRuleId = entry.getKey().getId();
@@ -53,7 +54,7 @@ public class GameRuleValue implements CalculateValue {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public long getNextValueSwitchDuration(CalculationData data) {
         return Long.MAX_VALUE;
     }
 

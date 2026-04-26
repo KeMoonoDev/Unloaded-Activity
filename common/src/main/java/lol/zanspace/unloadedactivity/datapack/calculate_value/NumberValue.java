@@ -1,13 +1,14 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 public record NumberValue(double v) implements CalculateValue {
     @Override
-    public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public double calculateValue(CalculationData data) {
         return v;
     }
 
@@ -22,7 +23,7 @@ public record NumberValue(double v) implements CalculateValue {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public long getNextValueSwitchDuration(CalculationData data) {
         return Long.MAX_VALUE;
     }
 

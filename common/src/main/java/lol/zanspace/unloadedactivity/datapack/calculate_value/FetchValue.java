@@ -3,6 +3,7 @@ package lol.zanspace.unloadedactivity.datapack.calculate_value;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.Utils;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.mixin.CropBlockInvoker;
 import lol.zanspace.unloadedactivity.mixin.GameRulesAccessor;
 import net.minecraft.core.BlockPos;
@@ -26,80 +27,80 @@ import static lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks.getPr
 public enum FetchValue implements CalculateValue {
     GROWTH_SPEED {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+        public double calculateValue(CalculationData data) {
             #if MC_VER >= MC_1_21_1
             return ExpectPlatform.getGrowthSpeed(state, level, pos);
             #else
-            return CropBlockInvoker.invokeGetGrowthSpeed(state.getBlock(), level, pos);
+            return CropBlockInvoker.invokeGetGrowthSpeed(data.state.getBlock(), data.level, data.pos);
             #endif
         }
     },
 
     AVAILABLE_SPACE_FOR_GOURD {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-            return (Utils.isValidGourdPosition(Direction.NORTH, pos, level) ? 1 : 0)
-                + (Utils.isValidGourdPosition(Direction.EAST, pos, level) ? 1 : 0)
-                + (Utils.isValidGourdPosition(Direction.SOUTH, pos, level) ? 1 : 0)
-                + (Utils.isValidGourdPosition(Direction.WEST, pos, level) ? 1 : 0);
+        public double calculateValue(CalculationData data) {
+            return (Utils.isValidGourdPosition(Direction.NORTH, data.pos, data.level) ? 1 : 0)
+                + (Utils.isValidGourdPosition(Direction.EAST, data.pos, data.level) ? 1 : 0)
+                + (Utils.isValidGourdPosition(Direction.SOUTH, data.pos, data.level) ? 1 : 0)
+                + (Utils.isValidGourdPosition(Direction.WEST, data.pos, data.level) ? 1 : 0);
 
         }
     },
 
     RAW_BRIGHTNESS {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-            return level.getRawBrightness(pos, 0);
+        public double calculateValue(CalculationData data) {
+            return data.level.getRawBrightness(data.pos, 0);
         }
     },
 
     RAW_BRIGHTNESS_ABOVE {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-            return level.getRawBrightness(pos.above(), 0);
+        public double calculateValue(CalculationData data) {
+            return data.level.getRawBrightness(data.pos.above(), 0);
         }
     },
 
     BLOCK_BRIGHTNESS {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-            return level.getBrightness(LightLayer.BLOCK, pos);
+        public double calculateValue(CalculationData data) {
+            return data.level.getBrightness(LightLayer.BLOCK, data.pos);
         }
     },
 
     BLOCK_BRIGHTNESS_ABOVE {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-            return level.getBrightness(LightLayer.BLOCK, pos.above());
+        public double calculateValue(CalculationData data) {
+            return data.level.getBrightness(LightLayer.BLOCK, data.pos.above());
         }
     },
 
     IS_SAND_BELOW {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-            return level.getBlockState(pos.below()).is(BlockTags.SAND) ? 1 : 0;
+        public double calculateValue(CalculationData data) {
+            return data.level.getBlockState(data.pos.below()).is(BlockTags.SAND) ? 1 : 0;
         }
     },
 
     SHOULD_SNOW {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-            Biome biome = level.getBiome(pos).value();
-            return biome.shouldSnow(level, pos) ? 1 : 0;
+        public double calculateValue(CalculationData data) {
+            Biome biome = data.level.getBiome(data.pos).value();
+            return biome.shouldSnow(data.level, data.pos) ? 1 : 0;
         }
     },
 
     SHOULD_FREEZE {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-            Biome biome = level.getBiome(pos.above()).value();
-            return biome.shouldFreeze(level, pos) ? 1 : 0;
+        public double calculateValue(CalculationData data) {
+            Biome biome = data.level.getBiome(data.pos.above()).value();
+            return biome.shouldFreeze(data.level, data.pos, false) ? 1 : 0;
         }
     },
 
     MAX_SNOW_HEIGHT {
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+        public double calculateValue(CalculationData data) {
             int maxSnowHeight = #if MC_VER >= MC_1_21_11
                 level.getGameRules().get(GameRules.MAX_SNOW_ACCUMULATION_HEIGHT)
             #elif MC_VER >= MC_1_19_4
@@ -119,7 +120,7 @@ public enum FetchValue implements CalculateValue {
         }
 
         @Override
-        public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+        public double calculateValue(CalculationData data) {
             return 1;
         }
     };
@@ -135,7 +136,7 @@ public enum FetchValue implements CalculateValue {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public long getNextValueSwitchDuration(CalculationData data) {
         return Long.MAX_VALUE;
     }
 

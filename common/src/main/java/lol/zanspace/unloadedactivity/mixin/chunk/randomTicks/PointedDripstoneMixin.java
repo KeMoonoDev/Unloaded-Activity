@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin.chunk.randomTicks;
 
+import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.Utils;
@@ -145,10 +146,10 @@ public abstract class PointedDripstoneMixin extends Block {
     }
 
     @Override
-    public @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration) {
+    public @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
 
         if (!simulateProperty.isAction("dripstone"))
-            return super.simulateProperty(state, level, pos, simulateProperty, random, timePassed, randomPickOdds, calculateDuration);
+            return super.simulateProperty(state, level, pos, simulateProperty, random, timePassed, randomPickOdds, calculateDuration, groupSimulateData);
 
         BlockPos tipPos = findTip(state, level, pos, 12, false);
 
@@ -186,7 +187,7 @@ public abstract class PointedDripstoneMixin extends Block {
                 if (canGrow(dripstoneBlockState, liquidState)) {
                     if (PointedDripstoneBlock.canDrip(tip) && canTipGrow(tip, level, tipPos)) {
 
-                        var upperResult = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, lengthDifference, randomPickOdds, false, random);
+                        var upperResult = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, lengthDifference, randomPickOdds, false, random, groupSimulateData);
                         averageUpperProbability = upperResult.averageProbability();
                         totalUpperDripGrowth = upperResult.occurrences();
 
@@ -195,7 +196,7 @@ public abstract class PointedDripstoneMixin extends Block {
                                 var recalculatedDuration = OccurrencesAndDuration.recalculatedDuration(successesUntilReachGround, timePassed, averageUpperProbability, random);
                                 long leftover = timePassed - recalculatedDuration.duration();
                                 int maxGroundGrowth = min(stalagmiteGroundDistance, MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING);
-                                var lowerResult = Utils.getOccurrences(level, state, pos, level.getDayTime(), leftover, simulateProperty, maxGroundGrowth, randomPickOdds, false, random);
+                                var lowerResult = Utils.getOccurrences(level, state, pos, level.getDayTime(), leftover, simulateProperty, maxGroundGrowth, randomPickOdds, false, random, groupSimulateData);
                                 totalLowerDripGrowth = lowerResult.occurrences();
                             }
                         }

@@ -5,11 +5,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import lol.zanspace.unloadedactivity.datapack.calculate_value.*;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,9 +14,9 @@ import java.util.Optional;
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
 public interface CalculateValue {
-    double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering);
+    double calculateValue(CalculationData data);
 
-    default boolean isAffectedByWeather(ServerLevel level, BlockState state, BlockPos pos) {
+    default boolean isAffectedByWeather(CalculationData data) {
         return this.canBeAffectedByWeather();
     };
 
@@ -28,7 +24,7 @@ public interface CalculateValue {
 
     boolean canBeAffectedByTime();
 
-    long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering);
+    long getNextValueSwitchDuration(CalculationData data);
 
     /// Doesn't guarantee a clone. If a type doesn't get mutated, it's able to return itself.
     CalculateValue replicate();

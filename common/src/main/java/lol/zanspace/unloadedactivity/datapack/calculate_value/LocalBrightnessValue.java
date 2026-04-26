@@ -2,6 +2,7 @@ package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.datapack.Comparison;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -106,11 +107,11 @@ public class LocalBrightnessValue implements CalculateValue {
     public final static int MAX_DARKNESS = 11;
 
     @Override
-    public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        int blockLight = level.getBrightness(LightLayer.BLOCK, pos.offset(offset));
-        int skyLight = level.getBrightness(LightLayer.SKY, pos.offset(offset));
+    public double calculateValue(CalculationData data) {
+        int blockLight = data.level.getBrightness(LightLayer.BLOCK, data.pos.offset(offset));
+        int skyLight = data.level.getBrightness(LightLayer.SKY, data.pos.offset(offset));
 
-        int currentDarken = getCurrentSkyDarken(currentTime, isRaining, isThundering);
+        int currentDarken = getCurrentSkyDarken(data.currentTime, data.isRaining, data.isThundering);
 
         return Math.max(blockLight, skyLight - currentDarken);
     }
@@ -126,11 +127,11 @@ public class LocalBrightnessValue implements CalculateValue {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        int blockLight = level.getBrightness(LightLayer.BLOCK, pos.offset(offset));
-        int skyLight = level.getBrightness(LightLayer.SKY, pos.offset(offset));
+    public long getNextValueSwitchDuration(CalculationData data) {
+        int blockLight = data.level.getBrightness(LightLayer.BLOCK, data.pos.offset(offset));
+        int skyLight = data.level.getBrightness(LightLayer.SKY, data.pos.offset(offset));
 
-        return getNextValueSwitchDurationFromLights(blockLight, skyLight, currentTime, isRaining, isThundering);
+        return getNextValueSwitchDurationFromLights(blockLight, skyLight, data.currentTime, data.isRaining, data.isThundering);
     }
 
     public long getNextValueSwitchDurationFromLights(int blockLight, int skyLight, long currentTime, boolean isRaining, boolean isThundering) {

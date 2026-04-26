@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.datapack.Condition;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -19,19 +20,19 @@ public class ConditionalValue implements CalculateValue {
     }
 
     @Override
-    public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        if (condition.isValid(level, state, pos, currentTime, isRaining, isThundering)) {
-            return trueValue.calculateValue(level, state, pos, currentTime, isRaining, isThundering);
+    public double calculateValue(CalculationData data) {
+        if (condition.isValid(data)) {
+            return trueValue.calculateValue(data);
         } else {
-            return falseValue.calculateValue(level, state, pos, currentTime, isRaining, isThundering);
+            return falseValue.calculateValue(data);
         }
     }
 
     @Override
-    public boolean isAffectedByWeather(ServerLevel level, BlockState state, BlockPos pos) {
-        return condition.isAffectedByWeather(level, state, pos)
-                || trueValue.isAffectedByWeather(level, state, pos)
-                || falseValue.isAffectedByWeather(level, state, pos);
+    public boolean isAffectedByWeather(CalculationData data) {
+        return condition.isAffectedByWeather(data)
+                || trueValue.isAffectedByWeather(data)
+                || falseValue.isAffectedByWeather(data);
     }
 
     @Override
@@ -47,14 +48,14 @@ public class ConditionalValue implements CalculateValue {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        boolean isValid = condition.isValid(level, state, pos, currentTime, isRaining, isThundering);
-        long conditionSwitch = condition.getNextConditionSwitchDuration(level, state, pos, currentTime, isRaining, isThundering);
+    public long getNextValueSwitchDuration(CalculationData data) {
+        boolean isValid = condition.isValid(data);
+        long conditionSwitch = condition.getNextConditionSwitchDuration(data);
 
         return Math.min(
                 isValid ?
-                        trueValue.getNextValueSwitchDuration(level, state, pos, currentTime, isRaining, isThundering) :
-                        falseValue.getNextValueSwitchDuration(level, state, pos, currentTime, isRaining, isThundering)
+                        trueValue.getNextValueSwitchDuration(data) :
+                        falseValue.getNextValueSwitchDuration(data)
                 ,
                 conditionSwitch
         );

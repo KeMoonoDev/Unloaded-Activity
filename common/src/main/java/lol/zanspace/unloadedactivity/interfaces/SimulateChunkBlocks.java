@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.interfaces;
 
+import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.Utils;
@@ -62,8 +63,10 @@ public interface SimulateChunkBlocks {
         if (isFinished)
             return false;
 
+        CalculationData calculationData = new CalculationData(level, state, pos);
+
         for (Condition condition : simulateProperty.conditions) {
-            if (!condition.isValid(level, state, pos, -1, false, false)) {
+            if (!condition.isValid(calculationData)) {
                 return false;
             }
         }
@@ -138,7 +141,7 @@ public interface SimulateChunkBlocks {
 
                     if (simulateProperty.maxValue.isPresent()) {
                         CalculateValue maxValue = simulateProperty.maxValue.get();
-                        double calculated = maxValue.calculateValue(level, state, pos, 0, false, false);
+                        double calculated = maxValue.calculateValue(new CalculationData(level, state, pos));
                         max = Math.min(propertyMax, (int)calculated);
                     }
 
@@ -177,8 +180,7 @@ public interface SimulateChunkBlocks {
         return true;
     }
 
-    default @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration) {
-
+    default @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
         switch (simulateProperty.simulationType) {
             case PROPERTY -> {
                 Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
@@ -212,7 +214,7 @@ public interface SimulateChunkBlocks {
 
                 if (simulateProperty.maxValue.isPresent()) {
                     CalculateValue maxValue = simulateProperty.maxValue.get();
-                    double calculated = maxValue.calculateValue(level, state, pos, 0, false, false);
+                    double calculated = maxValue.calculateValue(new CalculationData(level, state, pos));
                     max = Math.min(propertyMax, (int)calculated);
                 }
 
@@ -276,7 +278,7 @@ public interface SimulateChunkBlocks {
                 if (updateCount <= 0)
                     return Triple.of(state, OccurrencesAndDuration.empty(), pos);
 
-                OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random);
+                OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
 
                 if (result.occurrences() == 0)
                     return Triple.of(state, result, pos);
@@ -547,7 +549,7 @@ public interface SimulateChunkBlocks {
 
                     int maxOccurrences = simulateProperty.buddingBlocks.size() - stage;
 
-                    OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, maxOccurrences, randomPickOdds, calculateDuration, random);
+                    OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, maxOccurrences, randomPickOdds, calculateDuration, random, groupSimulateData);
 
                     if (result.occurrences() == 0) {
                         continue;
@@ -585,7 +587,7 @@ public interface SimulateChunkBlocks {
                     }
                 }
 
-                OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, dayTime, timePassed, simulateProperty, 1, randomPickOdds, calculateDecayDuration, random);
+                OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, dayTime, timePassed, simulateProperty, 1, randomPickOdds, calculateDecayDuration, random, groupSimulateData);
 
                 if (result.occurrences() == 0)
                     return Triple.of(state, result, pos);
@@ -608,7 +610,7 @@ public interface SimulateChunkBlocks {
                     int hatchCount;
                     if (simulateProperty.hatchCount.isPresent()) {
                         long hatchTime = dayTime - timePassed + result.duration();
-                        hatchCount = (int)simulateProperty.hatchCount.get().calculateValue(level, oldState, pos, hatchTime, false, false);
+                        hatchCount = (int)simulateProperty.hatchCount.get().calculateValue(new CalculationData(level, oldState, pos, hatchTime));
                     } else {
                         hatchCount = 1;
                     }

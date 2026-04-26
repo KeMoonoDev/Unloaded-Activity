@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin.chunk.randomTicks;
 
+import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.Utils;
@@ -65,7 +66,7 @@ public abstract class BambooMixin extends Block implements BonemealableBlock {
     }
 
     @Override
-    public @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration) {
+    public @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (simulateProperty.isAction("grow_bamboo")) {
             int height = getHeightBelowUpToMax(level, pos);
 
@@ -77,7 +78,7 @@ public abstract class BambooMixin extends Block implements BonemealableBlock {
             int heightDifference = maxHeight - height;
             int maxGrowth = this.countAirAboveUpToMax(level,pos, heightDifference);
 
-            OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, maxGrowth, randomPickOdds, false, random);
+            OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, maxGrowth, randomPickOdds, false, random, groupSimulateData);
 
             int totalGrowth = 0;
 
@@ -118,6 +119,6 @@ public abstract class BambooMixin extends Block implements BonemealableBlock {
             }
             return Triple.of(state, result, pos);
         }
-        return super.simulateProperty(state, level, pos, simulateProperty, random, timePassed, randomPickOdds, calculateDuration);
+        return super.simulateProperty(state, level, pos, simulateProperty, random, timePassed, randomPickOdds, calculateDuration, groupSimulateData);
     }
 }

@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,19 +21,19 @@ public class PropertyValue implements CalculateValue {
     }
 
     @Override
-    public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        Optional<Property<?>> maybeProperty = getProperty(state, propertyName);
+    public double calculateValue(CalculationData data) {
+        Optional<Property<?>> maybeProperty = getProperty(data.state, propertyName);
         if (maybeProperty.isEmpty())
             return Double.NaN;
 
         Property<?> property = maybeProperty.get();
 
         if (property instanceof IntegerProperty integerProperty) {
-            return state.getValue(integerProperty);
+            return data.state.getValue(integerProperty);
         }
 
         if (property instanceof BooleanProperty booleanProperty) {
-            return state.getValue(booleanProperty) ? 1 : 0;
+            return data.state.getValue(booleanProperty) ? 1 : 0;
         }
 
         return Double.NaN;
@@ -49,7 +50,7 @@ public class PropertyValue implements CalculateValue {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public long getNextValueSwitchDuration(CalculationData data) {
         return Long.MAX_VALUE;
     }
 

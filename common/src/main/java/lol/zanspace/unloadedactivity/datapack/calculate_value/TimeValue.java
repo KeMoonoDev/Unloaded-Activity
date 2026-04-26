@@ -2,6 +2,7 @@ package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import com.mojang.datafixers.util.Pair;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,12 +19,12 @@ public class TimeValue implements CalculateValue {
     }
 
     @Override
-    public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public double calculateValue(CalculationData data) {
         if (this.list.isEmpty())
             return 0;
 
         long length = 24000;
-        long modCurrentTime = Math.floorMod(currentTime, length);
+        long modCurrentTime = Math.floorMod(data.currentTime, length);
 
         var currentPair = this.list.get(this.list.size() - 1);
 
@@ -35,7 +36,7 @@ public class TimeValue implements CalculateValue {
             }
         }
 
-        return currentPair.getSecond().calculateValue(level, state, pos, currentTime, isRaining, isThundering);
+        return currentPair.getSecond().calculateValue(data);
     }
     @Override
     public boolean canBeAffectedByWeather() {
@@ -48,12 +49,12 @@ public class TimeValue implements CalculateValue {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public long getNextValueSwitchDuration(CalculationData data) {
         if (this.list.isEmpty())
             return Long.MAX_VALUE;
 
         long length = 24000;
-        long modCurrentTime = Math.floorMod(currentTime, length);
+        long modCurrentTime = Math.floorMod(data.currentTime, length);
 
         var currentPair = this.list.get(this.list.size() - 1);
         Pair<Long, CalculateValue> nextPair = null;
@@ -71,7 +72,7 @@ public class TimeValue implements CalculateValue {
             nextPair = this.list.get(0);
         }
 
-        long currentNextOddsSwitch = currentPair.getSecond().getNextValueSwitchDuration(level, state, pos, currentTime, isRaining, isThundering);
+        long currentNextOddsSwitch = currentPair.getSecond().getNextValueSwitchDuration(data);
         long nextOddsSwitch;
 
         if (nextPair.getFirst() == currentPair.getFirst()) {

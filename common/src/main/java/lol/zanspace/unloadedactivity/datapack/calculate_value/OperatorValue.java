@@ -1,7 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
-import lol.zanspace.unloadedactivity.datapack.SimulationData;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -24,12 +24,12 @@ public class OperatorValue implements CalculateValue {
     };
 
     @Override
-    public double calculateValue(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public double calculateValue(CalculationData data) {
 
-        double value1 = value.calculateValue(level, state, pos, currentTime, isRaining, isThundering);
+        double value1 = value.calculateValue(data);
         double value2;
         if (secondaryValue != null) {
-            value2 = secondaryValue.calculateValue(level, state, pos, currentTime, isRaining, isThundering);
+            value2 = secondaryValue.calculateValue(data);
         } else {
             value2 = 0.0;
         }
@@ -56,12 +56,12 @@ public class OperatorValue implements CalculateValue {
     }
 
     @Override
-    public boolean isAffectedByWeather(ServerLevel level, BlockState state, BlockPos pos) {
-        if (value.isAffectedByWeather(level, state, pos))
+    public boolean isAffectedByWeather(CalculationData data) {
+        if (value.isAffectedByWeather(data))
             return true;
 
         if (secondaryValue != null)
-            return secondaryValue.isAffectedByWeather(level, state, pos);
+            return secondaryValue.isAffectedByWeather(data);
 
         return false;
     }
@@ -89,11 +89,11 @@ public class OperatorValue implements CalculateValue {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        long firstLong = value.getNextValueSwitchDuration(level, state, pos, currentTime, isRaining, isThundering);
+    public long getNextValueSwitchDuration(CalculationData data) {
+        long firstLong = value.getNextValueSwitchDuration(data);
 
         if (secondaryValue != null) {
-            long secondaryLong = secondaryValue.getNextValueSwitchDuration(level, state, pos, currentTime, isRaining, isThundering);
+            long secondaryLong = secondaryValue.getNextValueSwitchDuration(data);
             return Math.min(firstLong, secondaryLong);
         }
 

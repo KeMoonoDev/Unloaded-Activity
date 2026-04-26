@@ -4,8 +4,6 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.datapack.calculate_value.ConditionalValue;
-import lol.zanspace.unloadedactivity.datapack.calculate_value.FetchValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,9 +13,9 @@ import java.util.Optional;
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
 public record Condition (CalculateValue value1, CalculateValue value2, Comparison comparison) {
-    public boolean isValid(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        double calculatedValue1 = value1.calculateValue(level, state, pos, currentTime, isRaining, isThundering);
-        double calculatedValue2 = value2.calculateValue(level, state, pos, currentTime, isRaining, isThundering);
+    public boolean isValid(CalculationData data) {
+        double calculatedValue1 = value1.calculateValue(data);
+        double calculatedValue2 = value2.calculateValue(data);
         boolean result = comparison.compare(calculatedValue1, calculatedValue2);
 
         if (UnloadedActivity.config.debugLogs)
@@ -35,12 +33,12 @@ public record Condition (CalculateValue value1, CalculateValue value2, Compariso
     public boolean canBeAffectedByTime() {
         return value1.canBeAffectedByTime() || value2.canBeAffectedByTime();
     };
-    public boolean isAffectedByWeather(ServerLevel level, BlockState state, BlockPos pos) {
-        return value1.isAffectedByWeather(level, state, pos) || value2.isAffectedByWeather(level, state, pos);
+    public boolean isAffectedByWeather(CalculationData data) {
+        return value1.isAffectedByWeather(data) || value2.isAffectedByWeather(data);
     };
 
-    public long getNextConditionSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
-        return Math.min(value1.getNextValueSwitchDuration(level, state, pos, currentTime, isRaining, isThundering), value2.getNextValueSwitchDuration(level, state, pos, currentTime, isRaining, isThundering));
+    public long getNextConditionSwitchDuration(CalculationData data) {
+        return Math.min(value1.getNextValueSwitchDuration(data), value2.getNextValueSwitchDuration(data));
     };
 
     public static <T> DataResult<Condition> parse(DynamicOps<T> ops, T input) {
