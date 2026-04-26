@@ -2,6 +2,7 @@ package lol.zanspace.unloadedactivity.neoforge;
 
 import lol.zanspace.unloadedactivity.UnloadedActivityCommand;
 import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
+import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
 import net.neoforged.bus.api.SubscribeEvent;
 #if MC_VER >= MC_1_21_4
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
@@ -21,6 +22,7 @@ public class NeoForgeEventHandler {
     public void onAddReloadListener(AddServerReloadListenersEvent event) {
         event.addListener(SimulationDataResource.BLOCKS_ID, new SimulationDataResource(true));
         event.addListener(SimulationDataResource.TAGS_ID, new SimulationDataResource(false));
+        event.addListener(GroupInfoResource.GROUPS_ID, new GroupInfoResource());
     }
     #else
     @SubscribeEvent

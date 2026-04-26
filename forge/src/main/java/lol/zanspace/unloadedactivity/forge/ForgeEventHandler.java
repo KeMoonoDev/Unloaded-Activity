@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.forge;
 
 import lol.zanspace.unloadedactivity.UnloadedActivityCommand;
+import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
 import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -16,5 +17,6 @@ public class ForgeEventHandler {
     public void onAddReloadListener(AddReloadListenerEvent event) {
         event.addListener(new SimulationDataResource(true));
         event.addListener(new SimulationDataResource(false));
+        event.addListener(new GroupInfoResource());
     }
 }
