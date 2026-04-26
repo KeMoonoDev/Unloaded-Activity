@@ -8,29 +8,26 @@
         "check": "should_freeze",
         "comparison": "equal",
         "value": true
+      },
+      {
+        "check": "property:level",
+        "comparison": "equal",
+        "value": 0
       }
     ],
-    "advance_probability": 1,
-    "future_advance_probability_when_groups_gets_implemented": {
+
+    "advance_probability": {
       "predicate": {
         "check": "group_sum",
         "comparison": "not_equal",
-        "value": 4
+        "value": 5
       },
       "success": 1,
       "fail": 0
     },
     "block_replacement": "minecraft:ice",
     "drops_resources": false,
-    "group_simulate": {
-      "group_name": "unloaded_activity:ice_freezing",
-      "affecting_offsets": [
-        {"x":  0, "y":  0, "z":  1},
-        {"x":  0, "y":  0, "z":  -1},
-        {"x":  1, "y":  0, "z":  0},
-        {"x":  -1, "y":  0, "z":  0}
-      ],
-      "group_value": 1
-    }
+
+    "simulate_with_group": "unloaded_activity:water_freezing"
   }
 }

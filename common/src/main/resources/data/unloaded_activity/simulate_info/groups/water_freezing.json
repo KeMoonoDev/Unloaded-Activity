@@ -1,0 +1,8 @@
+{
+  "values": {
+    "minecraft:water": { "value": 1 }
+  },
+  "width": 1,
+  "height": 0,
+  "shape": "diamond"
+}
