@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
+import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.datapack.calculate_value.*;
 import net.minecraft.core.Vec3i;
 
@@ -116,15 +117,22 @@ public interface CalculateValue {
 
             }
 
-            DataResult<Condition> conditionResult = Condition.parse(ops, input);
+            T predicateResult = map.get("predicate");
 
-            if (conditionResult.result().isPresent()) {
+            if (predicateResult != null) {
+                DataResult<Condition> conditionResult = Condition.parse(ops, predicateResult);
+
+                if (conditionResult.result().isEmpty()) {
+                    throw new RuntimeException("Failed to parse predicate: " + conditionResult.error().get().message());
+                }
+
                 Condition condition = conditionResult.result().get();
 
-                T trueValue = map.get("true");
-                T falseValue = map.get("false");
+                T trueValue = map.get("success");
+                T falseValue = map.get("fail");
 
                 return new ConditionalValue(condition, parse(ops, trueValue), parse(ops, falseValue));
+
             }
 
 
