@@ -71,6 +71,9 @@ public abstract class LevelChunkMixin extends ChunkAccess {
             this.setLastTick(level.getDayTime());
         } else {
             this.setLastTick(protoChunk.getLastTick());
+            for (var entry : protoChunk.getLastGroupTicks().entrySet()) {
+                this.setLastGroupTick(entry.getKey(), entry.getValue());
+            }
         }
         this.setSimulationVersion(protoChunk.getSimulationVersion());
         this.setSimulationBlocks(protoChunk.getSimulationBlocks());

@@ -2,6 +2,7 @@ package lol.zanspace.unloadedactivity.mixin;
 
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -44,6 +45,12 @@ public abstract class ChunkSerializerMixin {
         chunkData.putLong("ver", chunk.getSimulationVersion());
         chunkData.putLongArray("sim_blocks", chunk.getSimulationBlocks());
 
+        CompoundTag groupLastTickData = new CompoundTag();
+        for (var entry: chunk.getLastGroupTicks().entrySet()) {
+            groupLastTickData.putLong(entry.getKey().toString(), entry.getValue());
+        }
+        chunkData.put("last_group_ticks", groupLastTickData);
+
         nbt.put("unloaded_activity", chunkData);
     }
 
@@ -68,6 +75,20 @@ public abstract class ChunkSerializerMixin {
             protoChunk.setLastTick(chunkData.getLong("last_tick"));
             protoChunk.setSimulationVersion(chunkData.getLong("ver"));
             protoChunk.setSimulationBlocks(chunkData.getLongArray("sim_blocks"));
+
+            CompoundTag groupLastTickData = chunkData.getCompound("last_group_ticks");
+
+            for (String key : groupLastTickData.getAllKeys()) {
+                long lastGroupTick = nbtCompound.getLong(key);
+                if (lastGroupTick != 0) {
+                    var maybeId = ResourceLocation.read(key);
+                    if (maybeId.result().isEmpty())
+                        continue;
+
+                    protoChunk.setLastGroupTick(maybeId.result().get(), lastGroupTick);
+                }
+
+            }
         }
 
 

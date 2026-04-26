@@ -9,6 +9,7 @@ import lol.zanspace.unloadedactivity.mixin.IntegerPropertyAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.AgeableMob;
@@ -56,6 +57,17 @@ public interface SimulateChunkBlocks {
 
     default boolean hasPrecTicks() {
         return getSimulationData().propertyMap.values().stream().anyMatch(property -> property.isPrecipitation);
+    };
+
+    default List<SimulateProperty> getGroupSimulationProperties() {
+        return getSimulationData().propertyMap.values().stream().filter(property -> property.simulateWithGroup.isPresent()).toList();
+    };
+
+    default Optional<SimulateProperty> getGroupSimulationProperty(ResourceLocation groupId) {
+        return getSimulationData().propertyMap.values()
+            .stream()
+            .filter(property -> property.simulateWithGroup.equals(Optional.of(groupId)))
+            .findFirst();
     };
 
     default boolean canSimulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty) {
