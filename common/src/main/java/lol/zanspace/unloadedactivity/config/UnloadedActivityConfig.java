@@ -2,6 +2,7 @@ package lol.zanspace.unloadedactivity.config;
 
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 
 import java.util.ArrayList;
@@ -36,6 +37,12 @@ public class UnloadedActivityConfig {
         configOptions.add(configOption);
     }
 
+    public void registerDouble(String name, double defaultValue, double minValue, double maxValue, Function<Void, Double> getter, Consumer<Double> setter) {
+        DoubleArgumentType argumentType = DoubleArgumentType.doubleArg(minValue, maxValue);
+        ConfigOption<Double> configOption = new ConfigOption<>(argumentType, name, defaultValue, getter, setter, double.class);
+        configOptions.add(configOption);
+    }
+
     public void registerBoolean(String name, boolean defaultValue, Function<Void, Boolean> getter, Consumer<Boolean> setter) {
         BoolArgumentType argumentType = BoolArgumentType.bool();
         ConfigOption<Boolean> configOption = new ConfigOption<>(argumentType, name, defaultValue, getter, setter, boolean.class);
@@ -47,6 +54,48 @@ public class UnloadedActivityConfig {
                 "tickDifferenceThreshold", tickDifferenceThreshold, 1, Integer.MAX_VALUE,
                 unused -> tickDifferenceThreshold,
                 value -> tickDifferenceThreshold = value
+        );
+
+        registerInt(
+                "groupTickDifferenceThreshold", groupTickDifferenceThreshold, 1, Integer.MAX_VALUE,
+                unused -> groupTickDifferenceThreshold,
+                value -> groupTickDifferenceThreshold = value
+        );
+
+        registerDouble(
+                "groupChunkDifferencePercentage", groupChunkDifferencePercentage, 0.0, 1.0,
+                unused -> groupChunkDifferencePercentage,
+                value -> groupChunkDifferencePercentage = value
+        );
+
+        registerInt(
+                "maxForcedChunkLoads", maxForcedChunkLoads, 0, Integer.MAX_VALUE,
+                unused -> maxForcedChunkLoads,
+                value -> maxForcedChunkLoads = value
+        );
+
+        registerInt(
+                "maxGroupTickUpdates", maxGroupTickUpdates, 0, Integer.MAX_VALUE,
+                unused -> maxGroupTickUpdates,
+                value -> maxGroupTickUpdates = value
+        );
+
+        registerInt(
+                "maxGroupTickIterations", maxGroupTickIterations, 1, Integer.MAX_VALUE,
+                unused -> maxGroupTickIterations,
+                value -> maxGroupTickIterations = value
+        );
+
+        registerDouble(
+                "groupTickUpdateStrength", groupTickUpdateStrength, 0.0, 100.0,
+                unused -> groupTickUpdateStrength,
+                value -> groupTickUpdateStrength = value
+        );
+
+        registerInt(
+                "maxGroupTickSize", maxGroupTickSize, 1, Integer.MAX_VALUE,
+                unused -> maxGroupTickSize,
+                value -> maxGroupTickSize = value
         );
 
         registerBoolean(
@@ -275,6 +324,8 @@ public class UnloadedActivityConfig {
 
     //General
     public int tickDifferenceThreshold = 100;
+    public int groupTickDifferenceThreshold = 1000;
+    public double groupChunkDifferencePercentage = 0.1;
     public int maxNegativeBinomialAttempts = 20;
     public boolean debugLogs = false;
     public boolean convertCCAData = true;
@@ -282,6 +333,11 @@ public class UnloadedActivityConfig {
     //Chunk
     public int maxChunkUpdates = 8;
     public int maxKnownChunkUpdates = 64;
+    public int maxForcedChunkLoads = 8;
+    public int maxGroupTickUpdates = 1;
+    public int maxGroupTickIterations = 1000;
+    public double groupTickUpdateStrength = 1.0;
+    public int maxGroupTickSize = 10000;
     public boolean randomizeBlockUpdates = false;
     public boolean rememberBlockPositions = true;
     public boolean multiplyMaxChunkUpdatesPerPlayer = false;
