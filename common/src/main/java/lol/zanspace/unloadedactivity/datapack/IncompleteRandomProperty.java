@@ -10,7 +10,7 @@ import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.re
 
 public class IncompleteRandomProperty {
     Optional<PropertyType> propertyType = Optional.empty();
-    Optional<Double> probability = Optional.empty();
+    Optional<Float> probability = Optional.empty();
     Optional<Integer> successValue = Optional.empty();
     Optional<Integer> failValue = Optional.empty();
 
@@ -55,7 +55,7 @@ public class IncompleteRandomProperty {
                 if (valueResult.result().isEmpty())
                     return returnError(valueResult);
 
-                randomProperty.probability = Optional.of(valueResult.result().get().doubleValue());
+                randomProperty.probability = Optional.of(valueResult.result().get().floatValue());
             }
         }
 

@@ -6,9 +6,12 @@ import com.mojang.brigadier.context.CommandContext;
 import lol.zanspace.unloadedactivity.config.UnloadedActivityConfig;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.material.WaterFluid;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
@@ -51,6 +54,39 @@ public class UnloadedActivityCommand {
 
         addConfigs(commandBuilder);
         addBenchmark(commandBuilder);
+
+        commandBuilder.then(
+                literal("check").requires(source ->
+            #if MC_VER >= MC_1_21_11
+                source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
+            #else
+                                source.hasPermission(Commands.LEVEL_OWNERS)
+            #endif
+            ).then(
+                argument("x", integer()).then(
+                    argument("y", integer()).then(
+                        argument("z", integer()).executes(context -> {
+                            try {
+                                int x = getInteger(context, "x");
+                                int y = getInteger(context, "y");
+                                int z = getInteger(context, "z");
+                                BlockPos pos = new BlockPos(x, y, z);
+                                var state = context.getSource().getLevel().getBlockState(pos);
+                                var properties = state.getProperties();
+                                String finalStr = "";
+                                for (var property: properties) {
+                                    finalStr = finalStr + property.getName() + ": " + state.getValue(property).toString() + ", ";
+                                }
+                                context.getSource().sendSystemMessage(Component.literal(finalStr));
+                            } catch (RuntimeException err) {
+                                context.getSource().sendSystemMessage(Component.literal(err.toString()));
+                            }
+                            return 1;
+                        })
+                    )
+                )
+            )
+        );
 
         dispatcher.register(commandBuilder);
     }

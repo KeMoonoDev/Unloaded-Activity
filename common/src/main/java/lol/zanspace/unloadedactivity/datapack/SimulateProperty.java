@@ -24,18 +24,18 @@ public class SimulateProperty {
     public SimulationType simulationType;
     public boolean isPrecipitation;
     public boolean requiresRain;
-    public CalculateValue advanceProbability;
+    public CalculateValue<Number> advanceProbability;
 
     public List<String> dependencies;
     public List<Condition> conditions;
-    public Optional<CalculateValue> maxValue;
+    public Optional<CalculateValue<Number>> maxValue;
     public Optional<Integer> maxHeight;
     public Optional<String> waterloggedProperty;
     public List<Direction> ignoreBuddingDirections;
     public List<RandomProperty> randomProperties;
     public Optional<String> buddingDirectionProperty;
     public Optional<Integer> startingAge;
-    public Optional<CalculateValue> hatchCount;
+    public Optional<CalculateValue<Number>> hatchCount;
 
     public Optional<Block> blockReplacement;
     public Optional<EntityType<?>> hatchEntity;

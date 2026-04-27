@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class LocalBrightnessValue implements CalculateValue {
+public class LocalBrightnessValue implements CalculateValue<Number> {
 
     Vec3i offset;
 
@@ -107,7 +107,7 @@ public class LocalBrightnessValue implements CalculateValue {
     public final static int MAX_DARKNESS = 11;
 
     @Override
-    public double calculateValue(CalculationData data) {
+    public Number calculateValue(CalculationData data) {
         int blockLight = data.level.getBrightness(LightLayer.BLOCK, data.pos.offset(offset));
         int skyLight = data.level.getBrightness(LightLayer.SKY, data.pos.offset(offset));
 
@@ -162,7 +162,7 @@ public class LocalBrightnessValue implements CalculateValue {
     @Override
     public void replaceSuper(CalculateValue superValue) {}
 
-    public long getNextConditionSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering, double target, Comparison comparison) {
+    public long getNextConditionSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering, float target, Comparison comparison) {
         int blockLight = level.getBrightness(LightLayer.BLOCK, pos.offset(offset));
         int skyLight = level.getBrightness(LightLayer.SKY, pos.offset(offset));
 

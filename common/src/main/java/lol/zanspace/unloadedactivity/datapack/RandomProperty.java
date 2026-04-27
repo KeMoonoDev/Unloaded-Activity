@@ -12,7 +12,7 @@ import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.re
 public class RandomProperty {
     public String propertyName;
     public PropertyType propertyType;
-    public double probability;
+    public float probability;
     public int successValue;
     public int failValue;
 

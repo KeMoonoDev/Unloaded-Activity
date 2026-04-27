@@ -7,20 +7,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class ConditionalValue implements CalculateValue {
+public class ConditionalValue<T> implements CalculateValue<T> {
 
     Condition condition;
-    CalculateValue trueValue;
-    CalculateValue falseValue;
+    CalculateValue<T> trueValue;
+    CalculateValue<T> falseValue;
 
-    public ConditionalValue(Condition condition, CalculateValue trueValue, CalculateValue falseValue) {
+    public ConditionalValue(Condition condition, CalculateValue<T> trueValue, CalculateValue<T> falseValue) {
         this.condition = condition;
         this.trueValue = trueValue;
         this.falseValue = falseValue;
     }
 
     @Override
-    public double calculateValue(CalculationData data) {
+    public T calculateValue(CalculationData data) {
         if (condition.isValid(data)) {
             return trueValue.calculateValue(data);
         } else {
@@ -62,12 +62,12 @@ public class ConditionalValue implements CalculateValue {
     }
 
     @Override
-    public CalculateValue replicate() {
-        return new ConditionalValue(condition, trueValue.replicate(), falseValue.replicate());
+    public CalculateValue<T> replicate() {
+        return new ConditionalValue<>(condition, trueValue.replicate(), falseValue.replicate());
     }
 
     @Override
-    public void replaceSuper(CalculateValue superValue) {
+    public void replaceSuper(CalculateValue<T> superValue) {
         if (trueValue.isSuper()) {
             trueValue = superValue;
         } else {

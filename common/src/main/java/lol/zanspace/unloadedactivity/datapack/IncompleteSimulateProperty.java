@@ -33,15 +33,15 @@ public class IncompleteSimulateProperty {
     public Optional<Boolean> increasePerHeight = Optional.empty();
     public Optional<Boolean> onlyInWater = Optional.empty();
     public Optional<Integer> updateType = Optional.empty();
-    public Optional<CalculateValue> advanceProbability = Optional.empty();
-    public Optional<CalculateValue> maxValue = Optional.empty();
+    public Optional<CalculateValue<Number>> advanceProbability = Optional.empty();
+    public Optional<CalculateValue<Number>> maxValue = Optional.empty();
     public ArrayList<Condition> conditions = new ArrayList<>();
     public Optional<String> buddingDirectionProperty = Optional.empty();
     public Optional<Integer> minWaterValue = Optional.empty();
     public Optional<String> waterloggedProperty = Optional.empty();
     public ArrayList<Direction> ignoreBuddingDirections = new ArrayList<>();
     public HashMap<String, IncompleteRandomProperty> randomProperties = new HashMap<>();
-    public Optional<CalculateValue> hatchCount = Optional.empty();
+    public Optional<CalculateValue<Number>> hatchCount = Optional.empty();
     public Optional<Integer> startingAge = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > simulateWithGroup = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > hatchEntity = Optional.empty();
@@ -116,7 +116,7 @@ public class IncompleteSimulateProperty {
     }
 
     public <T> void parseAndApplyProbability(DynamicOps<T> ops, T input) {
-        CalculateValue calculateValue = CalculateValue.parse(ops, input);
+        CalculateValue calculateValue = CalculateValue.parseNumber(ops, input);
         this.advanceProbability = Optional.of(calculateValue);
     }
 
@@ -226,7 +226,7 @@ public class IncompleteSimulateProperty {
         {
             T mapValue = propertyInfo.get("max_value");
             if (mapValue != null) {
-                CalculateValue calculateValue = CalculateValue.parse(ops, mapValue);
+                CalculateValue<Number> calculateValue = CalculateValue.parseNumber(ops, mapValue);
                 simulateProperty.maxValue = Optional.of(calculateValue);
             }
         }
@@ -376,7 +376,7 @@ public class IncompleteSimulateProperty {
         {
             T mapValue = propertyInfo.get("hatch_count");
             if (mapValue != null) {
-                var result = CalculateValue.parse(ops, mapValue);
+                CalculateValue<Number> result = CalculateValue.parseNumber(ops, mapValue);
                 simulateProperty.hatchCount = Optional.of(result);
             }
         }

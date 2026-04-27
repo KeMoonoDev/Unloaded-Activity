@@ -146,7 +146,7 @@ public abstract class PointedDripstoneMixin extends Block {
     }
 
     @Override
-    public @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, float randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
 
         if (!simulateProperty.isAction("dripstone"))
             return super.simulateProperty(state, level, pos, simulateProperty, random, timePassed, randomPickOdds, calculateDuration, groupSimulateData);
@@ -180,7 +180,7 @@ public abstract class PointedDripstoneMixin extends Block {
         int successesUntilReachGround = max(stalagmiteGroundDistance-MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING, 0);
         int successesUntilReachCauldron = max(cauldronGroundDistance-MAX_SEARCH_LENGTH_BETWEEN_STALACTITE_TIP_AND_CAULDRON, 0);
 
-        double averageUpperProbability = -1;
+        float averageUpperProbability = -1F;
 
         if (UnloadedActivity.config.growDripstone) {
             if (currentLength < MAX_GROWTH_LENGTH) {
@@ -213,7 +213,7 @@ public abstract class PointedDripstoneMixin extends Block {
             #endif;
 
             if (liquidState.is(Blocks.MUD) && !ultraWarm) {
-                double totalDripOdds = WATER_TRANSFER_PROBABILITY_PER_RANDOM_TICK * randomPickOdds;
+                float totalDripOdds = WATER_TRANSFER_PROBABILITY_PER_RANDOM_TICK * randomPickOdds;
                 int dripOccurrences = Utils.getOccurrencesBinomial(timePassed, totalDripOdds, 1, random);
                 if (dripOccurrences != 0) {
 
@@ -232,7 +232,7 @@ public abstract class PointedDripstoneMixin extends Block {
                     AbstractCauldronBlockInvoker abstractCauldronBlockInvoker = (AbstractCauldronBlockInvoker)cauldronBlock;
 
                     if (!cauldronBlock.isFull(cauldronState) && abstractCauldronBlockInvoker.canReceiveStalactiteDrip(dripstoneFluid)) {
-                        double totalDripOdds = getCauldronDripOdds(dripstoneFluid) * randomPickOdds;
+                        float totalDripOdds = getCauldronDripOdds(dripstoneFluid) * randomPickOdds;
 
                         long leftover = timePassed;
 

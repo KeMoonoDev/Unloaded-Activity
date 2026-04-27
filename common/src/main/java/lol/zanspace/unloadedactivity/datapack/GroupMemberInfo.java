@@ -1,7 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack;
 
 public class GroupMemberInfo {
-    public double value;
+    public float value;
     public GroupInfo groupInfo;
 
     public GroupMemberInfo(IncompleteGroupMemberInfo incomplete, GroupInfo groupInfo) {

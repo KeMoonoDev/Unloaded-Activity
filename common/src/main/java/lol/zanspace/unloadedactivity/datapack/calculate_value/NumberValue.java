@@ -6,9 +6,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
-public record NumberValue(double v) implements CalculateValue {
+public record NumberValue(Number v) implements CalculateValue<Number> {
     @Override
-    public double calculateValue(CalculationData data) {
+    public Number calculateValue(CalculationData data) {
         return v;
     }
 
@@ -28,10 +28,10 @@ public record NumberValue(double v) implements CalculateValue {
     }
 
     @Override
-    public CalculateValue replicate() {
+    public CalculateValue<Number> replicate() {
         return this;
     }
 
     @Override
-    public void replaceSuper(CalculateValue superValue) {}
+    public void replaceSuper(CalculateValue<Number> superValue) {}
 }

@@ -63,11 +63,11 @@ public abstract class CauldronMixin extends AbstractCauldronBlock {
     }
 
     @Override
-    public void simulatePrecTicks(BlockState state, ServerLevel level, BlockPos pos, long timeInWeather, long timePassed, Biome.Precipitation precipitation, double precipitationPickChance) {
+    public void simulatePrecTicks(BlockState state, ServerLevel level, BlockPos pos, long timeInWeather, long timePassed, Biome.Precipitation precipitation, float precipitationPickChance) {
 
         int maxCauldronLevel = LayeredCauldronBlock.MAX_FILL_LEVEL;
 
-        double totalOdds = precipitationPickChance*getFillOdds(precipitation);
+        float totalOdds = precipitationPickChance*getFillOdds(precipitation);
 
         int fill = Utils.getOccurrencesBinomial(timeInWeather, totalOdds, maxCauldronLevel,  level.random);
 

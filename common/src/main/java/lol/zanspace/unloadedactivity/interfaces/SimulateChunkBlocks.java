@@ -152,9 +152,9 @@ public interface SimulateChunkBlocks {
                     }
 
                     if (simulateProperty.maxValue.isPresent()) {
-                        CalculateValue maxValue = simulateProperty.maxValue.get();
-                        double calculated = maxValue.calculateValue(new CalculationData(level, state, pos));
-                        max = Math.min(propertyMax, (int)calculated);
+                        CalculateValue<Number> maxValue = simulateProperty.maxValue.get();
+                        Number calculated = maxValue.calculateValue(new CalculationData(level, state, pos));
+                        max = Math.min(propertyMax, calculated.intValue());
                     }
 
                     return current >= max;
@@ -192,7 +192,7 @@ public interface SimulateChunkBlocks {
         return true;
     }
 
-    default @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, double randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    default @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, float randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
         switch (simulateProperty.simulationType) {
             case PROPERTY -> {
                 Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
@@ -225,9 +225,9 @@ public interface SimulateChunkBlocks {
                 }
 
                 if (simulateProperty.maxValue.isPresent()) {
-                    CalculateValue maxValue = simulateProperty.maxValue.get();
-                    double calculated = maxValue.calculateValue(new CalculationData(level, state, pos));
-                    max = Math.min(propertyMax, (int)calculated);
+                    CalculateValue<Number> maxValue = simulateProperty.maxValue.get();
+                    Number calculated = maxValue.calculateValue(new CalculationData(level, state, pos));
+                    max = Math.min(propertyMax, calculated.intValue());
                 }
 
 
@@ -668,7 +668,7 @@ public interface SimulateChunkBlocks {
     default boolean canSimulatePrecTicks(BlockState state, ServerLevel level, BlockPos pos, long timeInWeather, Biome.Precipitation precipitation) {
         return this.implementsSimulatePrecTicks();
     }
-    default void simulatePrecTicks(BlockState state, ServerLevel level, BlockPos pos, long timeInWeather, long timePassed, Biome.Precipitation precipitation, double precipitationPickChance) {}
+    default void simulatePrecTicks(BlockState state, ServerLevel level, BlockPos pos, long timeInWeather, long timePassed, Biome.Precipitation precipitation, float precipitationPickChance) {}
 
 
 }

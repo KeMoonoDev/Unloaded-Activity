@@ -1,9 +1,6 @@
 package lol.zanspace.unloadedactivity.config;
 
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.DoubleArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.*;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -37,9 +34,9 @@ public class UnloadedActivityConfig {
         configOptions.add(configOption);
     }
 
-    public void registerDouble(String name, double defaultValue, double minValue, double maxValue, Function<Void, Double> getter, Consumer<Double> setter) {
-        DoubleArgumentType argumentType = DoubleArgumentType.doubleArg(minValue, maxValue);
-        ConfigOption<Double> configOption = new ConfigOption<>(argumentType, name, defaultValue, getter, setter, double.class);
+    public void registerFloat(String name, float defaultValue, float minValue, float maxValue, Function<Void, Float> getter, Consumer<Float> setter) {
+        FloatArgumentType argumentType = FloatArgumentType.floatArg(minValue, maxValue);
+        ConfigOption<Float> configOption = new ConfigOption<>(argumentType, name, defaultValue, getter, setter, float.class);
         configOptions.add(configOption);
     }
 
@@ -62,8 +59,8 @@ public class UnloadedActivityConfig {
                 value -> groupTickDifferenceThreshold = value
         );
 
-        registerDouble(
-                "groupChunkDifferencePercentage", groupChunkDifferencePercentage, 0.0, 1.0,
+        registerFloat(
+                "groupChunkDifferencePercentage", groupChunkDifferencePercentage, 0F, 1F,
                 unused -> groupChunkDifferencePercentage,
                 value -> groupChunkDifferencePercentage = value
         );
@@ -86,8 +83,8 @@ public class UnloadedActivityConfig {
                 value -> maxGroupTickIterations = value
         );
 
-        registerDouble(
-                "groupTickUpdateStrength", groupTickUpdateStrength, 0.0, 100.0,
+        registerFloat(
+                "groupTickUpdateStrength", groupTickUpdateStrength, 0F, 100F,
                 unused -> groupTickUpdateStrength,
                 value -> groupTickUpdateStrength = value
         );
@@ -325,7 +322,7 @@ public class UnloadedActivityConfig {
     //General
     public int tickDifferenceThreshold = 100;
     public int groupTickDifferenceThreshold = 1000;
-    public double groupChunkDifferencePercentage = 0.1;
+    public float groupChunkDifferencePercentage = 0.1F;
     public int maxNegativeBinomialAttempts = 20;
     public boolean debugLogs = false;
     public boolean convertCCAData = true;
@@ -336,7 +333,7 @@ public class UnloadedActivityConfig {
     public int maxForcedChunkLoads = 8;
     public int maxGroupTickUpdates = 1;
     public int maxGroupTickIterations = 1000;
-    public double groupTickUpdateStrength = 1.0;
+    public float groupTickUpdateStrength = 1F;
     public int maxGroupTickSize = 10000;
     public boolean randomizeBlockUpdates = false;
     public boolean rememberBlockPositions = true;

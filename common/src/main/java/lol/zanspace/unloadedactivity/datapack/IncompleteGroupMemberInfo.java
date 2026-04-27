@@ -9,7 +9,7 @@ import java.util.Optional;
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
 public class IncompleteGroupMemberInfo {
-    public Optional<Double> value;
+    public Optional<Float> value;
 
     public void merge(IncompleteGroupMemberInfo otherGroupMemberInfo) {
         this.value = otherGroupMemberInfo.value.or(() -> this.value);
@@ -20,7 +20,7 @@ public class IncompleteGroupMemberInfo {
 
         DataResult<Number> number = ops.getNumberValue(input);
         if (number.result().isPresent()) {
-            groupMemberInfo.value = Optional.of(number.result().get().doubleValue());
+            groupMemberInfo.value = Optional.of(number.result().get().floatValue());
             return DataResult.success(groupMemberInfo);
         }
 
@@ -36,7 +36,7 @@ public class IncompleteGroupMemberInfo {
             if (valueResult.result().isEmpty())
                 return returnError(valueResult);
 
-            groupMemberInfo.value = valueResult.result().map(Number::doubleValue);
+            groupMemberInfo.value = valueResult.result().map(Number::floatValue);
         }
 
         return DataResult.success(groupMemberInfo);

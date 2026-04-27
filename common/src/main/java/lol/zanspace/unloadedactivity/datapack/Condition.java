@@ -12,11 +12,11 @@ import java.util.Optional;
 
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
-public record Condition (CalculateValue value1, CalculateValue value2, Comparison comparison) {
+public record Condition (CalculateValue<Number> value1, CalculateValue<Number> value2, Comparison comparison) {
     public boolean isValid(CalculationData data) {
-        double calculatedValue1 = value1.calculateValue(data);
-        double calculatedValue2 = value2.calculateValue(data);
-        boolean result = comparison.compare(calculatedValue1, calculatedValue2);
+        Number calculatedValue1 = value1.calculateValue(data);
+        Number calculatedValue2 = value2.calculateValue(data);
+        boolean result = comparison.compare(calculatedValue1.floatValue(), calculatedValue2.floatValue());
 
         if (UnloadedActivity.config.debugLogs)
             UnloadedActivity.LOGGER.info("Checking if " + value1.getClass().getSimpleName() + " (" + calculatedValue1 + ") " + comparison.name() + " " + value2.getClass().getSimpleName() +  " (" + calculatedValue2 + ") (" + result + ")");
@@ -60,10 +60,10 @@ public record Condition (CalculateValue value1, CalculateValue value2, Compariso
             Comparison comparison = maybeComparison.get();
 
             T checkValue = map.get("check");
-            CalculateValue checkCalculateValue = CalculateValue.parse(ops, checkValue);
+            CalculateValue<Number> checkCalculateValue = CalculateValue.parseNumber(ops, checkValue);
 
             T valueValue = map.get("value");
-            CalculateValue valueCalculateValue = CalculateValue.parse(ops, valueValue);
+            CalculateValue<Number> valueCalculateValue = CalculateValue.parseNumber(ops, valueValue);
 
             return DataResult.success(new Condition(checkCalculateValue, valueCalculateValue, comparison));
         }

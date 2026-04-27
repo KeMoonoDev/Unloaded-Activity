@@ -13,7 +13,7 @@ import java.util.Optional;
 
 import static lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks.getProperty;
 
-public class PropertyValue implements CalculateValue {
+public class PropertyValue implements CalculateValue<Number> {
     private String propertyName;
 
     public PropertyValue(String propertyName) {
@@ -21,10 +21,10 @@ public class PropertyValue implements CalculateValue {
     }
 
     @Override
-    public double calculateValue(CalculationData data) {
+    public Number calculateValue(CalculationData data) {
         Optional<Property<?>> maybeProperty = getProperty(data.state, propertyName);
         if (maybeProperty.isEmpty())
-            return Double.NaN;
+            return Float.NaN;
 
         Property<?> property = maybeProperty.get();
 
@@ -36,7 +36,7 @@ public class PropertyValue implements CalculateValue {
             return data.state.getValue(booleanProperty) ? 1 : 0;
         }
 
-        return Double.NaN;
+        return Float.NaN;
     }
 
     @Override
@@ -55,12 +55,12 @@ public class PropertyValue implements CalculateValue {
     }
 
     @Override
-    public CalculateValue replicate() {
+    public CalculateValue<Number> replicate() {
         return this;
     }
 
     @Override
-    public void replaceSuper(CalculateValue superValue) {
+    public void replaceSuper(CalculateValue<Number> superValue) {
 
     }
 }

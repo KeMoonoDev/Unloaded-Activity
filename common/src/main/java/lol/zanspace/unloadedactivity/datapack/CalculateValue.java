@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
-import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.datapack.calculate_value.*;
 import net.minecraft.core.Vec3i;
 
@@ -14,8 +13,8 @@ import java.util.Optional;
 
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
-public interface CalculateValue {
-    double calculateValue(CalculationData data);
+public interface CalculateValue<T> {
+    T calculateValue(CalculationData data);
 
     default boolean isAffectedByWeather(CalculationData data) {
         return this.canBeAffectedByWeather();
@@ -28,19 +27,19 @@ public interface CalculateValue {
     long getNextValueSwitchDuration(CalculationData data);
 
     /// Doesn't guarantee a clone. If a type doesn't get mutated, it's able to return itself.
-    CalculateValue replicate();
+    CalculateValue<T> replicate();
 
-    void replaceSuper(CalculateValue superValue);
+    void replaceSuper(CalculateValue<T> superValue);
 
     default boolean isSuper() {
         return false;
     };
 
-    public static <T> CalculateValue parse(DynamicOps<T> ops, T input) {
+    public static <T> CalculateValue<Number> parseNumber(DynamicOps<T> ops, T input) {
 
         var numberValue = ops.getNumberValue(input);
         if (numberValue.result().isPresent()) {
-            return new NumberValue(numberValue.result().get().doubleValue());
+            return new NumberValue(numberValue.result().get());
         }
 
         var booleanValue = ops.getBooleanValue(input);
@@ -52,7 +51,7 @@ public interface CalculateValue {
         if (stringValue.result().isPresent()) {
             String variableName = stringValue.result().get();
 
-            Optional<FetchValue> maybeFetchValue = FetchValue.fromString(variableName);
+            Optional<FetchNumberValue> maybeFetchValue = FetchNumberValue.fromString(variableName);
             if (maybeFetchValue.isPresent()) {
                 return maybeFetchValue.get();
             }
@@ -97,19 +96,19 @@ public interface CalculateValue {
 
                 switch (operatorValue.toLowerCase()) {
                     case "+" -> {
-                        return new OperatorValue(Operator.ADD, parse(ops, value1), parse(ops, value2));
+                        return new NumberOperatorValue(Operator.ADD, parseNumber(ops, value1), parseNumber(ops, value2));
                     }
                     case "-" -> {
-                        return new OperatorValue(Operator.SUB, parse(ops, value1), parse(ops, value2));
+                        return new NumberOperatorValue(Operator.SUB, parseNumber(ops, value1), parseNumber(ops, value2));
                     }
                     case "/" -> {
-                        return new OperatorValue(Operator.DIV, parse(ops, value1), parse(ops, value2));
+                        return new NumberOperatorValue(Operator.DIV, parseNumber(ops, value1), parseNumber(ops, value2));
                     }
                     case "*" -> {
-                        return new OperatorValue(Operator.MUL, parse(ops, value1), parse(ops, value2));
+                        return new NumberOperatorValue(Operator.MUL, parseNumber(ops, value1), parseNumber(ops, value2));
                     }
                     case "floor" -> {
-                        return new OperatorValue(Operator.FLOOR, parse(ops, oneValue));
+                        return new NumberOperatorValue(Operator.FLOOR, parseNumber(ops, oneValue));
                     }
                 }
 
@@ -131,12 +130,12 @@ public interface CalculateValue {
                 T trueValue = map.get("success");
                 T falseValue = map.get("fail");
 
-                return new ConditionalValue(condition, parse(ops, trueValue), parse(ops, falseValue));
+                return new ConditionalValue(condition, parseNumber(ops, trueValue), parseNumber(ops, falseValue));
 
             }
 
 
-            ArrayList<Pair<Long, CalculateValue>> list = new ArrayList<>();
+            ArrayList<Pair<Long, CalculateValue<Number>>> list = new ArrayList<>();
             for (Iterator<Pair<T, T>> it = map.entries().iterator(); it.hasNext(); ) {
                 var pair = it.next();
                 var stringKeyResult = ops.getStringValue(pair.getFirst());
@@ -146,7 +145,7 @@ public interface CalculateValue {
                 String stringKey = stringKeyResult.result().get();
                 try {
                     long number = Long.parseLong(stringKey);
-                    list.add(Pair.of(number, parse(ops, pair.getSecond())));
+                    list.add(Pair.of(number, parseNumber(ops, pair.getSecond())));
                 } catch(NumberFormatException e){
                     throw new RuntimeException("Probability value has no valid operator key, but also doesn't only contain integer keys.");
                 }

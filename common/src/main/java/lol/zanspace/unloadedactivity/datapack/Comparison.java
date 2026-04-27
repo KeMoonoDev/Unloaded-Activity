@@ -6,42 +6,42 @@ import java.util.Optional;
 public enum Comparison {
     EQ {
         @Override
-        public boolean compare(double v1, double v2) {
+        public boolean compare(float v1, float v2) {
             return v1 == v2;
         }
     },
     NE {
         @Override
-        public boolean compare(double v1, double v2) {
+        public boolean compare(float v1, float v2) {
             return v1 != v2;
         }
     },
     LT {
         @Override
-        public boolean compare(double v1, double v2) {
+        public boolean compare(float v1, float v2) {
             return v1 < v2;
         }
     },
     LE {
         @Override
-        public boolean compare(double v1, double v2) {
+        public boolean compare(float v1, float v2) {
             return v1 <= v2;
         }
     },
     GT {
         @Override
-        public boolean compare(double v1, double v2) {
+        public boolean compare(float v1, float v2) {
             return v1 > v2;
         }
     },
     GE {
         @Override
-        public boolean compare(double v1, double v2) {
+        public boolean compare(float v1, float v2) {
             return v1 >= v2;
         }
     };
 
-    abstract public boolean compare(double v1, double v2);
+    abstract public boolean compare(float v1, float v2);
 
     public static Optional<Comparison> fromString(String comparisonString) {
         switch (comparisonString.toLowerCase()) {

@@ -2,36 +2,33 @@ package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class OperatorValue implements CalculateValue {
+public class NumberOperatorValue implements CalculateValue<Number> {
     public final Operator operator;
-    public CalculateValue value;
+    public CalculateValue<Number> value;
     @Nullable
-    public CalculateValue secondaryValue;
+    public CalculateValue<Number> secondaryValue;
 
-    public OperatorValue(Operator operator, CalculateValue value) {
+    public NumberOperatorValue(Operator operator, CalculateValue<Number> value) {
         this(operator, value, null);
     };
 
-    public OperatorValue(Operator operator, CalculateValue value, @Nullable CalculateValue secondaryValue) {
+    public NumberOperatorValue(Operator operator, CalculateValue<Number> value, @Nullable CalculateValue<Number> secondaryValue) {
         this.operator = operator;
         this.value = value;
         this.secondaryValue = secondaryValue;
     };
 
     @Override
-    public double calculateValue(CalculationData data) {
+    public Number calculateValue(CalculationData data) {
 
-        double value1 = value.calculateValue(data);
-        double value2;
+        float value1 = value.calculateValue(data).floatValue();
+        float value2;
         if (secondaryValue != null) {
-            value2 = secondaryValue.calculateValue(data);
+            value2 = secondaryValue.calculateValue(data).floatValue();
         } else {
-            value2 = 0.0;
+            value2 = 0F;
         }
 
         switch (operator) {
@@ -52,7 +49,7 @@ public class OperatorValue implements CalculateValue {
             }
         }
 
-        return 0;
+        return Float.NaN;
     }
 
     @Override
@@ -102,7 +99,7 @@ public class OperatorValue implements CalculateValue {
 
     @Override
     public CalculateValue replicate() {
-        return new OperatorValue(operator, value.replicate(), secondaryValue == null ? null : secondaryValue.replicate());
+        return new NumberOperatorValue(operator, value.replicate(), secondaryValue == null ? null : secondaryValue.replicate());
     }
 
     @Override

@@ -16,7 +16,7 @@ import java.util.Optional;
 
 import static lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks.getProperty;
 
-public class GameRuleValue implements CalculateValue {
+public class GameRuleValue implements CalculateValue<Number> {
     private String gameRuleName;
 
     public GameRuleValue(String gameRuleName) {
@@ -24,7 +24,7 @@ public class GameRuleValue implements CalculateValue {
     }
 
     @Override
-    public double calculateValue(CalculationData data) {
+    public Number calculateValue(CalculationData data) {
         GameRules gameRules = data.level.getGameRules();
 
         for (var entry : ((GameRulesAccessor)gameRules).unloaded_activity$getRules().entrySet()) {
@@ -40,7 +40,7 @@ public class GameRuleValue implements CalculateValue {
             }
         }
 
-        return Double.NaN;
+        return Float.NaN;
     }
 
     @Override
@@ -59,12 +59,12 @@ public class GameRuleValue implements CalculateValue {
     }
 
     @Override
-    public CalculateValue replicate() {
+    public CalculateValue<Number> replicate() {
         return this;
     }
 
     @Override
-    public void replaceSuper(CalculateValue superValue) {
+    public void replaceSuper(CalculateValue<Number> superValue) {
 
     }
 }

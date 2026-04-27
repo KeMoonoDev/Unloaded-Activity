@@ -26,11 +26,11 @@ public class Utils {
         return choose;
     }
 
-    public static double getRandomPickOdds(int randomTickSpeed) {
-        return 1.0-pow(1.0 - 1.0 / 4096.0, randomTickSpeed);
+    public static float getRandomPickOdds(int randomTickSpeed) {
+        return (float) (1F-pow(1F - 1F / 4096F, randomTickSpeed));
     }
 
-    public static OccurrencesAndDuration getOccurrences(ServerLevel level, BlockState state, BlockPos pos, long endTime, long cycles, SimulateProperty property, int maxOccurrences, double randomPickOdds, boolean calculateDuration, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public static OccurrencesAndDuration getOccurrences(ServerLevel level, BlockState state, BlockPos pos, long endTime, long cycles, SimulateProperty property, int maxOccurrences, float randomPickOdds, boolean calculateDuration, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (maxOccurrences <= 0)
             return OccurrencesAndDuration.empty();
 
@@ -38,9 +38,9 @@ public class Utils {
 
         long remainingCycles = cycles;
 
-        double averageProbability = 0.0;
+        float averageProbability = 0;
 
-        CalculateValue probability = property.advanceProbability;
+        CalculateValue<Number> probability = property.advanceProbability;
 
         WorldWeatherData weatherData = level.getWeatherData();
 
@@ -64,8 +64,8 @@ public class Utils {
 
             long simulateForCycles = Math.min(nextOddsSwitchDuration, remainingCycles);
 
-            double odds = probability.calculateValue(calculationData);
-            double totalOdds = odds * randomPickOdds;
+            float odds = probability.calculateValue(calculationData).floatValue();
+            float totalOdds = odds * randomPickOdds;
 
             if (UnloadedActivity.config.debugLogs)
                 UnloadedActivity.LOGGER.info("Simulating from " + currentTime + " to " + (currentTime + simulateForCycles) + " (difference: " + simulateForCycles + ") with odds " + odds);
@@ -124,7 +124,7 @@ public class Utils {
     }
 
     //41ms, 200 chunks
-    public static int getOccurrencesBinomial(long cycles, double odds, int maxOccurrences, RandomSource random) {
+    public static int getOccurrencesBinomial(long cycles, float odds, int maxOccurrences, RandomSource random) {
 
         if (odds <= 0)
             return 0;
@@ -134,7 +134,7 @@ public class Utils {
 
         double choose = 1;
 
-        double invertedOdds = 1-odds;
+        float invertedOdds = 1-odds;
 
         double totalProbability = 0;
 
@@ -145,7 +145,7 @@ public class Utils {
             if (i == cycles) return i;
 
             if (i != 0) {
-                choose *= (cycles - (i - 1))/i;
+                choose *= (cycles - (i - 1.0))/i;
             }
 
             double finalProbability = choose * pow(odds, i) * pow(invertedOdds, cycles-i); //Probability of it happening "i" times
@@ -159,11 +159,11 @@ public class Utils {
         return maxOccurrences;
     }
 
-    public static long sampleNegativeBinomial(int successes, double odds,  RandomSource random) {
+    public static long sampleNegativeBinomial(int successes, float odds, RandomSource random) {
         return samplePoisson(sampleGamma(successes, (1.0-odds)/odds, random), random);
     }
 
-    public static long sampleNegativeBinomialWithMax(long cycles, int successes, double odds, RandomSource random) {
+    public static long sampleNegativeBinomialWithMax(long cycles, int successes, float odds, RandomSource random) {
         long failedTrials = Long.MAX_VALUE;
         long attempts = 0;
         while (failedTrials > cycles && attempts < UnloadedActivity.config.maxNegativeBinomialAttempts) {
@@ -174,13 +174,13 @@ public class Utils {
 
         if (failedTrials > cycles) {
             //we have attempted this many times and the probability of this happening is probably very low.
-            //So we'll just pretend this was the output even though its not accurate at all
+            //So we'll just pretend this was the output even though it's not accurate at all
             failedTrials = (long) (random.nextDouble() * cycles);
         }
         return failedTrials;
     }
 
-    public static long sampleNegativeBinomialWithMinMax(long minCycles, long maxCycles, int successes, double odds, RandomSource random) {
+    public static long sampleNegativeBinomialWithMinMax(long minCycles, long maxCycles, int successes, float odds, RandomSource random) {
         long failedTrials = Long.MAX_VALUE;
         long attempts = 0;
         while ((failedTrials > maxCycles || failedTrials < minCycles) && attempts < 100) {

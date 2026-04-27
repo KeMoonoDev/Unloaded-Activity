@@ -40,7 +40,7 @@ public class TimeMachine {
         return msTime;
     }
 
-    public static void simulateBlockPrecipitationTick(BlockPos pos, ServerLevel level, long timeDifference, double precipitationPickChance, long timeInWeather, Biome.Precipitation precipitation) {
+    public static void simulateBlockPrecipitationTick(BlockPos pos, ServerLevel level, long timeDifference, float precipitationPickChance, long timeInWeather, Biome.Precipitation precipitation) {
         if (!UnloadedActivity.config.enablePrecipitationTicks)
             return;
 
@@ -357,8 +357,8 @@ public class TimeMachine {
             }
 
             RandomSource random = level.getRandom();
-            double randomPickOdds = Utils.getRandomPickOdds(randomTickSpeed);
-            double precipitationPickOdds = 1.0/4096.0;
+            float randomPickOdds = Utils.getRandomPickOdds(randomTickSpeed);
+            float precipitationPickOdds = 1F/4096F;
 
             if (UnloadedActivity.config.debugLogs)
                 UnloadedActivity.LOGGER.info("Simulating " + isolatedGroups.size() + " isolated groups");
@@ -380,7 +380,7 @@ public class TimeMachine {
 
                     long minNextOddsSwitchDuration = Long.MAX_VALUE;
                     long nextWeatherSwitchDuration = Long.MAX_VALUE;
-                    double maxProbability = 0.0;
+                    float maxProbability = 0F;
 
                     for (ActiveGroupSimulateData simulationData : group) {
                         BlockState state = simulationData.blockState;
@@ -396,7 +396,7 @@ public class TimeMachine {
                             nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(simulationCurrentTime);
                         }
 
-                        double pickOdds;
+                        float pickOdds;
 
                         if (simulationData.simulateProperty.isPrecipitation) {
                             pickOdds = precipitationPickOdds;
@@ -404,7 +404,7 @@ public class TimeMachine {
                             pickOdds = randomPickOdds;
                         }
 
-                        double probability = simulationData.simulateProperty.advanceProbability.calculateValue(calculationData) * pickOdds;
+                        float probability = simulationData.simulateProperty.advanceProbability.calculateValue(calculationData).floatValue() * pickOdds;
 
                         maxProbability = Math.max(probability, maxProbability);
                     }
@@ -423,7 +423,7 @@ public class TimeMachine {
                     for (ActiveGroupSimulateData simulationData : group) {
                         Block block = simulationData.blockState.getBlock();
 
-                        double pickOdds;
+                        float pickOdds;
 
                         if (simulationData.simulateProperty.isPrecipitation) {
                             pickOdds = precipitationPickOdds;
@@ -512,8 +512,8 @@ public class TimeMachine {
 
     public static void simulateBlock(BlockPos pos, ServerLevel level, long timeLeft, int randomTickSpeed, boolean allowPrecipitationTicks) {
 
-        double randomPickChance = Utils.getRandomPickOdds(randomTickSpeed);
-        double precipitationPickChance = 1.0/4096.0; //1/(16*(16*16)). 16 for the chance of the chunk doing the tick and (16*16) for the chance of a block to be picked.
+        float randomPickChance = Utils.getRandomPickOdds(randomTickSpeed);
+        float precipitationPickChance = 1F/4096F; //1/(16*(16*16)). 16 for the chance of the chunk doing the tick and (16*16) for the chance of a block to be picked.
 
         BlockState state = level.getBlockState(pos);
 
@@ -610,7 +610,7 @@ public class TimeMachine {
                     if (UnloadedActivity.config.debugLogs)
                         UnloadedActivity.LOGGER.info("Simulating property " + propertyName + " on block " + block);
 
-                    double pickChance = simulateProperty.isPrecipitation ? precipitationPickChance : randomPickChance;
+                    float pickChance = simulateProperty.isPrecipitation ? precipitationPickChance : randomPickChance;
 
                     var result = block.simulateProperty(state, level, pos, simulateProperty, level.random, simulateTime, pickChance, propertiesWithDependents.contains(propertyName), null);
                     if (result == null) {
