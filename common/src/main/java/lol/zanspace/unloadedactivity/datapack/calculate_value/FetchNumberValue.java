@@ -101,6 +101,24 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         }
     },
 
+    IS_SNOW_PRECIPITATION {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            Biome biome = data.level.getBiome(data.pos).value();
+            boolean isSnow = biome.getPrecipitation() == Biome.Precipitation.SNOW;
+            return isSnow ? 1 : 0;
+        }
+    },
+
+    IS_RAIN_PRECIPITATION {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            Biome biome = data.level.getBiome(data.pos).value();
+            boolean isRain = biome.getPrecipitation() == Biome.Precipitation.RAIN;
+            return isRain ? 1 : 0;
+        }
+    },
+
     GROUP_SUM {
         @Override
         public Number calculateValue(CalculationData data) {
@@ -185,6 +203,12 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             }
             case "max_snow_height" -> {
                 return Optional.of(MAX_SNOW_HEIGHT);
+            }
+            case "is_snow_precipitation" -> {
+                return Optional.of(IS_SNOW_PRECIPITATION);
+            }
+            case "is_rain_precipitation" -> {
+                return Optional.of(IS_RAIN_PRECIPITATION);
             }
             case "group_sum" -> {
                 return Optional.of(GROUP_SUM);
