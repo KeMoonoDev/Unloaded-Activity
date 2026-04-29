@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import static lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks.getProperty;
 
@@ -62,5 +63,10 @@ public class PropertyValue implements CalculateValue<Number> {
     @Override
     public void replaceSuper(CalculateValue<Number> superValue) {
 
+    }
+
+    @Override
+    public <U> CalculateValue<U> map(Function<Number, U> mapFunction) {
+        throw new RuntimeException("Map function not supported on this type.");
     }
 }

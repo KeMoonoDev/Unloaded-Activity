@@ -10,6 +10,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.function.Function;
+
 public class LocalBrightnessValue implements CalculateValue<Number> {
 
     Vec3i offset;
@@ -105,6 +107,11 @@ public class LocalBrightnessValue implements CalculateValue<Number> {
     }
 
     public final static int MAX_DARKNESS = 11;
+
+    @Override
+    public <U> CalculateValue<U> map(Function<Number, U> mapFunction) {
+        throw new RuntimeException("Map function not supported on this type.");
+    }
 
     @Override
     public Number calculateValue(CalculationData data) {

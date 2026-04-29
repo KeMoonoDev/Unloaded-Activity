@@ -7,6 +7,7 @@ import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 public class TimeValue<T> implements CalculateValue<T> {
     private final List<Pair<Long, CalculateValue<T>>> list;
@@ -43,6 +44,15 @@ public class TimeValue<T> implements CalculateValue<T> {
     @Override
     public boolean canBeAffectedByTime() {
         return true;
+    }
+
+    @Override
+    public <U> CalculateValue<U> map(Function<T, U> mapFunction) {
+        ArrayList<Pair<Long, CalculateValue<U>>> newList = new ArrayList<>();
+        for (var pair : list) {
+            newList.add(pair.mapSecond((tCalculateValue -> tCalculateValue.map(mapFunction))));
+        }
+        return new TimeValue<>(newList);
     }
 
     @Override

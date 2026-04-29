@@ -11,16 +11,23 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks.getProperty;
 
 public class GameRuleValue implements CalculateValue<Number> {
-    private String gameRuleName;
+    private final String gameRuleName;
 
     public GameRuleValue(String gameRuleName) {
         this.gameRuleName = gameRuleName;
+    }
+
+    @Override
+    public <U> CalculateValue<U> map(Function<Number, U> mapFunction) {
+        throw new RuntimeException("Map function not supported on this type.");
     }
 
     @Override

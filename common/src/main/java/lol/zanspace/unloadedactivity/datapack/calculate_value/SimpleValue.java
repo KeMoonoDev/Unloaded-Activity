@@ -3,6 +3,8 @@ package lol.zanspace.unloadedactivity.datapack.calculate_value;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;
 
+import java.util.function.Function;
+
 public record SimpleValue<T>(T v) implements CalculateValue<T> {
     @Override
     public T calculateValue(CalculationData data) {
@@ -31,4 +33,9 @@ public record SimpleValue<T>(T v) implements CalculateValue<T> {
 
     @Override
     public void replaceSuper(CalculateValue<T> superValue) {}
+
+    @Override
+    public <U> CalculateValue<U> map(Function<T, U> mapFunction) {
+        return new SimpleValue<>(mapFunction.apply(v));
+    }
 }

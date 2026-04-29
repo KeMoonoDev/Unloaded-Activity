@@ -7,6 +7,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.function.Function;
+
 public class ConditionalValue<T> implements CalculateValue<T> {
 
     Condition condition;
@@ -79,5 +81,10 @@ public class ConditionalValue<T> implements CalculateValue<T> {
         } else {
             falseValue.replaceSuper(superValue);
         }
+    }
+
+    @Override
+    public <U> CalculateValue<U> map(Function<T, U> mapFunction) {
+        return new ConditionalValue<>(this.condition, trueValue.map(mapFunction), falseValue.map(mapFunction));
     }
 }

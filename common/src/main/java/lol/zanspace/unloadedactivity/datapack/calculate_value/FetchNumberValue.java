@@ -11,6 +11,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.SnowLayerBlock;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 public enum FetchNumberValue implements CalculateValue<Number> {
     GROWTH_SPEED {
@@ -171,6 +172,11 @@ public enum FetchNumberValue implements CalculateValue<Number> {
 
     @Override
     public void replaceSuper(CalculateValue<Number> superValue) {}
+
+    @Override
+    public <U> CalculateValue<U> map(Function<Number, U> mapFunction) {
+        throw new RuntimeException("Map function not supported on this type.");
+    }
 
     public static Optional<FetchNumberValue> fromString(String variableName) {
         switch (variableName.toLowerCase()) {

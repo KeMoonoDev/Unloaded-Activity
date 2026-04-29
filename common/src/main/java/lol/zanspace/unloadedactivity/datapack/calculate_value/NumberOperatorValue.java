@@ -4,6 +4,8 @@ import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+
 public class NumberOperatorValue implements CalculateValue<Number> {
     public final Operator operator;
     public CalculateValue<Number> value;
@@ -19,6 +21,11 @@ public class NumberOperatorValue implements CalculateValue<Number> {
         this.value = value;
         this.secondaryValue = secondaryValue;
     };
+
+    @Override
+    public <U> CalculateValue<U> map(Function<Number, U> mapFunction) {
+        throw new RuntimeException("Map function not supported on this type.");
+    }
 
     @Override
     public Number calculateValue(CalculationData data) {

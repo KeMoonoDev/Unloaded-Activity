@@ -10,6 +10,7 @@ import net.minecraft.core.Vec3i;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
@@ -34,6 +35,8 @@ public interface CalculateValue<T> {
     default boolean isSuper() {
         return false;
     };
+
+    <U> CalculateValue<U> map(Function<T, U> mapFunction);
 
     public static <T> CalculateValue<Number> parseNumber(DynamicOps<T> ops, T input) {
 
