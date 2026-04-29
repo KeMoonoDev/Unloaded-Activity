@@ -2,13 +2,10 @@ package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.state.BlockState;
 
-public record NumberValue(Number v) implements CalculateValue<Number> {
+public record SimpleValue<T>(T v) implements CalculateValue<T> {
     @Override
-    public Number calculateValue(CalculationData data) {
+    public T calculateValue(CalculationData data) {
         return v;
     }
 
@@ -28,10 +25,10 @@ public record NumberValue(Number v) implements CalculateValue<Number> {
     }
 
     @Override
-    public CalculateValue<Number> replicate() {
+    public CalculateValue<T> replicate() {
         return this;
     }
 
     @Override
-    public void replaceSuper(CalculateValue<Number> superValue) {}
+    public void replaceSuper(CalculateValue<T> superValue) {}
 }

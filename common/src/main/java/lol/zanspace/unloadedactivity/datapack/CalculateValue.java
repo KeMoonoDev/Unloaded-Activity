@@ -39,12 +39,12 @@ public interface CalculateValue<T> {
 
         var numberValue = ops.getNumberValue(input);
         if (numberValue.result().isPresent()) {
-            return new NumberValue(numberValue.result().get());
+            return new SimpleValue<>(numberValue.result().get());
         }
 
         var booleanValue = ops.getBooleanValue(input);
         if (booleanValue.result().isPresent()) {
-            return new NumberValue(booleanValue.result().get() ? 1 : 0);
+            return new SimpleValue<>(booleanValue.result().get() ? 1 : 0);
         }
 
         var stringValue = ops.getStringValue(input);
