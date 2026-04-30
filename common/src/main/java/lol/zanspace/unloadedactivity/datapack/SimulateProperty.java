@@ -37,7 +37,7 @@ public class SimulateProperty {
     public Optional<Integer> startingAge;
     public Optional<CalculateValue<Number>> hatchCount;
 
-    public Optional<Block> blockReplacement;
+    public Optional<CalculateValue<Block>> blockReplacement;
     public Optional<EntityType<?>> hatchEntity;
 
     public int updateType;
@@ -81,7 +81,7 @@ public class SimulateProperty {
         this.simulateWithGroup = incomplete.simulateWithGroup;
 
         // Convert types.
-        this.blockReplacement = incomplete.blockReplacement.map(id -> {
+        this.blockReplacement = incomplete.blockReplacement.map(calculateValue -> calculateValue.map((id) -> {
             #if MC_VER >= MC_1_19_4
             Optional<Block> maybeBlock = BuiltInRegistries.BLOCK.getOptional(id);
             #else
@@ -91,7 +91,7 @@ public class SimulateProperty {
                 throw new RuntimeException(id + " is not a valid block.");
             }
             return maybeBlock.get();
-        });
+        }));
 
         this.hatchEntity = incomplete.hatchEntity.map(id -> {
             #if MC_VER >= MC_1_19_4

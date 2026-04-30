@@ -45,7 +45,7 @@ public class IncompleteSimulateProperty {
     public Optional<Integer> startingAge = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > simulateWithGroup = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > hatchEntity = Optional.empty();
-    public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > blockReplacement = Optional.empty();
+    public Optional<CalculateValue< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif >> blockReplacement = Optional.empty();
     public Optional<ArrayList< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif >> buddingBlocks = Optional.empty();
 
     public void merge(IncompleteSimulateProperty otherSimulateProperty) {
@@ -112,6 +112,17 @@ public class IncompleteSimulateProperty {
             this.hatchCount = Optional.of(newValue);
         } else {
             this.hatchCount = otherSimulateProperty.hatchCount.map(CalculateValue::replicate).or(() -> this.hatchCount);
+        }
+
+        if (otherSimulateProperty.blockReplacement.isPresent() && this.blockReplacement.isPresent()) {
+            var oldProbability = this.blockReplacement.get();
+            var newProbability = otherSimulateProperty.blockReplacement.get().replicate();
+
+            newProbability.replaceSuper(oldProbability);
+
+            this.blockReplacement = Optional.of(newProbability);
+        } else {
+            this.blockReplacement = otherSimulateProperty.blockReplacement.map(CalculateValue::replicate).or(() -> this.blockReplacement);
         }
     }
 
@@ -300,12 +311,14 @@ public class IncompleteSimulateProperty {
         {
             T mapValue = propertyInfo.get("block_replacement");
             if (mapValue != null) {
-                var result = ResourceLocation.CODEC.decode(ops, mapValue);
-                if (result.result().isEmpty()) {
-                    returnError(result);
-                }
-
-                simulateProperty.blockReplacement = result.result().map(Pair::getFirst);
+                CalculateValue<String> result = CalculateValue.parseString(ops, mapValue);
+                simulateProperty.blockReplacement = Optional.of(
+                    result.map((v) ->
+                        ResourceLocation.CODEC.decode(ops, mapValue)
+                            .getOrThrow(false, (s) -> {})
+                            .getFirst()
+                    )
+                );
             }
         }
 

@@ -109,7 +109,7 @@ public interface SimulateChunkBlocks {
             if (simulateProperty.maxHeight.isPresent()) {
                 int maxHeight = simulateProperty.maxHeight.get();
 
-                Block lowerBlock = simulateProperty.blockReplacement.orElse(thisBlock);
+                Block lowerBlock = simulateProperty.blockReplacement.map((blockCalculateValue -> blockCalculateValue.calculateValue(new CalculationData(level, state, pos)))).orElse(thisBlock);
 
                 int height;
                 if (simulateProperty.reverseHeightGrowthDirection) {
@@ -232,7 +232,12 @@ public interface SimulateChunkBlocks {
 
 
                 if (simulateProperty.maxHeight.isPresent() || simulateProperty.increasePerHeight) {
-                    Block lowerBlock = simulateProperty.blockReplacement.orElse(thisBlock);
+                    Block lowerBlock;
+                    if (simulateProperty.blockReplacement.isPresent()) {
+                        lowerBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                    } else {
+                        lowerBlock = thisBlock;
+                    }
 
                     int freeSpaceLimit = Integer.MAX_VALUE;
 
@@ -299,7 +304,9 @@ public interface SimulateChunkBlocks {
 
                 if (simulateProperty.increasePerHeight) {
                     if (simulateProperty.blockReplacement.isPresent()) {
-                        BlockState newState = simulateProperty.blockReplacement.get().defaultBlockState();
+                        Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+
+                        BlockState newState = newBlock.defaultBlockState();
                         for (RandomProperty randomProperty : simulateProperty.randomProperties) {
                             Optional<Property<?>> maybeNewRandomProperty = getProperty(newState, randomProperty.propertyName);
                             if (maybeNewRandomProperty.isPresent()) {
@@ -346,7 +353,8 @@ public interface SimulateChunkBlocks {
                         boolean isFinal = i+1 == result.occurrences();
 
                         if (simulateProperty.blockReplacement.isPresent() && !isFinal) {
-                            state = simulateProperty.blockReplacement.get().defaultBlockState();
+                            Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                            state = newBlock.defaultBlockState();
                         } else {
                             int newValue = current + (i + 1);
                             if (property instanceof IntegerProperty integerProperty) {
@@ -398,7 +406,8 @@ public interface SimulateChunkBlocks {
                             state = state.setValue(booleanProperty, valueRemainer > 0);
                         }
                     } else if (simulateProperty.blockReplacement.isPresent()) {
-                        BlockState newState = simulateProperty.blockReplacement.get().defaultBlockState();
+                        Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                        BlockState newState = newBlock.defaultBlockState();
                         for (RandomProperty randomProperty : simulateProperty.randomProperties) {
                             Optional<Property<?>> maybeNewRandomProperty = getProperty(newState, randomProperty.propertyName);
                             if (maybeNewRandomProperty.isPresent()) {
@@ -455,7 +464,8 @@ public interface SimulateChunkBlocks {
                                 state = thisBlock.defaultBlockState().setValue(booleanProperty, valueRemainer > 0);
                             }
                         } else if (simulateProperty.blockReplacement.isPresent()) {
-                            state = simulateProperty.blockReplacement.get().defaultBlockState();
+                            Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                            state = newBlock.defaultBlockState();
                         } else {
                             if (property instanceof IntegerProperty integerProperty) {
                                 state = thisBlock.defaultBlockState().setValue(integerProperty, belowValue);
@@ -593,7 +603,7 @@ public interface SimulateChunkBlocks {
 
                 boolean calculateDecayDuration = calculateDuration || simulateProperty.hatchEntity.isPresent();
                 if (simulateProperty.blockReplacement.isPresent()) {
-                    Block blockReplacement = simulateProperty.blockReplacement.get();
+                    Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
                     if (blockReplacement.hasRandTicks() || blockReplacement.hasPrecTicks()) {
                         calculateDecayDuration = true;
                     }
@@ -611,7 +621,8 @@ public interface SimulateChunkBlocks {
                 BlockState oldState = state;
 
                 if (simulateProperty.blockReplacement.isPresent()) {
-                    state = simulateProperty.blockReplacement.get().defaultBlockState();
+                    Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                    state = blockReplacement.defaultBlockState();
                     level.setBlock(pos, state, simulateProperty.updateType);
                 } else {
                     level.removeBlock(pos, false);
