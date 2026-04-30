@@ -38,7 +38,7 @@ public interface CalculateValue<T> {
 
     <U> CalculateValue<U> map(Function<T, U> mapFunction);
 
-    public static <T> CalculateValue<Number> parseNumber(DynamicOps<T> ops, T input) {
+    static <T> CalculateValue<Number> parseNumber(DynamicOps<T> ops, T input) {
 
         var numberValue = ops.getNumberValue(input);
         if (numberValue.result().isPresent()) {
@@ -133,7 +133,7 @@ public interface CalculateValue<T> {
                 T trueValue = map.get("success");
                 T falseValue = map.get("fail");
 
-                return new ConditionalValue(condition, parseNumber(ops, trueValue), parseNumber(ops, falseValue));
+                return new ConditionalValue<>(condition, parseNumber(ops, trueValue), parseNumber(ops, falseValue));
 
             }
 
@@ -161,6 +161,62 @@ public interface CalculateValue<T> {
 
         }
 
-        throw new RuntimeException("Invalid probability");
+        throw new RuntimeException("Invalid value");
+    }
+
+    static <T> CalculateValue<String> parseString(DynamicOps<T> ops, T input) {
+
+        var stringValue = ops.getStringValue(input);
+        if (stringValue.result().isPresent()) {
+            return new SimpleValue<>(stringValue.result().get());
+        }
+
+        var mapValue = ops.getMap(input);
+        if (mapValue.result().isPresent()) {
+            MapLike<T> map = mapValue.result().get();
+
+            T predicateResult = map.get("predicate");
+
+            if (predicateResult != null) {
+                DataResult<Condition> conditionResult = Condition.parse(ops, predicateResult);
+
+                if (conditionResult.result().isEmpty()) {
+                    throw new RuntimeException("Failed to parse predicate: " + conditionResult.error().get().message());
+                }
+
+                Condition condition = conditionResult.result().get();
+
+                T trueValue = map.get("success");
+                T falseValue = map.get("fail");
+
+                return new ConditionalValue<>(condition, parseString(ops, trueValue), parseString(ops, falseValue));
+
+            }
+
+
+            ArrayList<Pair<Long, CalculateValue<String>>> list = new ArrayList<>();
+            for (Iterator<Pair<T, T>> it = map.entries().iterator(); it.hasNext(); ) {
+                var pair = it.next();
+                var stringKeyResult = ops.getStringValue(pair.getFirst());
+                if (stringKeyResult.error().isPresent()) {
+                    throw new RuntimeException(stringKeyResult.error().get().message());
+                }
+                String stringKey = stringKeyResult.result().get();
+                try {
+                    long number = Long.parseLong(stringKey);
+                    list.add(Pair.of(number, parseString(ops, pair.getSecond())));
+                } catch(NumberFormatException e){
+                    throw new RuntimeException("Probability value has no valid operator key, but also doesn't only contain integer keys.");
+                }
+            }
+            if (list.isEmpty()) {
+                throw new RuntimeException("Probability value has no keys.");
+            }
+
+            return new TimeValue<>(list);
+
+        }
+
+        throw new RuntimeException("Invalid value");
     }
 }
