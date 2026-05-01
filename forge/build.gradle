@@ -34,7 +34,11 @@ configurations {
 dependencies {
     forge "net.minecraftforge:forge:$rootProject.neo_or_forge_version"
 
-    modApi ("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_version}")
+    if (rootProject.include_extra_dependencies == "true") {
+        modApi ("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_version}")
+    } else {
+        modCompileOnlyApi ("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_version}")
+    }
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionForge')

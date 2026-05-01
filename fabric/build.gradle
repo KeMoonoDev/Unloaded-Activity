@@ -46,7 +46,7 @@ dependencies {
         include(fabricApi.module(it, rootProject.fabric_api_version + "+" + rootProject.minecraft_version))
     }
 
-    if (rootProject.include_extra_dependencies == true) {
+    if (rootProject.include_extra_dependencies == "true") {
         modImplementation "com.terraformersmc:modmenu:${rootProject.modmenu_version}"
 
         if (buildProperties.MC_VER > buildProperties.MC_1_19_2) {
