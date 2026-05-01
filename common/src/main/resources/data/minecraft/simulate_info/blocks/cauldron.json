@@ -1,0 +1,52 @@
+{
+  "first_fill": {
+    "is_precipitation": true,
+    "simulation_type": "decay",
+    "conditions": [
+      {
+        "check": {
+          "value1": "is_snow_precipitation",
+          "operator": "+",
+          "value2": "is_rain_precipitation"
+        },
+        "comparison": "greater_than",
+        "value": 0
+      }
+    ],
+    "block_replacement": {
+      "predicate": {
+        "check": "is_rain_precipitation",
+        "comparison": "equal",
+        "value": true
+      },
+      "success": "minecraft:water_cauldron",
+      "fail": {
+        "predicate": {
+          "check": "is_snow_precipitation",
+          "comparison": "equal",
+          "value": true
+        },
+        "success": "minecraft:powder_snow_cauldron",
+        "fail": "minecraft:air"
+      }
+    },
+    "drops_resources": false,
+    "advance_probability": {
+      "predicate": {
+        "check": "is_rain_precipitation",
+        "comparison": "equal",
+        "value": true
+      },
+      "success": 0.05,
+      "fail": {
+        "predicate": {
+          "check": "is_snow_precipitation",
+          "comparison": "equal",
+          "value": true
+        },
+        "success": 0.1,
+        "fail": 0
+      }
+    }
+  }
+}
