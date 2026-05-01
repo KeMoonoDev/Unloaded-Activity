@@ -312,13 +312,7 @@ public class IncompleteSimulateProperty {
             T mapValue = propertyInfo.get("block_replacement");
             if (mapValue != null) {
                 CalculateValue<String> result = CalculateValue.parseString(ops, mapValue);
-                simulateProperty.blockReplacement = Optional.of(
-                    result.map((v) ->
-                        ResourceLocation.CODEC.decode(ops, mapValue)
-                            .getOrThrow(false, (s) -> {})
-                            .getFirst()
-                    )
-                );
+                simulateProperty.blockReplacement = Optional.of(result.map(ResourceLocation::tryParse));
             }
         }
 
