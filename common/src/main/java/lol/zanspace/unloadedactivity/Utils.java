@@ -57,7 +57,7 @@ public class Utils {
             CalculationData calculationData = new CalculationData(level, state, pos, currentTime, isRaining, false, groupSimulateData);
 
             long nextOddsSwitchDuration = probability.getNextValueSwitchDuration(calculationData);
-            if (probability.isAffectedByWeather(calculationData)) {
+            if (probability.isAffectedByWeather(calculationData) || property.requiresRain) {
                 long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
                 nextOddsSwitchDuration = Math.min(nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }

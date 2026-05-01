@@ -139,7 +139,7 @@ public class WorldWeatherData extends SavedData {
     }
 
     public boolean getWeatherAtTime(long currentTime) {
-        int indexOffset = shouldCheckForRain() ? 0 : 1;
+        int indexOffset = shouldCheckForRain() ? 1 : 0;
         for (int i=this.weatherList.size() - 1;i>=0;i--) {
             if (this.weatherList.get(i) > currentTime) {
                 // If this passes the first index, it should be false (no weather) because it's outside the history range.
