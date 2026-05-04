@@ -1,13 +1,19 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+import lol.zanspace.unloadedactivity.GroupChunkIndex;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
+import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
+import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
+import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import net.minecraft.core.Registry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.levelgen.blending.BlendingData;
@@ -19,7 +25,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Mixin(LevelChunk.class)
 public abstract class LevelChunkMixin extends ChunkAccess {
@@ -50,19 +59,41 @@ public abstract class LevelChunkMixin extends ChunkAccess {
     #else
     public void blockChanged(BlockPos blockPos, BlockState blockState, boolean bl, CallbackInfoReturnable<BlockState> cir) {
     #endif
-        if (level.isClientSide() || !UnloadedActivity.config.rememberBlockPositions)
+        if (level.isClientSide())
             return;
 
-        if (UnloadedActivity.config.debugLogs)
-            UnloadedActivity.LOGGER.info("Placed "+blockState.getBlock().toString()+" at "+blockPos);
-
-        if (!blockState.getBlock().hasRandTicks())
-            return;
+        Block block = blockState.getBlock();
 
         if (UnloadedActivity.config.debugLogs)
-            UnloadedActivity.LOGGER.info("Adding position to list "+blockPos.asLong());
+            UnloadedActivity.LOGGER.info("Placed "+block+" at "+blockPos);
 
-        this.addSimulationBlock(blockPos.asLong());
+        List<GroupMemberInfo> memberInfoList = GroupInfoResource.getBlockMemberInfo(block);
+
+        if (!memberInfoList.isEmpty()) {
+            HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = this.getGroupIndexes();
+
+            for (var memberInfo : memberInfoList) {
+                var groupId = memberInfo.groupInfo.id;
+                if (UnloadedActivity.config.debugLogs)
+                    UnloadedActivity.LOGGER.info("Adding position to group list " + groupId + " " + blockPos.asLong());
+
+                var positions = groupIndexes
+                        .computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), this.getLastTick(), id))
+                        .getPositions();
+
+                if (positions.contains(blockPos.asLong()))
+                    continue;
+
+                positions.add(blockPos.asLong());
+            }
+        }
+
+        if (block.hasRandTicks()) {
+            if (UnloadedActivity.config.debugLogs)
+                UnloadedActivity.LOGGER.info("Adding position to chunk list "+blockPos.asLong());
+
+            this.addSimulationBlock(blockPos.asLong());
+        }
     }
 
     @Inject(method = "<init>(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/chunk/ProtoChunk;Lnet/minecraft/world/level/chunk/LevelChunk$PostLoadProcessor;)V", at = @At("RETURN"))
@@ -71,10 +102,8 @@ public abstract class LevelChunkMixin extends ChunkAccess {
             this.setLastTick(level.getDayTime());
         } else {
             this.setLastTick(protoChunk.getLastTick());
-            for (var entry : protoChunk.getLastGroupTicks().entrySet()) {
-                this.setLastGroupTick(entry.getKey(), entry.getValue());
-            }
         }
+        this.setGroupIndexes(protoChunk.getGroupIndexes());
         this.setSimulationVersion(protoChunk.getSimulationVersion());
         this.setSimulationBlocks(protoChunk.getSimulationBlocks());
     }

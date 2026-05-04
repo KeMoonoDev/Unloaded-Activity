@@ -24,7 +24,10 @@ import java.util.*;
 public class TimeMachine {
     public static long simulateChunk(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
         if (!UnloadedActivity.config.enableRandomTicks || !UnloadedActivity.config.enablePrecipitationTicks) return 0;
-        
+
+        // TODO: Do this over time elsewhere, and don't simulate chunks that haven't been indexed.
+        indexChunk(chunk);
+
         long now = 0;
         if (UnloadedActivity.config.debugLogs) now = Instant.now().toEpochMilli();
 
@@ -53,79 +56,90 @@ public class TimeMachine {
         block.simulatePrecTicks(state, level, pos, timeInWeather, timeDifference, precipitation, precipitationPickChance);
     }
 
-    public static List<BlockPos> getRandomTickableBlocks(LevelChunk chunk) {
-        Level level = chunk.getLevel();
+    public static boolean isChunkIndexed(LevelChunk chunk) {
+        return chunk.getSimulationVersion() == UnloadedActivity.chunkSimVer;
+    }
+
+    public static void indexChunk(LevelChunk chunk) {
+        if (isChunkIndexed(chunk))
+            return;
 
         #if MC_VER >= MC_1_21_3
-        int minY = level.getMinY();
-        int maxY = level.getMaxY();
+        int minY = chunk.getMinY();
+        int maxY = chunk.getMaxY();
         #else
-        int minY = level.getMinBuildHeight();
-        int maxY = level.getMaxBuildHeight();
+        int minY = chunk.getMinBuildHeight();
+        int maxY = chunk.getMaxBuildHeight();
         #endif
 
-        ArrayList<BlockPos> blockPosArray = new ArrayList<>();
-
         ArrayList<Long> newSimulationBlocks = new ArrayList<>();
+        HashMap<ResourceLocation, GroupChunkIndex> newGroupIndexes = new HashMap<>();
 
-        if (UnloadedActivity.config.rememberBlockPositions && chunk.getSimulationVersion() == UnloadedActivity.chunkSimVer) {
+        if (UnloadedActivity.config.debugLogs)
+            UnloadedActivity.LOGGER.info("Looping through entire chunk.");
 
-            ArrayList<Long> currentSimulationBlocks = chunk.getSimulationBlocks();
+        for (int z = 0; z < 16; z++) {
+            for (int x = 0; x < 16; x++) {
+                for (int y = minY; y < maxY; y++) {
+                    BlockPos blockPos = chunk.getPos().getBlockAt(x, y, z);
+                    BlockState state = chunk.getBlockState(blockPos);
+                    Block block = state.getBlock();
+                    if (block.hasRandTicks()) {
+                        newSimulationBlocks.add(blockPos.asLong());
+                    }
 
-            if (UnloadedActivity.config.debugLogs)
-                UnloadedActivity.LOGGER.info("Looping through "+currentSimulationBlocks.size()+" known positions.");
-
-            boolean removedSomething = false;
-
-            for (long longPos : currentSimulationBlocks) {
-                BlockPos pos = BlockPos.of(longPos);
-                BlockState state = level.getBlockState(pos);
-                Block block = state.getBlock();
-                if (block.hasRandTicks()) {
-                    newSimulationBlocks.add(longPos);
-                    blockPosArray.add(pos);
-                } else {
-                    removedSomething = true;
+                    for (var groupSimulationProperty : block.getGroupSimulationProperties()) {
+                        var groupId = groupSimulationProperty.simulateWithGroup.orElseThrow();
+                        GroupChunkIndex groupIndex = newGroupIndexes.computeIfAbsent(groupId, (k) -> new GroupChunkIndex(new ArrayList<>(), chunk.getLastTick(), groupId));
+                        groupIndex.getPositions().add(blockPos.asLong());
+                    }
                 }
             }
-            if (removedSomething) {
-                chunk.setSimulationBlocks(newSimulationBlocks);
-                if (UnloadedActivity.config.debugLogs)
-                    UnloadedActivity.LOGGER.info("Removed "+(currentSimulationBlocks.size()-newSimulationBlocks.size())+" positions.");
-            }
+        }
+        chunk.setSimulationBlocks(newSimulationBlocks);
+        chunk.setGroupIndexes(newGroupIndexes);
+        chunk.setSimulationVersion(UnloadedActivity.chunkSimVer);
+        #if MC_VER >= MC_1_21_3
+        chunk.markUnsaved();
+        #else
+        chunk.setUnsaved(true);
+        #endif
+    }
 
-        } else {
+    /// Returns positions of blocks that implement random ticks.
+    public static ArrayList<BlockPos> getRandomTickableBlocks(LevelChunk chunk) {
+        indexChunk(chunk);
+
+        ArrayList<Long> currentSimulationBlocks = chunk.getSimulationBlocks();
+
+        ArrayList<BlockPos> blockPosArray = new ArrayList<>(currentSimulationBlocks.size());
+
+        if (UnloadedActivity.config.debugLogs)
+            UnloadedActivity.LOGGER.info("Looping through "+currentSimulationBlocks.size()+" known positions.");
+
+        int prevSize = currentSimulationBlocks.size();
+
+        currentSimulationBlocks.removeIf((longPos) -> {
+            BlockPos pos = BlockPos.of(longPos);
+            BlockState state = chunk.getBlockState(pos);
+            Block block = state.getBlock();
+            boolean hasRandTicks = block.hasRandTicks();
+            if (hasRandTicks)
+                blockPosArray.add(pos);
+            return !hasRandTicks;
+        });
+
+        int removedCount = prevSize - currentSimulationBlocks.size();
+
+        if (removedCount > 0) {
             if (UnloadedActivity.config.debugLogs)
-                UnloadedActivity.LOGGER.info("Looping through entire chunk.");
-
-            for (int z=0; z<16;z++)
-                for (int x=0; x<16;x++)
-                    for (int y=minY; y<maxY;y++) {
-                        BlockPos chunkBlockPos = new BlockPos(x,y,z);
-                        ChunkPos chunkPos = chunk.getPos();
-                        BlockPos worldBlockPos = chunkBlockPos.offset(chunkPos.x*16,0,chunkPos.z*16);
-                        BlockState state = chunk.getBlockState(chunkBlockPos);
-                        Block block = state.getBlock();
-                        if (block.hasRandTicks()) {
-                            blockPosArray.add(worldBlockPos);
-                            if (UnloadedActivity.config.rememberBlockPositions)
-                                newSimulationBlocks.add(worldBlockPos.asLong());
-                        }
-                    }
-            if (UnloadedActivity.config.rememberBlockPositions) {
-                chunk.setSimulationBlocks(newSimulationBlocks);
-                chunk.setSimulationVersion(UnloadedActivity.chunkSimVer);
-                #if MC_VER >= MC_1_21_3
-                chunk.markUnsaved();
-                #else
-                chunk.setUnsaved(true);
-                #endif
-            }
+                UnloadedActivity.LOGGER.info("Removed "+ removedCount +" positions.");
         }
 
         return blockPosArray;
     }
 
+    /// Returns positions of blocks that implement precipitation ticks.
     public static List<BlockPos> getPrecipitationTickableBlocks(LevelChunk chunk) {
         Level level = chunk.getLevel();
 
@@ -151,54 +165,37 @@ public class TimeMachine {
         return precipitationBlocks;
     }
 
-    public static Map<ResourceLocation, List<Triple<BlockPos, BlockState, SimulateProperty>>> getGroupSimulationsInChunk(LevelChunk chunk) {
-        Map<ResourceLocation, List<Triple<BlockPos, BlockState, SimulateProperty>>> groupSimulations = new HashMap<>();
-
-        List<BlockPos> randomTickBlocks = getRandomTickableBlocks(chunk);
-        List<BlockPos> precipitationTickBlocks = getPrecipitationTickableBlocks(chunk);
-
-        // Merge randomTickBlocks and precipitationTickBlocks without duplicates.
-        List<BlockPos> potentialBlocks = new ArrayList<>(precipitationTickBlocks);
-        potentialBlocks.removeAll(randomTickBlocks);
-        potentialBlocks.addAll(randomTickBlocks);
-
-        for (BlockPos blockPos : potentialBlocks) {
-            BlockState blockState = chunk.getBlockState(blockPos);
-            Block block = blockState.getBlock();
-            List<SimulateProperty> simulateProperties = block.getGroupSimulationProperties();
-            for (SimulateProperty simulateProperty : simulateProperties) {
-                var groupId = simulateProperty.simulateWithGroup.orElseThrow();
-
-                List<Triple<BlockPos, BlockState, SimulateProperty>> positions = groupSimulations.computeIfAbsent(groupId, (s) -> new ArrayList<>());
-                positions.add(Triple.of(blockPos, blockState, simulateProperty));
-            }
-        }
-
-        return groupSimulations;
-    }
-
     // This doesn't take a timeDifference parameter because that is supposed to be calculated in the function using the last group tick.
     public static void simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
-        Map<ResourceLocation, List<Triple<BlockPos, BlockState, SimulateProperty>>> groups = getGroupSimulationsInChunk(chunk);
+        Map<ResourceLocation, GroupChunkIndex> groupIndexes = chunk.getGroupIndexes();
 
         long currentTime = level.getDayTime();
-        for (var entry : groups.entrySet()) {
+        for (var entry : groupIndexes.entrySet()) {
             ResourceLocation groupId = entry.getKey();
             GroupInfo groupInfo = GroupInfoResource.GROUPS_MAP.get(groupId);
 
             if (groupInfo == null)
                 continue;
 
-            long lastGroupTick = chunk.getLastGroupTick(groupId);
+            GroupChunkIndex groupChunkIndex = entry.getValue();
+
+            if (groupChunkIndex == null)
+                continue;
+
+            long lastGroupTick = groupChunkIndex.getLastTick(chunk.getLastTick());
             long groupTimeDifference = Math.max(currentTime - lastGroupTick, 0);
 
             if (groupTimeDifference <= UnloadedActivity.config.groupTickDifferenceThreshold) {
-                chunk.setLastGroupTick(groupId, level.getDayTime());
+                groupChunkIndex.setLastTick(level.getDayTime());
                 continue;
             }
 
-            List<Triple<BlockPos, BlockState, SimulateProperty>> pendingBlockPositions = new ArrayList<>();
-            List<Triple<BlockPos, BlockState, SimulateProperty>> checkingBlockPositions = new ArrayList<>(entry.getValue());
+
+
+            List<ActiveGroupSimulateData> pendingBlockPositions = new ArrayList<>();
+            List<ActiveGroupSimulateData> checkingBlockPositions = groupChunkIndex.getAndFilterBlocks(chunk);
+
+            List<ActiveGroupSimulateData> toBeAddedToMap = checkingBlockPositions;
 
             Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap = new HashMap<>(UnloadedActivity.config.maxGroupTickSize);
 
@@ -208,36 +205,30 @@ public class TimeMachine {
 
             // Populate activeGroupDataMap
             while (!checkingBlockPositions.isEmpty()) {
+                if (!toBeAddedToMap.isEmpty()) {
+                    for (var groupSimulateData : toBeAddedToMap) {
+                        activeGroupDataMap.put(groupSimulateData.position, groupSimulateData);
+                        if (groupSimulateData.simulateProperty.isPresent()) {
+                            SimulateProperty someSimulateProperty = groupSimulateData.simulateProperty.get();
+                            Block block = groupSimulateData.blockState.getBlock();
+                            groupSimulateData.isActive = block.canSimulateProperty(groupSimulateData.blockState, level, groupSimulateData.position, someSimulateProperty);
+                        }
+                    }
+                    toBeAddedToMap = new ArrayList<>();
+                }
+
                 Set<ChunkPos> newChunks = new HashSet<>();
 
                 List<ActiveGroupSimulateData> finalizingBlockData = new ArrayList<>(checkingBlockPositions.size());
 
                 // Loop through all blocks.
                 // Separate blocks that wants info from another chunk and blocks that have everything they need.
-                for (var info : checkingBlockPositions) {
-                    BlockPos blockPos = info.getLeft();
-                    BlockState state = info.getMiddle();
-                    SimulateProperty simulateProperty = info.getRight();
-
-                    Optional<GroupMemberInfo> maybeGroupMemberInfo = GroupInfoResource.getBlockMemberInfo(state.getBlock())
-                        .stream()
-                        .filter((groupMemberInfo -> groupMemberInfo.groupInfo == groupInfo))
-                        .findFirst();
-
-                    if (maybeGroupMemberInfo.isEmpty())
-                        continue;
-
-                    GroupMemberInfo groupMemberInfo = maybeGroupMemberInfo.get();
-
-                    boolean isActive = state.getBlock().canSimulateProperty(state, level, blockPos, simulateProperty);
-
-                    ActiveGroupSimulateData activeGroupSimulateData = activeGroupDataMap.computeIfAbsent(blockPos, (pos) -> new ActiveGroupSimulateData(blockPos, state, simulateProperty, groupMemberInfo, isActive));
-
+                for (var groupSimulateData : checkingBlockPositions) {
                     boolean intersectsNewChunks = false;
 
-                    if (isActive) {
+                    if (groupSimulateData.isActive) {
                         for (var offset : groupInfo.iterateOffsets()) {
-                            ChunkPos chunkPos = new ChunkPos(blockPos.offset(offset));
+                            ChunkPos chunkPos = new ChunkPos(groupSimulateData.position.offset(offset));
                             boolean isNewChunk = !checkedChunks.contains(chunkPos);
                             if (isNewChunk) {
                                 newChunks.add(chunkPos);
@@ -247,9 +238,9 @@ public class TimeMachine {
                     }
 
                     if (intersectsNewChunks) {
-                        pendingBlockPositions.add(info);
+                        pendingBlockPositions.add(groupSimulateData);
                     } else {
-                        finalizingBlockData.add(activeGroupSimulateData);
+                        finalizingBlockData.add(groupSimulateData);
                     }
                 }
 
@@ -291,24 +282,28 @@ public class TimeMachine {
                     }
 
                     LevelChunk newChunk = level.getChunk(newChunkPos.x, newChunkPos.z);
-                    long newLastGroupTick = newChunk.getLastGroupTick(groupId);
+                    GroupChunkIndex newGroupChunkIndex = newChunk.getGroupIndexes().get(groupId);
+
+                    if (newGroupChunkIndex == null)
+                        continue;
+
+                    long newLastGroupTick = newGroupChunkIndex.getLastTick(newChunk.getLastTick());
                     long differenceFromMainChunk = lastGroupTick - newLastGroupTick;
                     long differencePercentage = Math.abs(differenceFromMainChunk / groupTimeDifference);
 
                     if (differencePercentage > UnloadedActivity.config.groupChunkDifferencePercentage)
                         continue;
 
-                    var newGroups = getGroupSimulationsInChunk(newChunk);
-                    List<Triple<BlockPos, BlockState, SimulateProperty>> newInfo = newGroups.getOrDefault(groupId, List.of());
-                    int newTotalSize = activeGroupDataMap.size() + newInfo.size();
+                    List<ActiveGroupSimulateData> newData = newGroupChunkIndex.getAndFilterBlocks(newChunk);
+                    int newTotalSize = activeGroupDataMap.size() + newData.size();
 
                     if (newTotalSize > UnloadedActivity.config.maxGroupTickSize)
                         continue;
 
 
-                    newChunk.setLastGroupTick(groupId, level.getDayTime());
-
-                    checkingBlockPositions.addAll(newInfo);
+                    newGroupChunkIndex.setLastTick(level.getDayTime());
+                    toBeAddedToMap.addAll(newData);
+                    checkingBlockPositions.addAll(newData);
                 }
 
                 // Prepare for next loop.
@@ -383,28 +378,34 @@ public class TimeMachine {
                     float maxProbability = 0F;
 
                     for (ActiveGroupSimulateData simulationData : group) {
+                        if (!simulationData.isActive)
+                            continue;
+
+                        // For isActive to return true, there must be a simulateProperty present.
+                        SimulateProperty simulateProperty = simulationData.simulateProperty.orElseThrow();
+
                         BlockState state = simulationData.blockState;
                         BlockPos pos = simulationData.position;
                         boolean isRaining = weatherData.getWeatherAtTime(simulationCurrentTime);
 
                         CalculationData calculationData = new CalculationData(level, state, pos, simulationCurrentTime, isRaining, false, simulationData);
 
-                        long nextOddsSwitchDuration = simulationData.simulateProperty.advanceProbability.getNextValueSwitchDuration(calculationData);
+                        long nextOddsSwitchDuration = simulateProperty.advanceProbability.getNextValueSwitchDuration(calculationData);
                         minNextOddsSwitchDuration = Math.min(minNextOddsSwitchDuration, nextOddsSwitchDuration);
 
-                        if (nextWeatherSwitchDuration == Long.MAX_VALUE && simulationData.simulateProperty.advanceProbability.isAffectedByWeather(calculationData)) {
+                        if (nextWeatherSwitchDuration == Long.MAX_VALUE && simulateProperty.advanceProbability.isAffectedByWeather(calculationData)) {
                             nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(simulationCurrentTime);
                         }
 
                         float pickOdds;
 
-                        if (simulationData.simulateProperty.isPrecipitation) {
+                        if (simulateProperty.isPrecipitation) {
                             pickOdds = precipitationPickOdds;
                         } else {
                             pickOdds = randomPickOdds;
                         }
 
-                        float probability = simulationData.simulateProperty.advanceProbability.calculateValue(calculationData).floatValue() * pickOdds;
+                        float probability = simulateProperty.advanceProbability.calculateValue(calculationData).floatValue() * pickOdds;
 
                         maxProbability = Math.max(probability, maxProbability);
                     }
@@ -421,17 +422,23 @@ public class TimeMachine {
                     ArrayList<Pair<ActiveGroupSimulateData, GroupMemberInfo>> pendingUpdateMembership = new ArrayList<>();
 
                     for (ActiveGroupSimulateData simulationData : group) {
+                        if (!simulationData.isActive)
+                            continue;
+
+                        // For isActive to return true, there must be a simulateProperty present.
+                        SimulateProperty simulateProperty = simulationData.simulateProperty.orElseThrow();
+
                         Block block = simulationData.blockState.getBlock();
 
                         float pickOdds;
 
-                        if (simulationData.simulateProperty.isPrecipitation) {
+                        if (simulateProperty.isPrecipitation) {
                             pickOdds = precipitationPickOdds;
                         } else {
                             pickOdds = randomPickOdds;
                         }
 
-                        var result = block.simulateProperty(simulationData.blockState, level, simulationData.position, simulationData.simulateProperty, random, simulationStepDuration, pickOdds, false, simulationData);
+                        var result = block.simulateProperty(simulationData.blockState, level, simulationData.position, simulateProperty, random, simulationStepDuration, pickOdds, false, simulationData);
 
                         if (result == null) {
                             pendingRemoval.add(simulationData);
@@ -460,7 +467,7 @@ public class TimeMachine {
                             continue;
                         }
 
-                        if (block.isPropertyFinished(simulationData.blockState, level, simulationData.position, simulationData.simulateProperty)) {
+                        if (block.isPropertyFinished(simulationData.blockState, level, simulationData.position, simulateProperty)) {
                             simulationData.isActive = false;
                         }
                     }

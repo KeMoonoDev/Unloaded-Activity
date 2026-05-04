@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+import lol.zanspace.unloadedactivity.GroupChunkIndex;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -32,6 +33,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 #if MC_VER <= MC_1_21_1
 @Mixin(value = ChunkSerializer.class, priority = 999)
 public abstract class ChunkSerializerMixin {
@@ -41,15 +46,24 @@ public abstract class ChunkSerializerMixin {
 
         CompoundTag chunkData = new CompoundTag();
 
-        chunkData.putLong("last_tick", chunk.getLastTick());
+        long chunkLastTick = chunk.getLastTick();
+
+        chunkData.putLong("last_tick", chunkLastTick);
         chunkData.putLong("ver", chunk.getSimulationVersion());
         chunkData.putLongArray("sim_blocks", chunk.getSimulationBlocks());
 
-        CompoundTag groupLastTickData = new CompoundTag();
-        for (var entry: chunk.getLastGroupTicks().entrySet()) {
-            groupLastTickData.putLong(entry.getKey().toString(), entry.getValue());
+        CompoundTag groupsData = new CompoundTag();
+        for (var entry : chunk.getGroupIndexes().entrySet()) {
+            var groupId = entry.getKey();
+            GroupChunkIndex groupChunkIndex = entry.getValue();
+            CompoundTag groupData = new CompoundTag();
+
+            groupData.putLongArray("positions", groupChunkIndex.getPositions());
+            groupData.putLong("last_tick", groupChunkIndex.getLastTick(chunkLastTick));
+
+            groupsData.put(groupId.toString(), groupData);
         }
-        chunkData.put("last_group_ticks", groupLastTickData);
+        chunkData.put("groups", groupsData);
 
         nbt.put("unloaded_activity", chunkData);
     }
@@ -76,19 +90,24 @@ public abstract class ChunkSerializerMixin {
             protoChunk.setSimulationVersion(chunkData.getLong("ver"));
             protoChunk.setSimulationBlocks(chunkData.getLongArray("sim_blocks"));
 
-            CompoundTag groupLastTickData = chunkData.getCompound("last_group_ticks");
+            HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = new HashMap<>();
 
-            for (String key : groupLastTickData.getAllKeys()) {
-                long lastGroupTick = nbtCompound.getLong(key);
-                if (lastGroupTick != 0) {
-                    var maybeId = ResourceLocation.read(key);
-                    if (maybeId.result().isEmpty())
-                        continue;
+            CompoundTag groupsData = chunkData.getCompound("groups");
+            for (String key : groupsData.getAllKeys()) {
+                var maybeId = ResourceLocation.read(key);
+                if (maybeId.result().isEmpty())
+                    continue;
 
-                    protoChunk.setLastGroupTick(maybeId.result().get(), lastGroupTick);
-                }
+                var groupId = maybeId.result().get();
 
+                CompoundTag groupData = groupsData.getCompound(key);
+
+                GroupChunkIndex groupChunkIndex = groupIndexes.computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), groupData.getLong("last_tick"), id));
+                groupChunkIndex.setLastTick(groupData.getLong("last_tick"));
+                groupChunkIndex.setPositions(groupData.getLongArray("positions"));
             }
+
+            protoChunk.setGroupIndexes(groupIndexes);
         }
 
 
@@ -149,6 +168,19 @@ public abstract class ChunkSerializerMixin {
         chunkData.putLong("ver", ver);
         chunkData.putLongArray("sim_blocks", simBlocks);
 
+        CompoundTag groupsData = new CompoundTag();
+        for (var entry : chunk.getGroupIndexes().entrySet()) {
+            var groupId = entry.getKey();
+            GroupChunkIndex groupChunkIndex = entry.getValue();
+            CompoundTag groupData = new CompoundTag();
+
+            groupData.putLongArray("positions", groupChunkIndex.getPositions());
+            groupData.putLong("last_tick", groupChunkIndex.getLastTick(chunkLastTick));
+
+            groupsData.put(groupId.toString(), groupData);
+        }
+        chunkData.put("groups", groupsData);
+
         nbt.put("unloaded_activity", chunkData);
     }
 
@@ -175,7 +207,7 @@ public abstract class ChunkSerializerMixin {
         if (serializedChunk != null) {
             serializedChunk.lastTick = chunk.getLastTick();
             serializedChunk.ver = chunk.getSimulationVersion();
-            serializedChunk.simBlocks = chunk.getSimulationBlocks().stream().mapToLong(l -> l).toArray();;
+            serializedChunk.simBlocks = chunk.getSimulationBlocks().stream().mapToLong(l -> l).toArray();
         }
     }
 
@@ -201,6 +233,24 @@ public abstract class ChunkSerializerMixin {
             serializedChunk.lastTick = chunkData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.ver = chunkData.getLong("ver")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.simBlocks = chunkData.getLongArray("sim_blocks")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif;
+
+            HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = new HashMap<>();
+            CompoundTag groupsData = chunkData.getCompound("groups");
+            for (String key : groupsData.getAllKeys()) {
+                var maybeId = ResourceLocation.read(key);
+                if (maybeId.result().isEmpty())
+                    continue;
+
+                var groupId = maybeId.result().get();
+
+                CompoundTag groupData = groupsData.getCompound(key);
+
+                GroupChunkIndex groupChunkIndex = groupIndexes.get(groupId);
+                groupChunkIndex.setLastTick(groupData.getLong("last_tick"));
+                groupChunkIndex.setPositions(groupData.getLongArray("positions"));
+            }
+
+            protoChunk.setGroupIndexes(groupIndexes);
         }
 
 

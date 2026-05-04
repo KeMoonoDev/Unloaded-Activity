@@ -1,5 +1,7 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+import com.mojang.datafixers.util.Pair;
+import lol.zanspace.unloadedactivity.GroupChunkIndex;
 import lol.zanspace.unloadedactivity.interfaces.ChunkTimeData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
@@ -18,10 +20,6 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     @Unique
     private long lastTick = 0;
 
-    // Last time the chunk was ticked.
-    @Unique
-    private Map<ResourceLocation, Long> lastGroupTicks = new HashMap<>();
-
     // If the simulationVersion mismatches with the version in the mod then simulationBlocks will be reset.
     // This is so that if one version of the mod doesn't support a specific block but the next one does,
     // the block will get included once simulationBlocks is reset.
@@ -32,9 +30,9 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     @Unique
     private ArrayList<Long> simulationBlocks = new ArrayList<>();
 
-    // List of block positions that have a group assigned to them.
+    // All groups in the chunk with their blocks and when they were last ticked.
     @Unique
-    private HashMap<ResourceLocation, ArrayList<BlockPos>> groupedBlocks = new HashMap<>();
+    private HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = new HashMap<>();
 
     @Override
     public long getLastTick() {
@@ -44,31 +42,6 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     @Override
     public void setLastTick(long tick) {
         this.lastTick = tick;
-
-        // Reset group ticks because if a tick has been simulated in a chunk, all group ticks in that chunk have also been simulated.
-        if (!this.lastGroupTicks.isEmpty())
-            this.lastGroupTicks = new HashMap<>();
-    }
-
-    @Override
-    public Map<ResourceLocation, Long> getLastGroupTicks() {
-        return this.lastGroupTicks;
-    }
-
-    @Override
-    public long getLastGroupTick(ResourceLocation groupId) {
-        Long lastGroupTick = lastGroupTicks.get(groupId);
-
-        if (lastGroupTick != null) {
-            return Math.max(lastGroupTick, lastTick);
-        }
-
-        return lastTick;
-    }
-
-    @Override
-    public void setLastGroupTick(ResourceLocation groupId, long tick) {
-       lastGroupTicks.put(groupId, tick);
     }
 
     @Override
@@ -81,14 +54,11 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
         this.simulationVersion = ver;
     }
 
-    @Override
-    public HashMap<ResourceLocation, ArrayList<BlockPos>> getGroupedBlocks() {
-        return groupedBlocks;
-    };
 
-    @Override
-    public void setGroupedBlocks(HashMap<ResourceLocation, ArrayList<BlockPos>> groupedBlocks) {
-        this.groupedBlocks = groupedBlocks;
+    public HashMap<ResourceLocation, GroupChunkIndex> getGroupIndexes() {return groupIndexes;};
+
+    public void setGroupIndexes(HashMap<ResourceLocation, GroupChunkIndex> groupIndexes) {
+        this.groupIndexes = groupIndexes;
     };
 
     @Override

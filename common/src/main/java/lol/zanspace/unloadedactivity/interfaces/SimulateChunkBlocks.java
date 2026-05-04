@@ -51,12 +51,14 @@ public interface SimulateChunkBlocks {
         return 0;
     }
 
+    /// NOTE: It only returns true if it has at least 1 random tick AND at least 1 of them is not part of a group.
     default boolean hasRandTicks() {
-        return getSimulationData().propertyMap.values().stream().anyMatch(property -> !property.isPrecipitation);
+        return getSimulationData().propertyMap.values().stream().anyMatch(property -> !property.isPrecipitation && property.simulateWithGroup.isEmpty());
     };
 
+    /// NOTE: It only returns true if it has at least 1 precipitation tick AND at least 1 of them  is not part of a group.
     default boolean hasPrecTicks() {
-        return getSimulationData().propertyMap.values().stream().anyMatch(property -> property.isPrecipitation);
+        return getSimulationData().propertyMap.values().stream().anyMatch(property -> property.isPrecipitation && property.simulateWithGroup.isEmpty());
     };
 
     default List<SimulateProperty> getGroupSimulationProperties() {

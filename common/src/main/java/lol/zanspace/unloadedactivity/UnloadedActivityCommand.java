@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.WaterFluid;
 
@@ -56,7 +57,7 @@ public class UnloadedActivityCommand {
         addBenchmark(commandBuilder);
 
         commandBuilder.then(
-                literal("check").requires(source ->
+                literal("checkwater").requires(source ->
             #if MC_VER >= MC_1_21_11
                 source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
             #else
@@ -86,6 +87,34 @@ public class UnloadedActivityCommand {
                     )
                 )
             )
+        );
+
+        commandBuilder.then(
+                literal("checkchunk").requires(source ->
+            #if MC_VER >= MC_1_21_11
+                source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
+            #else
+                                source.hasPermission(Commands.LEVEL_OWNERS)
+            #endif
+                ).then(
+                        argument("x", integer()).then(
+                                        argument("z", integer()).executes(context -> {
+                                            try {
+                                                int x = getInteger(context, "x");
+                                                int z = getInteger(context, "z");
+                                                var chunk = context.getSource().getLevel().getChunk(x, z);
+                                                String finalStr = "";
+                                                for (var entry : chunk.getGroupIndexes().entrySet()) {
+                                                    finalStr = finalStr + entry.getKey() + ": " + entry.getValue().getPositions() + " " + entry.getValue().getLastTick(0) + " or " + entry.getValue().getLastTick(chunk.getLastTick()) + "\n";
+                                                }
+                                                context.getSource().sendSystemMessage(Component.literal(finalStr));
+                                            } catch (RuntimeException err) {
+                                                context.getSource().sendSystemMessage(Component.literal(err.toString()));
+                                            }
+                                            return 1;
+                                        })
+                        )
+                )
         );
 
         dispatcher.register(commandBuilder);
