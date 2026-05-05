@@ -38,6 +38,7 @@ dependencies {
     [
         "fabric-api-base",
         "fabric-command-api-v2",
+        "fabric-lifecycle-events-v1",
         "fabric-resource-loader-v0",
         (buildProperties.MC_VER as Integer) >= (buildProperties.MC_1_21_10 as Integer) ? "fabric-resource-loader-v1" : null
     ]

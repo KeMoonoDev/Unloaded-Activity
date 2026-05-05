@@ -16,6 +16,7 @@
     "GameRulesAccessor",
     "IntegerPropertyAccessor",
     "LevelChunkMixin",
+    "MinecraftServerMixin",
     "ServerLevelMixin",
     "block_entities.AbstractFurnaceBlockEntityMixin",
     "chunk.randomTicks.BambooMixin",

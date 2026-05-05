@@ -108,27 +108,21 @@ public class UnloadedActivityConfig {
         );
 
         registerInt(
-                "maxChunkUpdates", maxChunkUpdates, 1, 32767,
-                unused -> maxChunkUpdates,
-                value -> maxChunkUpdates = value
+                "maxChunksIndexedPerTick", maxChunksIndexedPerTick, 1, 32767,
+                unused -> maxChunksIndexedPerTick,
+                value -> maxChunksIndexedPerTick = value
         );
 
         registerInt(
-                "maxKnownChunkUpdates", maxKnownChunkUpdates, 1, 32767,
-                unused -> maxKnownChunkUpdates,
-                value -> maxKnownChunkUpdates = value
+                "maxChunkUpdatesPerTick", maxChunkUpdatesPerTick, 1, 32767,
+                unused -> maxChunkUpdatesPerTick,
+                value -> maxChunkUpdatesPerTick = value
         );
 
         registerBoolean(
                 "randomizeBlockUpdates", randomizeBlockUpdates,
                 unused -> randomizeBlockUpdates,
                 value -> randomizeBlockUpdates = value
-        );
-
-        registerBoolean(
-                "rememberBlockPositions", rememberBlockPositions,
-                unused -> rememberBlockPositions,
-                value -> rememberBlockPositions = value
         );
 
         registerBoolean(
@@ -328,15 +322,14 @@ public class UnloadedActivityConfig {
     public boolean convertCCAData = true;
 
     //Chunk
-    public int maxChunkUpdates = 8;
-    public int maxKnownChunkUpdates = 64;
+    public int maxChunksIndexedPerTick = 8;
+    public int maxChunkUpdatesPerTick = 64;
     public int maxForcedChunkLoads = 8;
     public int maxGroupTickUpdates = 1;
     public int maxGroupTickIterations = 1000;
     public float groupTickUpdateStrength = 1F;
     public int maxGroupTickSize = 10000;
     public boolean randomizeBlockUpdates = false;
-    public boolean rememberBlockPositions = true;
     public boolean multiplyMaxChunkUpdatesPerPlayer = false;
     public boolean updateAllChunksWhenSleep = true;
     public boolean enableRandomTicks = true;

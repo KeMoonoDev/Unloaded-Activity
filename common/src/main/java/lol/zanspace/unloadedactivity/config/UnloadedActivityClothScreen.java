@@ -62,23 +62,23 @@ public class UnloadedActivityClothScreen {
 
         chunks.addEntry(
                 configEntryBuilder
-                        .startIntField(Component.translatable("text.config.unloaded-activity.option.maxChunkUpdates"), config.maxChunkUpdates)
+                        .startIntField(Component.translatable("text.config.unloaded-activity.option.maxChunksIndexedPerTick"), config.maxChunksIndexedPerTick)
                         .setDefaultValue(8)
                         .setMin(1)
                         .setMax(32767)
-                        .setSaveConsumer(newValue -> config.maxChunkUpdates = newValue)
-                        .setTooltip(Component.translatable("text.config.unloaded-activity.option.maxChunkUpdates.tooltip"))
+                        .setSaveConsumer(newValue -> config.maxChunksIndexedPerTick = newValue)
+                        .setTooltip(Component.translatable("text.config.unloaded-activity.option.maxChunksIndexedPerTick.tooltip"))
                         .build()
         );
 
         chunks.addEntry(
                 configEntryBuilder
-                        .startIntField(Component.translatable("text.config.unloaded-activity.option.maxKnownChunkUpdates"), config.maxKnownChunkUpdates)
+                        .startIntField(Component.translatable("text.config.unloaded-activity.option.maxChunkUpdatesPerTick"), config.maxChunkUpdatesPerTick)
                         .setDefaultValue(64)
                         .setMin(1)
                         .setMax(32767)
-                        .setSaveConsumer(newValue -> config.maxKnownChunkUpdates = newValue)
-                        .setTooltip(Component.translatable("text.config.unloaded-activity.option.maxKnownChunkUpdates.tooltip"))
+                        .setSaveConsumer(newValue -> config.maxChunkUpdatesPerTick = newValue)
+                        .setTooltip(Component.translatable("text.config.unloaded-activity.option.maxChunkUpdatesPerTick.tooltip"))
                         .build()
         );
 
@@ -88,15 +88,6 @@ public class UnloadedActivityClothScreen {
                         .setDefaultValue(false)
                         .setSaveConsumer(newValue -> config.randomizeBlockUpdates = newValue)
                         .setTooltip(Component.translatable("text.config.unloaded-activity.option.randomizeBlockUpdates.tooltip"))
-                        .build()
-        );
-
-        chunks.addEntry(
-                configEntryBuilder
-                        .startBooleanToggle(Component.translatable("text.config.unloaded-activity.option.rememberBlockPositions"), config.rememberBlockPositions)
-                        .setDefaultValue(true)
-                        .setSaveConsumer(newValue -> config.rememberBlockPositions = newValue)
-                        .setTooltip(Component.translatable("text.config.unloaded-activity.option.rememberBlockPositions.tooltip"))
                         .build()
         );
 

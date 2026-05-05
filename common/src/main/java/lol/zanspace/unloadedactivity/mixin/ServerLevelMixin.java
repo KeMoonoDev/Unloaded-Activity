@@ -74,40 +74,25 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 		long currentTime = this.getDayTime();
 
 		if (lastTick != 0) {
+			if (!TimeMachine.isChunkIndexed(chunk)) {
+				return;
+			}
 
-			long timeDifference = Math.max(currentTime - lastTick,0);
+			long timeDifference = Math.max(currentTime - lastTick, 0);
 
 			int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
 
 			if (timeDifference > differenceThreshold) {
-				if (chunkIsKnown(chunk)) {
-					if (knownUpdateCount < UnloadedActivity.config.maxKnownChunkUpdates*getMultiplier() || hasSlept) {
-						++knownUpdateCount;
-						msTime += TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed);
-					} else {
-						return;
-					}
+				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier() || hasSlept) {
+					++updateCount;
+					msTime += TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed);
 				} else {
-					if (updateCount < UnloadedActivity.config.maxChunkUpdates*getMultiplier() || hasSlept) {
-						++updateCount;
-						msTime += TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed);
-					} else {
-						return;
-					}
+					return;
 				}
 			}
 		}
 
 		chunk.setLastTick(currentTime);
-
-		if (!UnloadedActivity.config.rememberBlockPositions) {
-			chunk.setSimulationVersion(0);
-		}
-	}
-
-	@Unique
-	private boolean chunkIsKnown(LevelChunk chunk) {
-		return chunk.getSimulationVersion() == UnloadedActivity.chunkSimVer;
 	}
 
 	@Unique

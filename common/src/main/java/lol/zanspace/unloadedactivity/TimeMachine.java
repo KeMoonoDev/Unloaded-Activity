@@ -25,9 +25,6 @@ public class TimeMachine {
     public static long simulateChunk(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
         if (!UnloadedActivity.config.enableRandomTicks || !UnloadedActivity.config.enablePrecipitationTicks) return 0;
 
-        // TODO: Do this over time elsewhere, and don't simulate chunks that haven't been indexed.
-        indexChunk(chunk);
-
         long now = 0;
         if (UnloadedActivity.config.debugLogs) now = Instant.now().toEpochMilli();
 
@@ -108,8 +105,6 @@ public class TimeMachine {
 
     /// Returns positions of blocks that implement random ticks.
     public static ArrayList<BlockPos> getRandomTickableBlocks(LevelChunk chunk) {
-        indexChunk(chunk);
-
         ArrayList<Long> currentSimulationBlocks = chunk.getSimulationBlocks();
 
         ArrayList<BlockPos> blockPosArray = new ArrayList<>(currentSimulationBlocks.size());
@@ -203,6 +198,8 @@ public class TimeMachine {
             Set<ChunkPos> checkedChunks = new HashSet<>();
             checkedChunks.add(chunk.getPos());
 
+            boolean chunksAreIndexed = true;
+
             // Populate activeGroupDataMap
             while (!checkingBlockPositions.isEmpty()) {
                 if (!toBeAddedToMap.isEmpty()) {
@@ -282,6 +279,16 @@ public class TimeMachine {
                     }
 
                     LevelChunk newChunk = level.getChunk(newChunkPos.x, newChunkPos.z);
+
+                    if (!isChunkIndexed(newChunk)) {
+                        chunksAreIndexed = false;
+                        level.getServer().addChunkToQueueFront(chunk);
+                    }
+
+                    if (!chunksAreIndexed) {
+                        continue;
+                    }
+
                     GroupChunkIndex newGroupChunkIndex = newChunk.getGroupIndexes().get(groupId);
 
                     if (newGroupChunkIndex == null)
@@ -306,9 +313,17 @@ public class TimeMachine {
                     checkingBlockPositions.addAll(newData);
                 }
 
+                if (!chunksAreIndexed) {
+                    break;
+                }
+
                 // Prepare for next loop.
                 checkingBlockPositions.addAll(pendingBlockPositions);
                 pendingBlockPositions.clear();
+            }
+
+            if (!chunksAreIndexed) {
+                break;
             }
 
             // Separate them into isolated groups.

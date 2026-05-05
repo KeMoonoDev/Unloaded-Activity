@@ -8,6 +8,7 @@
     ],
     "net/minecraft/world/entity/Entity": ["lol/zanspace/unloadedactivity/interfaces/SimulateEntity"],
     "net/minecraft/world/level/chunk/ChunkAccess": ["lol/zanspace/unloadedactivity/interfaces/ChunkTimeData"],
-    "net/minecraft/server/level/ServerLevel": ["lol/zanspace/unloadedactivity/interfaces/WorldTimeData"]
+    "net/minecraft/server/level/ServerLevel": ["lol/zanspace/unloadedactivity/interfaces/WorldTimeData"],
+    "net/minecraft/server/MinecraftServer": ["lol/zanspace/unloadedactivity/interfaces/ChunkIndexQueue"]
   }
 }
