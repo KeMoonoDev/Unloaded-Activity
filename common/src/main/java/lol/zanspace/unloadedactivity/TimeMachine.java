@@ -3,6 +3,7 @@ package lol.zanspace.unloadedactivity;
 import com.mojang.datafixers.util.Pair;
 import lol.zanspace.unloadedactivity.datapack.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -12,9 +13,11 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -48,49 +51,67 @@ public class TimeMachine {
         if (isChunkIndexed(chunk))
             return;
 
-        #if MC_VER >= MC_1_21_3
-        int minY = chunk.getMinY();
-        int maxY = chunk.getMaxY();
-        #else
-        int minY = chunk.getMinBuildHeight();
-        int maxY = chunk.getMaxBuildHeight();
-        #endif
-
         ArrayList<Long> newSimulationBlocks = new ArrayList<>();
         HashMap<ResourceLocation, GroupChunkIndex> newGroupIndexes = new HashMap<>();
 
         if (UnloadedActivity.config.debugLogs)
             UnloadedActivity.LOGGER.info("Looping through entire chunk.");
 
-        for (int z = 0; z < 16; z++) {
+        ChunkPos chunkPos = chunk.getPos();
+
+        LevelChunkSection[] sections = chunk.getSections();
+
+        for (int sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+            LevelChunkSection section = sections[sectionIndex];
+
+            boolean simulateChunk = section.maybeHas((state) -> {
+                Block block = state.getBlock();
+                SimulationData simulationData = block.getSimulationData();
+                if (simulationData.hasRandTicksWithoutGroup) {
+                    return true;
+                }
+
+                List<GroupMemberInfo> memberInfoList = GroupInfoResource.getBlockMemberInfo(block);
+                return !memberInfoList.isEmpty();
+            });
+
+            if (!simulateChunk) {
+                continue;
+            }
+
+            int sectionBlockY = SectionPos.sectionToBlockCoord(chunk.getSectionYFromSectionIndex(sectionIndex));
+
             for (int x = 0; x < 16; x++) {
-                for (int y = minY; y < maxY; y++) {
-                    BlockPos blockPos = chunk.getPos().getBlockAt(x, y, z);
-                    BlockState state = chunk.getBlockState(blockPos);
-                    Block block = state.getBlock();
-                    SimulationData simulationData = block.getSimulationData();
-                    if (simulationData.hasRandTicksWithoutGroup) {
-                        newSimulationBlocks.add(blockPos.asLong());
-                    }
+                for (int y = 0; y < 16; y++) {
+                    for (int z = 0; z < 16; z++) {
+                        BlockPos levelBlockPos = chunkPos.getBlockAt(x, sectionBlockY + y, z);
+                        BlockState state = section.getBlockState(x, y, z);
+                        Block block = state.getBlock();
+                        SimulationData simulationData = block.getSimulationData();
+                        if (simulationData.hasRandTicksWithoutGroup) {
+                            newSimulationBlocks.add(levelBlockPos.asLong());
+                        }
 
-                    List<GroupMemberInfo> memberInfoList = GroupInfoResource.getBlockMemberInfo(block);
+                        List<GroupMemberInfo> memberInfoList = GroupInfoResource.getBlockMemberInfo(block);
 
-                    if (!memberInfoList.isEmpty()) {
-                        for (var memberInfo : memberInfoList) {
-                            var groupId = memberInfo.groupInfo.id;
-                            if (UnloadedActivity.config.debugLogs)
-                                UnloadedActivity.LOGGER.info("Adding position to group list " + groupId + " " + blockPos.asLong());
+                        if (!memberInfoList.isEmpty()) {
+                            for (var memberInfo : memberInfoList) {
+                                var groupId = memberInfo.groupInfo.id;
+                                if (UnloadedActivity.config.debugLogs)
+                                    UnloadedActivity.LOGGER.info("Adding position to group list " + groupId + " " + levelBlockPos.asLong());
 
-                            var positions = newGroupIndexes
-                                    .computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), chunk.getLastTick(), id))
-                                    .getPositions();
+                                var positions = newGroupIndexes
+                                        .computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), chunk.getLastTick(), id))
+                                        .getPositions();
 
-                            positions.add(blockPos.asLong());
+                                positions.add(levelBlockPos.asLong());
+                            }
                         }
                     }
                 }
             }
         }
+
         chunk.setSimulationBlocks(newSimulationBlocks);
         chunk.setGroupIndexes(newGroupIndexes);
         chunk.setSimulationVersion(UnloadedActivity.chunkSimVer);
