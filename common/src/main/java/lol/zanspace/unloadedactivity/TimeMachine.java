@@ -68,7 +68,8 @@ public class TimeMachine {
                     BlockPos blockPos = chunk.getPos().getBlockAt(x, y, z);
                     BlockState state = chunk.getBlockState(blockPos);
                     Block block = state.getBlock();
-                    if (block.hasRandTicks()) {
+                    SimulationData simulationData = block.getSimulationData();
+                    if (simulationData.hasRandTicksWithoutGroup) {
                         newSimulationBlocks.add(blockPos.asLong());
                     }
 
@@ -115,10 +116,12 @@ public class TimeMachine {
             BlockPos pos = BlockPos.of(longPos);
             BlockState state = chunk.getBlockState(pos);
             Block block = state.getBlock();
-            boolean hasRandTicks = block.hasRandTicks();
-            if (hasRandTicks)
+            SimulationData simulationData = block.getSimulationData();
+
+            if (simulationData.hasRandTicksWithoutGroup)
                 blockPosArray.add(pos);
-            return !hasRandTicks;
+
+            return !simulationData.hasRandTicksWithoutGroup;
         });
 
         int removedCount = prevSize - currentSimulationBlocks.size();
@@ -147,10 +150,10 @@ public class TimeMachine {
                 Block airPosBlock = airPosState.getBlock();
                 Block groundPosBlock = groundPosState.getBlock();
 
-                if (airPosBlock.hasPrecTicks())
+                if (airPosBlock.getSimulationData().hasPrecTicksWithoutGroup)
                     precipitationBlocks.add(airPos);
 
-                if (groundPosBlock.hasPrecTicks())
+                if (groundPosBlock.getSimulationData().hasPrecTicksWithoutGroup)
                     precipitationBlocks.add(groundPos);
             }
 

@@ -51,16 +51,6 @@ public interface SimulateChunkBlocks {
         return 0;
     }
 
-    /// NOTE: It only returns true if it has at least 1 random tick AND at least 1 of them is not part of a group.
-    default boolean hasRandTicks() {
-        return getSimulationData().propertyMap.values().stream().anyMatch(property -> !property.isPrecipitation && property.simulateWithGroup.isEmpty());
-    };
-
-    /// NOTE: It only returns true if it has at least 1 precipitation tick AND at least 1 of them  is not part of a group.
-    default boolean hasPrecTicks() {
-        return getSimulationData().propertyMap.values().stream().anyMatch(property -> property.isPrecipitation && property.simulateWithGroup.isEmpty());
-    };
-
     default List<SimulateProperty> getGroupSimulationProperties() {
         return getSimulationData().propertyMap.values().stream().filter(property -> property.simulateWithGroup.isPresent()).toList();
     };
@@ -606,7 +596,8 @@ public interface SimulateChunkBlocks {
                 boolean calculateDecayDuration = calculateDuration || simulateProperty.hatchEntity.isPresent();
                 if (simulateProperty.blockReplacement.isPresent()) {
                     Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
-                    if (blockReplacement.hasRandTicks() || blockReplacement.hasPrecTicks()) {
+                    SimulationData simulationData = blockReplacement.getSimulationData();
+                    if (simulationData.hasRandTicksWithoutGroup || simulationData.hasPrecTicksWithoutGroup) {
                         calculateDecayDuration = true;
                     }
                 }

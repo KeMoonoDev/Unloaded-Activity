@@ -88,7 +88,7 @@ public abstract class LevelChunkMixin extends ChunkAccess {
             }
         }
 
-        if (block.hasRandTicks()) {
+        if (block.getSimulationData().hasRandTicksWithoutGroup) {
             if (UnloadedActivity.config.debugLogs)
                 UnloadedActivity.LOGGER.info("Adding position to chunk list "+blockPos.asLong());
 

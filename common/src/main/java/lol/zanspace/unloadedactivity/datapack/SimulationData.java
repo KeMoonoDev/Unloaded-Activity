@@ -6,6 +6,9 @@ public class SimulationData {
 
     public Map<String, SimulateProperty> propertyMap;
 
+    public final boolean hasRandTicksWithoutGroup;
+    public final boolean hasPrecTicksWithoutGroup;
+
     public SimulationData(IncompleteSimulationData incomplete) {
         HashMap<String, SimulateProperty> newPropertyMap = new HashMap<>();
 
@@ -19,6 +22,8 @@ public class SimulationData {
         }
 
         this.propertyMap = Map.copyOf(newPropertyMap);
+        this.hasRandTicksWithoutGroup = this.propertyMap.values().stream().anyMatch(property -> !property.isPrecipitation && property.simulateWithGroup.isEmpty());
+        this.hasPrecTicksWithoutGroup = this.propertyMap.values().stream().anyMatch(property -> property.isPrecipitation && property.simulateWithGroup.isEmpty());
     }
 
     public boolean isEmpty() {
