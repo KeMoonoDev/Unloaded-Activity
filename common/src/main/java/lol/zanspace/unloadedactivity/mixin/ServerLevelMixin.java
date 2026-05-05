@@ -56,8 +56,6 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 	@Unique
 	public int updateCount = 0;
 	@Unique
-	public int knownUpdateCount = 0;
-	@Unique
 	public boolean hasSlept = false;
 	@Unique
 	public int msTime = 0;
@@ -102,14 +100,13 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 
 	@Inject(method = "tick", at = @At(value = "TAIL"))
 	private void tick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-		if (UnloadedActivity.config.debugLogs && (updateCount+knownUpdateCount) != 0) {
-			int averageMs = (int)((float) msTime / (updateCount+knownUpdateCount) + 0.5);
-			UnloadedActivity.LOGGER.info("Average chunk update time for "+updateCount+" chunks and  "+knownUpdateCount+" known chunks: "+averageMs+"ms");
-			UnloadedActivity.LOGGER.info("Total chunk update time for "+updateCount+" chunks and  "+knownUpdateCount+" known chunks: "+msTime+"ms");
+		if (UnloadedActivity.config.debugLogs && (updateCount) != 0) {
+			int averageMs = (int)((float) msTime / (updateCount) + 0.5);
+			UnloadedActivity.LOGGER.info("Average chunk update time for "+updateCount+" chunks: "+averageMs+"ms");
+			UnloadedActivity.LOGGER.info("Total chunk update time for "+updateCount+" chunks: "+msTime+"ms");
 		}
 		msTime = 0;
 		updateCount = 0;
-		knownUpdateCount = 0;
 		hasSlept = false;
 	}
 

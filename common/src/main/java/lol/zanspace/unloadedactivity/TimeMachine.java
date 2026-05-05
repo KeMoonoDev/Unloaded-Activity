@@ -40,19 +40,6 @@ public class TimeMachine {
         return msTime;
     }
 
-    public static void simulateBlockPrecipitationTick(BlockPos pos, ServerLevel level, long timeDifference, float precipitationPickChance, long timeInWeather, Biome.Precipitation precipitation) {
-        if (!UnloadedActivity.config.enablePrecipitationTicks)
-            return;
-
-        BlockState state = level.getBlockState(pos);
-        Block block = state.getBlock();
-
-        if (!block.canSimulatePrecTicks(state, level, pos, timeInWeather, precipitation))
-            return;
-
-        block.simulatePrecTicks(state, level, pos, timeInWeather, timeDifference, precipitation, precipitationPickChance);
-    }
-
     public static boolean isChunkIndexed(LevelChunk chunk) {
         return chunk.getSimulationVersion() == UnloadedActivity.chunkSimVer;
     }
