@@ -72,10 +72,20 @@ public class TimeMachine {
                         newSimulationBlocks.add(blockPos.asLong());
                     }
 
-                    for (var groupSimulationProperty : block.getGroupSimulationProperties()) {
-                        var groupId = groupSimulationProperty.simulateWithGroup.orElseThrow();
-                        GroupChunkIndex groupIndex = newGroupIndexes.computeIfAbsent(groupId, (k) -> new GroupChunkIndex(new ArrayList<>(), chunk.getLastTick(), groupId));
-                        groupIndex.getPositions().add(blockPos.asLong());
+                    List<GroupMemberInfo> memberInfoList = GroupInfoResource.getBlockMemberInfo(block);
+
+                    if (!memberInfoList.isEmpty()) {
+                        for (var memberInfo : memberInfoList) {
+                            var groupId = memberInfo.groupInfo.id;
+                            if (UnloadedActivity.config.debugLogs)
+                                UnloadedActivity.LOGGER.info("Adding position to group list " + groupId + " " + blockPos.asLong());
+
+                            var positions = newGroupIndexes
+                                    .computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), chunk.getLastTick(), id))
+                                    .getPositions();
+
+                            positions.add(blockPos.asLong());
+                        }
                     }
                 }
             }
