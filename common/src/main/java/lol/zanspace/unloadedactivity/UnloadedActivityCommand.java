@@ -2,17 +2,14 @@ package lol.zanspace.unloadedactivity;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import lol.zanspace.unloadedactivity.config.UnloadedActivityConfig;
+import lol.zanspace.unloadedactivity.config.ConfigOption;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.material.FlowingFluid;
-import net.minecraft.world.level.material.WaterFluid;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
@@ -58,11 +55,11 @@ public class UnloadedActivityCommand {
 
         commandBuilder.then(
                 literal("checkwater").requires(source ->
-            #if MC_VER >= MC_1_21_11
+                #if MC_VER >= MC_1_21_11
                 source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
-            #else
-                                source.hasPermission(Commands.LEVEL_OWNERS)
-            #endif
+                #else
+                source.hasPermission(Commands.LEVEL_OWNERS)
+                #endif
             ).then(
                 argument("x", integer()).then(
                     argument("y", integer()).then(
@@ -90,30 +87,30 @@ public class UnloadedActivityCommand {
         );
 
         commandBuilder.then(
-                literal("checkchunk").requires(source ->
+            literal("checkchunk").requires(source ->
             #if MC_VER >= MC_1_21_11
-                source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
+            source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
             #else
-                                source.hasPermission(Commands.LEVEL_OWNERS)
+            source.hasPermission(Commands.LEVEL_OWNERS)
             #endif
                 ).then(
-                        argument("x", integer()).then(
-                                        argument("z", integer()).executes(context -> {
-                                            try {
-                                                int x = getInteger(context, "x");
-                                                int z = getInteger(context, "z");
-                                                var chunk = context.getSource().getLevel().getChunk(x, z);
-                                                String finalStr = "";
-                                                for (var entry : chunk.getGroupIndexes().entrySet()) {
-                                                    finalStr = finalStr + entry.getKey() + ": " + entry.getValue().getPositions() + " " + entry.getValue().getLastTick(0) + " or " + entry.getValue().getLastTick(chunk.getLastTick()) + "\n";
-                                                }
-                                                context.getSource().sendSystemMessage(Component.literal(finalStr));
-                                            } catch (RuntimeException err) {
-                                                context.getSource().sendSystemMessage(Component.literal(err.toString()));
-                                            }
-                                            return 1;
-                                        })
-                        )
+                    argument("x", integer()).then(
+                        argument("z", integer()).executes(context -> {
+                            try {
+                                int x = getInteger(context, "x");
+                                int z = getInteger(context, "z");
+                                var chunk = context.getSource().getLevel().getChunk(x, z);
+                                String finalStr = "";
+                                for (var entry : chunk.getGroupIndexes().entrySet()) {
+                                    finalStr = finalStr + entry.getKey() + ": " + entry.getValue().getPositions() + " " + entry.getValue().getLastTick(0) + " or " + entry.getValue().getLastTick(chunk.getLastTick()) + "\n";
+                                }
+                                context.getSource().sendSystemMessage(Component.literal(finalStr));
+                            } catch (RuntimeException err) {
+                                context.getSource().sendSystemMessage(Component.literal(err.toString()));
+                            }
+                            return 1;
+                        })
+                    )
                 )
         );
 
@@ -121,38 +118,13 @@ public class UnloadedActivityCommand {
     }
 
     public static void addConfigs(LiteralArgumentBuilder commandBuilder) {
-        LiteralArgumentBuilder configBuilder = literal("config");
+        LiteralArgumentBuilder<CommandSourceStack> configBuilder = literal("config");
 
-        for (UnloadedActivityConfig.ConfigOption<?> configOption : UnloadedActivity.config.configOptions) {
-            configBuilder.then(literal(configOption.name).executes(context ->
-                executeConfigGet(context.getSource(), configOption)
-            ).then(argument("value", configOption.argumentType).executes(context ->
-                executeConfigSet(context, configOption)
-            )));
+        for (ConfigOption configOption : UnloadedActivity.config.configOptions) {
+            configOption.addCommand(configBuilder);
         }
 
         commandBuilder.then(configBuilder);
-    }
-
-    static <T> int executeConfigSet(CommandContext<CommandSourceStack> context, UnloadedActivityConfig.ConfigOption<T> configOption) {
-        T value = context.getArgument("value", configOption.tClass);
-        configOption.setter.accept(value);
-        UnloadedActivity.saveConfig();
-        #if MC_VER >= MC_1_20_1
-        context.getSource().sendSuccess(() -> Component.literal(configOption.name + " has been set to: " + value), true);
-        #else
-        context.getSource().sendSuccess(Component.literal(configOption.name + " has been set to: " + value), true);
-        #endif
-        return 0;
-    }
-
-    static <T> int executeConfigGet(CommandSourceStack source, UnloadedActivityConfig.ConfigOption<T> configOption) {
-        #if MC_VER >= MC_1_20_1
-        source.sendSuccess(() -> Component.literal(configOption.name + " is currently set to: " + configOption.getter.apply(null)), false);
-        #else
-        source.sendSuccess(Component.literal(configOption.name + " is currently set to: " + configOption.getter.apply(null)), false);
-        #endif
-        return 0;
     }
 
     public static void addBenchmark(LiteralArgumentBuilder commandBuilder) {

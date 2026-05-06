@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity;
 
+import lol.zanspace.unloadedactivity.config.BlockOrTag;
 import lol.zanspace.unloadedactivity.config.UnloadedActivityConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -32,7 +33,10 @@ public class UnloadedActivity {
     public static void loadConfig() {
         LOGGER.info("Loading config.");
         File configFile = new File(ExpectPlatform.getConfigDirectory().toFile(), "unloaded-activity.json");
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(BlockOrTag.class, new BlockOrTag.StringAdapter())
+            .create();
         if (configFile.exists()) {
             try {
                 FileReader fileReader = new FileReader(configFile);
@@ -51,7 +55,10 @@ public class UnloadedActivity {
 
     public static void saveConfig() {
         File configFile = new File(ExpectPlatform.getConfigDirectory().toFile(), "unloaded-activity.json");
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(BlockOrTag.class, new BlockOrTag.StringAdapter())
+            .create();
 
         if (!configFile.getParentFile().exists())
             configFile.getParentFile().mkdir();
