@@ -56,8 +56,6 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 	@Unique
 	public int updateCount = 0;
 	@Unique
-	public boolean hasSlept = false;
-	@Unique
 	public int msTime = 0;
 
 	@Shadow public ServerLevel getLevel() {return null;}
@@ -81,7 +79,7 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 			int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
 
 			if (timeDifference > differenceThreshold) {
-				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier() || hasSlept) {
+				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier()) {
 					++updateCount;
 					msTime += TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed);
 				} else {
@@ -107,19 +105,12 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 		}
 		msTime = 0;
 		updateCount = 0;
-		hasSlept = false;
 	}
 
 	@Inject(method = "tick", at = @At(value = "TAIL", target = "net/minecraft/server/level/ServerLevel.tickTime ()V"))
 	private void finishTickTime(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
 		WorldWeatherData weatherInfo = this.getWeatherData();
 		weatherInfo.updateValues(this);
-	}
-
-	@Inject(method = "tick", at = @At(value = "INVOKE", target = "net/minecraft/server/level/ServerLevel.wakeUpAllPlayers ()V"))
-	private void wakeyWakey(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-		if (UnloadedActivity.config.updateAllChunksWhenSleep)
-			hasSlept = true;
 	}
 
 	@Shadow public abstract DimensionDataStorage getDataStorage();

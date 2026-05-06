@@ -36,7 +36,7 @@ public abstract class AgeableMobMixin extends PathfinderMob {
 
     @Unique
     private boolean shouldSimulate() {
-        if (!UnloadedActivity.config.ageEntities) return false;
+        if (!UnloadedActivity.config.simulateEntitiesAgeing) return false;
         if (this.isRemoved()) return false;
         if (!this.isAlive()) return false;
         if (this.getAge() == 0) return false;

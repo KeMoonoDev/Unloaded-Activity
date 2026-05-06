@@ -54,15 +54,21 @@ public class UnloadedActivityConfig {
         );
 
         registerInt(
+                "maxNegativeBinomialAttempts", maxNegativeBinomialAttempts, 1, Integer.MAX_VALUE,
+                unused -> maxNegativeBinomialAttempts,
+                value -> maxNegativeBinomialAttempts = value
+        );
+
+        registerInt(
                 "groupTickDifferenceThreshold", groupTickDifferenceThreshold, 1, Integer.MAX_VALUE,
                 unused -> groupTickDifferenceThreshold,
                 value -> groupTickDifferenceThreshold = value
         );
 
         registerFloat(
-                "groupChunkDifferencePercentage", groupChunkDifferencePercentage, 0F, 1F,
-                unused -> groupChunkDifferencePercentage,
-                value -> groupChunkDifferencePercentage = value
+                "maxGroupTickDeviationScale", maxGroupTickDeviationScale, 0F, 1F,
+                unused -> maxGroupTickDeviationScale,
+                value -> maxGroupTickDeviationScale = value
         );
 
         registerInt(
@@ -132,243 +138,87 @@ public class UnloadedActivityConfig {
         );
 
         registerBoolean(
-                "updateAllChunksWhenSleep", updateAllChunksWhenSleep,
-                unused -> updateAllChunksWhenSleep,
-                value -> updateAllChunksWhenSleep = value
+                "multiplyMaxChunksIndexedPerPlayer", multiplyMaxChunksIndexedPerPlayer,
+                unused -> multiplyMaxChunksIndexedPerPlayer,
+                value -> multiplyMaxChunksIndexedPerPlayer = value
         );
 
         registerBoolean(
-                "enableRandomTicks", enableRandomTicks,
-                unused -> enableRandomTicks,
-                value -> enableRandomTicks = value
+                "enableSimulatingRandomTicks", enableSimulatingRandomTicks,
+                unused -> enableSimulatingRandomTicks,
+                value -> enableSimulatingRandomTicks = value
         );
 
         registerBoolean(
-                "enablePrecipitationTicks", enablePrecipitationTicks,
-                unused -> enablePrecipitationTicks,
-                value -> enablePrecipitationTicks = value
+                "enableSimulatingPrecipitationTicks", enableSimulatingPrecipitationTicks,
+                unused -> enableSimulatingPrecipitationTicks,
+                value -> enableSimulatingPrecipitationTicks = value
+        );
+
+                registerBoolean(
+                "enableSimulatingGroups", enableSimulatingGroups,
+                unused -> enableSimulatingGroups,
+                value -> enableSimulatingGroups = value
         );
 
         registerBoolean(
-                "growSaplings", growSaplings,
-                unused -> growSaplings,
-                value -> growSaplings = value
+                "enableSimulatingBlockEntities", enableSimulatingBlockEntities,
+                unused -> enableSimulatingBlockEntities,
+                value -> enableSimulatingBlockEntities = value
         );
 
         registerBoolean(
-                "growCrops", growCrops,
-                unused -> growCrops,
-                value -> growCrops = value
+                "enableSimulatingEntities", enableSimulatingEntities,
+                unused -> enableSimulatingEntities,
+                value -> enableSimulatingEntities = value
         );
 
         registerBoolean(
-                "growStems", growStems,
-                unused -> growStems,
-                value -> growStems = value
+                "simulateFurnaceSmelting", simulateFurnaceSmelting,
+                unused -> simulateFurnaceSmelting,
+                value -> simulateFurnaceSmelting = value
         );
 
         registerBoolean(
-                "growSweetBerries", growSweetBerries,
-                unused -> growSweetBerries,
-                value -> growSweetBerries = value
-        );
-
-        registerBoolean(
-                "growCocoa", growCocoa,
-                unused -> growCocoa,
-                value -> growCocoa = value
-        );
-
-        registerBoolean(
-                "growSugarCane", growSugarCane,
-                unused -> growSugarCane,
-                value -> growSugarCane = value
-        );
-
-        registerBoolean(
-                "growCactus", growCactus,
-                unused -> growCactus,
-                value -> growCactus = value
-        );
-
-        registerBoolean(
-                "ageCopper", ageCopper,
-                unused -> ageCopper,
-                value -> ageCopper = value
-        );
-
-        registerBoolean(
-                "decayLeaves", decayLeaves,
-                unused -> decayLeaves,
-                value -> decayLeaves = value
-        );
-
-        registerBoolean(
-                "growAmethyst", growAmethyst,
-                unused -> growAmethyst,
-                value -> growAmethyst = value
-        );
-
-        registerBoolean(
-                "growGlowBerries", growGlowBerries,
-                unused -> growGlowBerries,
-                value -> growGlowBerries = value
-        );
-
-        registerBoolean(
-                "growKelp", growKelp,
-                unused -> growKelp,
-                value -> growKelp = value
-        );
-
-        registerBoolean(
-                "growBamboo", growBamboo,
-                unused -> growBamboo,
-                value -> growBamboo = value
-        );
-
-        registerBoolean(
-                "hatchTurtleEggs", hatchTurtleEggs,
-                unused -> hatchTurtleEggs,
-                value -> hatchTurtleEggs = value
-        );
-
-        registerBoolean(
-                "meltSnow", meltSnow,
-                unused -> meltSnow,
-                value -> meltSnow = value
-        );
-
-        registerBoolean(
-                "meltIce", meltIce,
-                unused -> meltIce,
-                value -> meltIce = value
-        );
-
-        registerBoolean(
-                "growDripstone", growDripstone,
-                unused -> growDripstone,
-                value -> growDripstone = value
-        );
-
-        registerBoolean(
-                "dripstoneFillCauldrons", dripstoneFillCauldrons,
-                unused -> dripstoneFillCauldrons,
-                value -> dripstoneFillCauldrons = value
-        );
-
-        registerBoolean(
-                "dripstoneTurnMudToClay", dripstoneTurnMudToClay,
-                unused -> dripstoneTurnMudToClay,
-                value -> dripstoneTurnMudToClay = value
-        );
-
-        registerBoolean(
-                "accumulateSnow", accumulateSnow,
-                unused -> accumulateSnow,
-                value -> accumulateSnow = value
-        );
-
-        registerBoolean(
-                "waterFreezing", waterFreezing,
-                unused -> waterFreezing,
-                value -> waterFreezing = value
-        );
-
-        registerBoolean(
-                "weatherFillCauldron", weatherFillCauldron,
-                unused -> weatherFillCauldron,
-                value -> weatherFillCauldron = value
-        );
-
-        registerBoolean(
-                "accurateTurtleAgeAfterHatch", accurateTurtleAgeAfterHatch,
-                unused -> accurateTurtleAgeAfterHatch,
-                value -> accurateTurtleAgeAfterHatch = value
-        );
-
-        registerBoolean(
-                "enableBlockEntities", enableBlockEntities,
-                unused -> enableBlockEntities,
-                value -> enableBlockEntities = value
-        );
-
-        registerBoolean(
-                "updateFurnace", updateFurnace,
-                unused -> updateFurnace,
-                value -> updateFurnace = value
-        );
-
-        registerBoolean(
-                "enableEntities", enableEntities,
-                unused -> enableEntities,
-                value -> enableEntities = value
-        );
-
-        registerBoolean(
-                "ageEntities", ageEntities,
-                unused -> ageEntities,
-                value -> ageEntities = value
+                "simulateEntitiesAgeing", simulateEntitiesAgeing,
+                unused -> simulateEntitiesAgeing,
+                value -> simulateEntitiesAgeing = value
         );
     }
 
 
     //General
     public int tickDifferenceThreshold = 100;
-    public int groupTickDifferenceThreshold = 1000;
-    public float groupChunkDifferencePercentage = 0.1F;
     public int maxNegativeBinomialAttempts = 20;
     public boolean debugLogs = false;
     public boolean convertCCAData = true;
 
-    //Chunk
-    public int maxChunksIndexedPerTick = 8;
-    public int maxChunkUpdatesPerTick = 64;
+    //Group
+    public int groupTickDifferenceThreshold = 1000;
+    public float maxGroupTickDeviationScale = 0.1F;
     public int maxForcedChunkLoads = 8;
     public int maxGroupTickUpdates = 1;
     public int maxGroupTickIterations = 1000;
     public float groupTickUpdateStrength = 1F;
     public int maxGroupTickSize = 10000;
+
+    //Chunk
+    public int maxChunksIndexedPerTick = 8;
+    public int maxChunkUpdatesPerTick = 64;
     public boolean randomizeBlockUpdates = false;
     public boolean multiplyMaxChunkUpdatesPerPlayer = false;
-    public boolean updateAllChunksWhenSleep = true;
-    public boolean enableRandomTicks = true;
-    public boolean enablePrecipitationTicks = true;
+    public boolean multiplyMaxChunksIndexedPerPlayer = false;
 
-    //Random Ticks
-    public boolean growSaplings = true;
-    public boolean growCrops = true;
-    public boolean growStems = true;
-    public boolean growSweetBerries = true;
-    public boolean growCocoa = true;
-    public boolean growSugarCane = true;
-    public boolean growCactus = true;
-    public boolean ageCopper = true;
-    public boolean decayLeaves = true;
-    public boolean growAmethyst = true;
-    public boolean growGlowBerries = true;
-    public boolean growKelp = true;
-    public boolean growBamboo = true;
-    public boolean hatchTurtleEggs = true;
-    public boolean meltSnow = true;
-    public boolean meltIce = true;
-    public boolean growDripstone = true;
-    public boolean dripstoneFillCauldrons = true;
-    public boolean dripstoneTurnMudToClay = true;
-
-    //Precipitation Ticks
-    public boolean accumulateSnow = true;
-    public boolean waterFreezing = true;
-    public boolean weatherFillCauldron = true;
-
-    //Accuracy
-    public boolean accurateTurtleAgeAfterHatch = true;
+    //Enable
+    public boolean enableSimulatingRandomTicks = true;
+    public boolean enableSimulatingPrecipitationTicks = true;
+    public boolean enableSimulatingGroups = true;
+    public boolean enableSimulatingBlockEntities = true;
+    public boolean enableSimulatingEntities = true;
 
     //Block Entities
-    public boolean enableBlockEntities = true;
-    public boolean updateFurnace = true;
+    public boolean simulateFurnaceSmelting = true;
 
     //Entities
-    public boolean enableEntities = true;
-    public boolean ageEntities = true;
+    public boolean simulateEntitiesAgeing = true;
 }

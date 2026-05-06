@@ -11,28 +11,30 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
-import org.apache.commons.lang3.tuple.Triple;
 
 import java.time.Instant;
 import java.util.*;
 
 public class TimeMachine {
     public static long simulateChunk(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
-        if (!UnloadedActivity.config.enableRandomTicks || !UnloadedActivity.config.enablePrecipitationTicks) return 0;
+        if (!UnloadedActivity.config.enableSimulatingRandomTicks
+            || !UnloadedActivity.config.enableSimulatingPrecipitationTicks
+            || !UnloadedActivity.config.enableSimulatingGroups) return 0;
 
         long now = 0;
         if (UnloadedActivity.config.debugLogs) now = Instant.now().toEpochMilli();
 
-        TimeMachine.simulateGroupTicks(level, chunk, randomTickSpeed);
-        TimeMachine.simulateTicks(timeDifference, level, chunk, randomTickSpeed);
+        if (UnloadedActivity.config.enableSimulatingGroups)
+            TimeMachine.simulateGroupTicks(level, chunk, randomTickSpeed);
+
+        if (UnloadedActivity.config.enableSimulatingRandomTicks || UnloadedActivity.config.enableSimulatingPrecipitationTicks)
+            TimeMachine.simulateTicks(timeDifference, level, chunk, randomTickSpeed);
 
         long msTime = 0;
 
@@ -319,7 +321,7 @@ public class TimeMachine {
                     long differenceFromMainChunk = lastGroupTick - newLastGroupTick;
                     long differencePercentage = Math.abs(differenceFromMainChunk / groupTimeDifference);
 
-                    if (differencePercentage > UnloadedActivity.config.groupChunkDifferencePercentage)
+                    if (differencePercentage > UnloadedActivity.config.maxGroupTickDeviationScale)
                         continue;
 
                     List<ActiveGroupSimulateData> newData = newGroupChunkIndex.getAndFilterBlocks(newChunk);
@@ -531,25 +533,28 @@ public class TimeMachine {
     }
 
     public static void simulateTicks(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
+        List<BlockPos> precipitationBlocks = List.of();
 
-        if (!UnloadedActivity.config.enableRandomTicks)
-            return;
+        if (UnloadedActivity.config.enableSimulatingPrecipitationTicks) {
+            precipitationBlocks = getPrecipitationTickableBlocks(chunk);
 
-        List<BlockPos> blockPosArray = getRandomTickableBlocks(chunk);
+            if (UnloadedActivity.config.randomizeBlockUpdates)
+                Collections.shuffle(precipitationBlocks);
 
-        if (UnloadedActivity.config.randomizeBlockUpdates) {
-            Collections.shuffle(blockPosArray);
+            for (BlockPos blockPos : precipitationBlocks)
+                simulateBlock(blockPos, level, timeDifference, randomTickSpeed, true);
         }
 
-        List<BlockPos> precipitationBlocks = getPrecipitationTickableBlocks(chunk);
+        if (UnloadedActivity.config.enableSimulatingRandomTicks) {
+            List<BlockPos> blockPosArray = getRandomTickableBlocks(chunk);
 
-        for (BlockPos blockPos : precipitationBlocks) {
-            simulateBlock(blockPos, level, timeDifference, randomTickSpeed, true);
-        }
+            if (UnloadedActivity.config.randomizeBlockUpdates)
+                Collections.shuffle(blockPosArray);
 
-        for (BlockPos blockPos : blockPosArray) {
-            if (precipitationBlocks.contains(blockPos)) continue;
-            simulateBlock(blockPos, level, timeDifference, randomTickSpeed, false);
+            for (BlockPos blockPos : blockPosArray) {
+                if (precipitationBlocks.contains(blockPos)) continue;
+                simulateBlock(blockPos, level, timeDifference, randomTickSpeed, false);
+            }
         }
     }
 
@@ -608,7 +613,10 @@ public class TimeMachine {
                     long maxDuration = 0;
 
                     var simulateProperty = entry.getValue();
-                    if (simulateProperty.isPrecipitation && !allowPrecipitationTicks) {
+                    if (simulateProperty.isPrecipitation && (!allowPrecipitationTicks || !UnloadedActivity.config.enableSimulatingPrecipitationTicks)) {
+                        continue;
+                    }
+                    if (!simulateProperty.isPrecipitation && !UnloadedActivity.config.enableSimulatingRandomTicks) {
                         continue;
                     }
                     if (simulateProperty.simulateWithGroup.isPresent()) {
@@ -690,7 +698,7 @@ public class TimeMachine {
     }
 
     public static <T extends BlockEntity> void simulateBlockEntity(ServerLevel level, BlockPos pos, BlockState blockState, T blockEntity, long timeDifference) {
-        if (!UnloadedActivity.config.enableBlockEntities) return;
+        if (!UnloadedActivity.config.enableSimulatingBlockEntities) return;
 
         long now = 0;
         if (UnloadedActivity.config.debugLogs) now = Instant.now().toEpochMilli();
@@ -700,8 +708,7 @@ public class TimeMachine {
     }
 
     public static void simulateEntity(Entity entity, long timeDifference) {
-
-        if (!UnloadedActivity.config.enableEntities) return;
+        if (!UnloadedActivity.config.enableSimulatingEntities) return;
         if (!entity.canSimulate()) return;
 
         long now = 0;

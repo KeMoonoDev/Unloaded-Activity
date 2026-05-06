@@ -152,7 +152,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
     @Unique
     public boolean shouldSimulate(Level level, BlockPos pos, BlockState state) {
         if (state == null) return false;
-        return UnloadedActivity.config.updateFurnace;
+        return UnloadedActivity.config.simulateFurnaceSmelting;
     }
 
     @Override public void unloaded_activity$simulateTime(ServerLevel level, BlockPos pos, BlockState state, long timeDifference)  {
