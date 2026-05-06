@@ -62,6 +62,10 @@ public class GroupChunkIndex {
             if (maybeGroupMemberInfo.isEmpty())
                 return true;
 
+            if (UnloadedActivity.config.isBlockBlacklisted(state)) {
+                return false;
+            }
+
             GroupMemberInfo groupMemberInfo = maybeGroupMemberInfo.get();
 
             Optional<SimulateProperty> property = Optional.empty();

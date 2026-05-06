@@ -16,10 +16,13 @@ import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -31,6 +34,8 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 public class UnloadedActivityConfig {
+
+    private transient HashMap<ResourceLocation, Boolean> blacklistCache = new HashMap<>();
 
     public static class SimpleOption<T> implements ConfigOption {
         public ArgumentType<T> argumentType;
@@ -119,6 +124,7 @@ public class UnloadedActivityConfig {
                 return 0;
             }
             list.add(blockOrTag);
+            UnloadedActivity.config.blacklistCache.clear();
             UnloadedActivity.saveConfig();
             #if MC_VER >= MC_1_20_1
             context.getSource().sendSuccess(() -> Component.literal(blockOrTag + " has been added to " + this.name), true);
@@ -153,6 +159,7 @@ public class UnloadedActivityConfig {
                 return 0;
             }
 
+            UnloadedActivity.config.blacklistCache.clear();
             UnloadedActivity.saveConfig();
             #if MC_VER >= MC_1_20_1
             context.getSource().sendSuccess(() -> Component.literal(finalValue + " has been removed from " + this.name), true);
@@ -210,6 +217,19 @@ public class UnloadedActivityConfig {
 
     public void registerIdList(String name, Supplier<List<BlockOrTag>> getter) {
         configOptions.add(new IdList(name, getter));
+    }
+
+    public boolean isBlockBlacklisted(BlockState state) {
+        var blockId = Registry.BLOCK.getKey(state.getBlock());
+        return blacklistCache.computeIfAbsent(blockId, (unused) ->
+            blacklistedBlocks.stream().anyMatch((blacklisted) -> {
+                if (blacklisted.isTag) {
+                    return state.is(TagKey.create(Registry.BLOCK_REGISTRY, blacklisted.id));
+                } else {
+                    return Registry.BLOCK.getKey(state.getBlock()).equals(blacklisted.id);
+                }
+            })
+        );
     }
 
     public UnloadedActivityConfig() {

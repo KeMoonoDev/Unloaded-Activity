@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity;
 
 import com.mojang.datafixers.util.Pair;
+import lol.zanspace.unloadedactivity.config.BlockOrTag;
 import lol.zanspace.unloadedactivity.datapack.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -570,8 +571,11 @@ public class TimeMachine {
         while (blockHasChanged) {
             blockHasChanged = false;
 
-            Block block = state.getBlock();
+            if (UnloadedActivity.config.isBlockBlacklisted(state)) {
+                break;
+            }
 
+            Block block = state.getBlock();
 
             Map<String, SimulateProperty> pendingProperties = new HashMap<>(block.getSimulationData().propertyMap);
 
