@@ -49,8 +49,6 @@ build_properties_text.append("MC_VER=$version_index")
 new File(projectDir, "build.properties").text = build_properties_text
 
 fabric_api_version = project["fabric_api_version_" + minecraft_version_string]
-cloth_version = project["cloth_version_" + minecraft_version_string]
-modmenu_version = project["modmenu_version_" + minecraft_version_string]
 compatible_versions = project["compatible_versions_" + minecraft_version_string]
 if (using_neo) {
 	neo_or_forge_version = project["neo_version_" + minecraft_version_string]

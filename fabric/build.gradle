@@ -47,28 +47,6 @@ dependencies {
         include(fabricApi.module(it, rootProject.fabric_api_version + "+" + rootProject.minecraft_version))
     }
 
-    if (rootProject.include_extra_dependencies == "true") {
-        modImplementation "com.terraformersmc:modmenu:${rootProject.modmenu_version}"
-
-        if (buildProperties.MC_VER > buildProperties.MC_1_19_2) {
-            modApi("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_version}") {
-                if (buildProperties.MC_VER < buildProperties.MC_1_20_6) {
-                    // If version is below 1.20.6 then we exclude fabric-api.
-                    // This is because modmenu requires fabric-api for 1.20.6 and above.
-                    if (buildProperties.MC_VER >= buildProperties.MC_1_21_8) {
-                        // For some reason the fabric api does not get excluded. This is a quick fix.
-                        exclude(group: "net.fabricmc.fabric-api")
-                    }
-                }
-            }
-        } else {
-            modImplementation "me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_version}"
-        }
-    } else {
-        modCompileOnlyApi "com.terraformersmc:modmenu:${rootProject.modmenu_version}"
-        modCompileOnlyApi "me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_version}"
-    }
-
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
 }

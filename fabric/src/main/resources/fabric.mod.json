@@ -27,9 +27,6 @@
   "entrypoints": {
     "main": [
       "lol.zanspace.unloadedactivity.fabric.UnloadedActivityFabric"
-    ],
-    "modmenu": [
-      "lol.zanspace.unloadedactivity.fabric.UnloadedActivityModMenu"
     ]
   },
   "mixins": [
