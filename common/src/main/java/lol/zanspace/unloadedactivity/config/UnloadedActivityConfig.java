@@ -264,9 +264,9 @@ public class UnloadedActivityConfig {
         );
 
         registerInt(
-                "maxGroupTickUpdates", maxGroupTickUpdates, 0, Integer.MAX_VALUE,
-                unused -> maxGroupTickUpdates,
-                value -> maxGroupTickUpdates = value
+                "maxGroupUpdatesPerTick", maxGroupUpdatesPerTick, 0, Integer.MAX_VALUE,
+                unused -> maxGroupUpdatesPerTick,
+                value -> maxGroupUpdatesPerTick = value
         );
 
         registerInt(
@@ -382,10 +382,10 @@ public class UnloadedActivityConfig {
     public boolean convertCCAData = true;
 
     //Group
+    public int maxGroupUpdatesPerTick = 1;
     public int groupTickDifferenceThreshold = 1000;
     public float maxGroupTickDeviationScale = 0.1F;
     public int maxForcedChunkLoads = 8;
-    public int maxGroupTickUpdates = 1;
     public int maxGroupTickIterations = 1000;
     public float groupTickUpdateStrength = 1F;
     public int maxGroupTickSize = 10000;

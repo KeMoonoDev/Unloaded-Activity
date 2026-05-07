@@ -23,27 +23,27 @@ import java.time.Instant;
 import java.util.*;
 
 public class TimeMachine {
-    public static long simulateChunk(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
+    /// Returns how many groups were simulated and if the last ticked time should be updated/if normal ticks were simulated.
+    public static Pair<Integer, Boolean> simulateChunk(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget) {
         if (!UnloadedActivity.config.enableSimulatingRandomTicks
-            || !UnloadedActivity.config.enableSimulatingPrecipitationTicks
-            || !UnloadedActivity.config.enableSimulatingGroups) return 0;
+            && !UnloadedActivity.config.enableSimulatingPrecipitationTicks
+            && !UnloadedActivity.config.enableSimulatingGroups) return Pair.of(0, true);
 
-        long now = 0;
-        if (UnloadedActivity.config.debugLogs) now = Instant.now().toEpochMilli();
+        int simulatedGroupCount = 0;
 
-        if (UnloadedActivity.config.enableSimulatingGroups)
-            TimeMachine.simulateGroupTicks(level, chunk, randomTickSpeed);
+        if (UnloadedActivity.config.enableSimulatingGroups) {
+            Pair<Integer, Boolean> result = TimeMachine.simulateGroupTicks(level, chunk, randomTickSpeed, groupUpdateBudget);
+            simulatedGroupCount = result.getFirst();
+            boolean simulatedAllGroups = result.getSecond();
+            if (!simulatedAllGroups) {
+                return result;
+            }
+        }
 
         if (UnloadedActivity.config.enableSimulatingRandomTicks || UnloadedActivity.config.enableSimulatingPrecipitationTicks)
             TimeMachine.simulateTicks(timeDifference, level, chunk, randomTickSpeed);
 
-        long msTime = 0;
-
-        if (UnloadedActivity.config.debugLogs) {
-            msTime = Instant.now().toEpochMilli() - now;
-            UnloadedActivity.LOGGER.info(msTime + "ms to simulate random ticks on chunk after " + timeDifference + " ticks.");
-        };
-        return msTime;
+        return Pair.of(simulatedGroupCount, true);
     }
 
     public static boolean isChunkIndexed(LevelChunk chunk) {
@@ -185,10 +185,15 @@ public class TimeMachine {
     }
 
     // This doesn't take a timeDifference parameter because that is supposed to be calculated in the function using the last group tick.
-    public static void simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
+    public static Pair<Integer, Boolean> simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget) {
         Map<ResourceLocation, GroupChunkIndex> groupIndexes = chunk.getGroupIndexes();
 
         long currentTime = level.getDayTime();
+
+        int simulatedGroups = 0;
+
+        boolean missedGroup = false;
+
         for (var entry : groupIndexes.entrySet()) {
             ResourceLocation groupId = entry.getKey();
             GroupInfo groupInfo = GroupInfoResource.GROUPS_MAP.get(groupId);
@@ -205,10 +210,17 @@ public class TimeMachine {
             long groupTimeDifference = Math.max(currentTime - lastGroupTick, 0);
 
             if (groupTimeDifference <= UnloadedActivity.config.groupTickDifferenceThreshold) {
-                groupChunkIndex.setLastTick(level.getDayTime());
+                groupChunkIndex.setLastTick(currentTime);
                 continue;
             }
 
+            if (simulatedGroups >= groupUpdateBudget) {
+                // we want find all the groups where groupTimeDifference is not enough so we can update the last tick.
+                missedGroup = true;
+                continue;
+            }
+
+            simulatedGroups++;
 
 
             List<ActiveGroupSimulateData> pendingBlockPositions = new ArrayList<>();
@@ -531,6 +543,8 @@ public class TimeMachine {
                 }
             }
         }
+
+        return Pair.of(simulatedGroups, !missedGroup);
     }
 
     public static void simulateTicks(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed) {

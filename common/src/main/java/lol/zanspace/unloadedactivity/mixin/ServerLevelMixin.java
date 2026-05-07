@@ -11,6 +11,7 @@ import net.minecraft.util.datafix.DataFixTypes;
 #if MC_VER >= MC_1_19_4
 import net.minecraft.core.RegistryAccess;
 #endif
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.Holder;
@@ -56,13 +57,12 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 	@Unique
 	public int updateCount = 0;
 	@Unique
-	public int msTime = 0;
+	public int groupUpdateCount = 0;
 
 	@Shadow public ServerLevel getLevel() {return null;}
 
-	@Inject(at = @At("HEAD"), method = "tickChunk")
+	@Inject(method = "tickChunk", at = @At("HEAD"))
 	private void tickChunk(LevelChunk chunk, int randomTickSpeed, CallbackInfo info) {
-
 		if (this.isClientSide())
 			return;
 
@@ -81,7 +81,9 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 			if (timeDifference > differenceThreshold) {
 				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier()) {
 					++updateCount;
-					msTime += TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed);
+					int groupUpdateBudget = UnloadedActivity.config.maxGroupUpdatesPerTick - groupUpdateCount;
+					Pair<Integer, Boolean> result = TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed, groupUpdateBudget);
+					groupUpdateCount += result.getFirst();
 				} else {
 					return;
 				}
@@ -98,13 +100,8 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 
 	@Inject(method = "tick", at = @At(value = "TAIL"))
 	private void tick(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-		if (UnloadedActivity.config.debugLogs && (updateCount) != 0) {
-			int averageMs = (int)((float) msTime / (updateCount) + 0.5);
-			UnloadedActivity.LOGGER.info("Average chunk update time for "+updateCount+" chunks: "+averageMs+"ms");
-			UnloadedActivity.LOGGER.info("Total chunk update time for "+updateCount+" chunks: "+msTime+"ms");
-		}
-		msTime = 0;
 		updateCount = 0;
+		groupUpdateCount = 0;
 	}
 
 	@Inject(method = "tick", at = @At(value = "TAIL", target = "net/minecraft/server/level/ServerLevel.tickTime ()V"))
