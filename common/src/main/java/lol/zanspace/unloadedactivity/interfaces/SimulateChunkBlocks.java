@@ -40,7 +40,12 @@ public interface SimulateChunkBlocks {
     SimulationData getSimulationData();
 
     static Optional<Property<?>> getProperty(BlockState state, String propertyName) {
-        return state.getProperties().stream().filter(p -> p.getName().equals(propertyName)).findFirst();
+        for (var property : state.getProperties()) {
+            if (property.getName().equals(propertyName)) {
+                return Optional.of(property);
+            }
+        }
+        return Optional.empty();
     }
 
     default int getCurrentAgeUA(BlockState state) {

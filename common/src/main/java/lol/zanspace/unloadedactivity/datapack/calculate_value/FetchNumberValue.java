@@ -74,6 +74,11 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     SHOULD_SNOW {
         @Override
         public Number calculateValue(CalculationData data) {
+            // This is already checked by shouldSnow, but according to the spark profiler (1.19.2),
+            // getBiome and shouldSnow takes a bit of time to run. Check the cheap stuff first.
+            if (data.level.getBrightness(LightLayer.BLOCK, data.pos) >= 10) {
+                return 0;
+            }
             Biome biome = data.level.getBiome(data.pos).value();
             return biome.shouldSnow(data.level, data.pos) ? 1 : 0;
         }
@@ -82,6 +87,11 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     SHOULD_FREEZE {
         @Override
         public Number calculateValue(CalculationData data) {
+            // This is already checked by shouldFreeze, but according to the spark profiler (1.19.2),
+            // getBiome and shouldFreeze takes a bit of time to run. Check the cheap stuff first.
+            if (data.level.getBrightness(LightLayer.BLOCK, data.pos) >= 10) {
+                return 0;
+            }
             Biome biome = data.level.getBiome(data.pos.above()).value();
             return biome.shouldFreeze(data.level, data.pos, false) ? 1 : 0;
         }

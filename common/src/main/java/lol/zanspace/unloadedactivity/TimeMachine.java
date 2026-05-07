@@ -577,27 +577,32 @@ public class TimeMachine {
 
             Block block = state.getBlock();
 
-            Map<String, SimulateProperty> pendingProperties = new HashMap<>(block.getSimulationData().propertyMap);
+            // This is not a HashMap because most of the time a block only has 1 or 2 properties.
+            // It's not worth the overhead.
+            ArrayList<Pair<String, Long>> finishedProperties = new ArrayList<>();
 
-            Map<String, Long> finishedProperties = new HashMap<>();
+            // This is not a HashSet because of the same reason above.
+            // Even if there's a duplicate, we only check if it contains, so it doesn't matter.
+            ArrayList<String> propertiesWithDependents = new ArrayList<>();
 
-            Set<String> propertiesWithDependents = new HashSet<>();
-
+            SimulationData simulationData = block.getSimulationData();
 
             if (UnloadedActivity.config.debugLogs)
                 if (!state.isAir())
-                    UnloadedActivity.LOGGER.info("Simulating block " + block + " with " + pendingProperties.size() + " properties.");
+                    UnloadedActivity.LOGGER.info("Simulating block " + block + " with " + simulationData.propertyMap.size() + " properties.");
 
-            var pendingPropertiesIterator = pendingProperties.entrySet().iterator();
-            while (pendingPropertiesIterator.hasNext()) {
-                var entry = pendingPropertiesIterator.next();
+
+            ArrayList<Pair<String, SimulateProperty>> pendingProperties = new ArrayList<>(simulationData.propertyMap.size());
+
+            for (var entry : simulationData.propertyMap.entrySet()) {
 
                 String propertyName = entry.getKey();
                 var simulateProperty = entry.getValue();
 
                 if (block.isPropertyFinished(state, level, pos, simulateProperty)) {
-                    finishedProperties.put(propertyName, 0L);
-                    pendingPropertiesIterator.remove();
+                    finishedProperties.add(Pair.of(propertyName, 0L));
+                } else {
+                    pendingProperties.add(Pair.of(propertyName, simulateProperty));
                 }
 
                 propertiesWithDependents.addAll(simulateProperty.dependencies);
@@ -608,7 +613,7 @@ public class TimeMachine {
             while (continueCheck) {
                 continueCheck = false;
 
-                var iterator = pendingProperties.entrySet().iterator();
+                var iterator = pendingProperties.iterator();
 
                 while (iterator.hasNext()) {
                     var entry = iterator.next();
@@ -616,7 +621,8 @@ public class TimeMachine {
                     boolean validDependencies = true;
                     long maxDuration = 0;
 
-                    var simulateProperty = entry.getValue();
+                    var simulateProperty = entry.getSecond();
+
                     if (simulateProperty.isPrecipitation && (!allowPrecipitationTicks || !UnloadedActivity.config.enableSimulatingPrecipitationTicks)) {
                         continue;
                     }
@@ -626,9 +632,16 @@ public class TimeMachine {
                     if (simulateProperty.simulateWithGroup.isPresent()) {
                         continue;
                     }
-                    var propertyName = entry.getKey();
+                    var propertyName = entry.getFirst();
                     for (String dependency : simulateProperty.dependencies) {
-                        Long dependencyDuration = finishedProperties.get(dependency);
+                        Long dependencyDuration = null;
+
+                        for (var pair : finishedProperties) {
+                            if (pair.getFirst().equals(dependency)) {
+                                dependencyDuration = pair.getSecond();
+                                break;
+                            }
+                        }
 
                         if (dependencyDuration == null) {
                             validDependencies = false;
@@ -694,7 +707,7 @@ public class TimeMachine {
 
                     if (block.isPropertyFinished(state, level, pos, simulateProperty)) {
                         continueCheck = true;
-                        finishedProperties.put(propertyName, simulationDuration);
+                        finishedProperties.add(Pair.of(propertyName, simulationDuration));
                     }
                 }
             }
