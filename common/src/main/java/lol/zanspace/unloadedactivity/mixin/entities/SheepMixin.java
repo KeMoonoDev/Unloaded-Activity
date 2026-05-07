@@ -2,7 +2,6 @@ package lol.zanspace.unloadedactivity.mixin.entities;
 
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.Utils;
-import lol.zanspace.unloadedactivity.mixin.GoalSelectorAccessor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Shearable;
@@ -35,7 +34,13 @@ abstract public class SheepMixin extends Animal implements Shearable {
         if (this.isRemoved()) return false;
         if (!this.isAlive()) return false;
 
-        boolean isAlreadyEating = this.goalSelector.getRunningGoals().anyMatch((wrappedGoal) -> wrappedGoal.getGoal().equals(this.eatBlockGoal));
+        boolean isAlreadyEating = true;
+        for (var wrappedGoal : this.goalSelector.getAvailableGoals()) {
+            if (wrappedGoal.getGoal().equals(this.eatBlockGoal)) {
+                isAlreadyEating = wrappedGoal.isRunning();
+                break;
+            }
+        }
         if (isAlreadyEating) return false;
         // this condition is not very accurate, BUT!!!
         // Sheared sheep may get their grass stolen from unsheared sheep,
@@ -53,8 +58,7 @@ abstract public class SheepMixin extends Animal implements Shearable {
             return;
 
         RandomSource randomSource = this.getRandom();
-        int newGoalRate = ((GoalSelectorAccessor)this.goalSelector).unloadedactivity$getNewGoalRate();
-        int doesWantToEat = Utils.getOccurrencesBinomial(timeDifference / newGoalRate, 1.0f/1000.0f, 1, randomSource);
+        int doesWantToEat = Utils.getOccurrencesBinomial(timeDifference / 3, 1.0f/1000.0f, 1, randomSource);
 
         if (doesWantToEat == 0) {
             return;

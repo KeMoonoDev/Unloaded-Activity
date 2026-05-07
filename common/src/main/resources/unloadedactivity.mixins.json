@@ -14,7 +14,6 @@
     "CropBlockInvoker",
     "EntityMixin",
     "GameRulesAccessor",
-    "GoalSelectorAccessor",
     "IntegerPropertyAccessor",
     "LevelChunkMixin",
     "MinecraftServerMixin",
