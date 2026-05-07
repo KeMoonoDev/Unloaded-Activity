@@ -23,7 +23,7 @@ public class UnloadedActivity {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final long chunkSimVer = 1;
+    public static final long chunkSimVer = 2;
     public static UnloadedActivityConfig config;
 
     public static void init() {
