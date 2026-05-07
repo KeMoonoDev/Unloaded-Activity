@@ -37,6 +37,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static lol.zanspace.unloadedactivity.UnloadedActivity.MOD_ID;
+import static lol.zanspace.unloadedactivity.UnloadedActivity.OLD_MOD_ID;
+
 #if MC_VER <= MC_1_21_1
 @Mixin(value = ChunkSerializer.class, priority = 999)
 public abstract class ChunkSerializerMixin {
@@ -65,7 +68,7 @@ public abstract class ChunkSerializerMixin {
         }
         chunkData.put("groups", groupsData);
 
-        nbt.put("unloaded_activity", chunkData);
+        nbt.put(MOD_ID, chunkData);
     }
 
     @Inject(method = "read", at = @At("RETURN"))
@@ -79,7 +82,10 @@ public abstract class ChunkSerializerMixin {
 
         ChunkAccess protoChunk = (protoChunkTemp instanceof ImposterProtoChunk readOnlyChunk) ? readOnlyChunk.getWrapped() : protoChunkTemp;
 
-        CompoundTag chunkData = nbtCompound.getCompound("unloaded_activity");
+        CompoundTag chunkData = nbtCompound.getCompound(MOD_ID);
+        if (chunkData.isEmpty()) {
+            chunkData = nbtCompound.getCompound(OLD_MOD_ID);
+        }
 
         boolean isEmpty = chunkData.isEmpty();
 
@@ -181,7 +187,7 @@ public abstract class ChunkSerializerMixin {
         }
         chunkData.put("groups", groupsData);
 
-        nbt.put("unloaded_activity", chunkData);
+        nbt.put(MOD_ID, chunkData);
     }
 
     @Inject(method = "read", at = @At("RETURN"))
@@ -223,7 +229,10 @@ public abstract class ChunkSerializerMixin {
             return;
         }
 
-        CompoundTag chunkData = nbt.getCompound("unloaded_activity")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
+        CompoundTag chunkData = nbt.getCompound(MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
+        if (chunkData.isEmpty()) {
+            CompoundTag chunkData = nbt.getCompound(OLD_MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
+        }
 
         boolean isEmpty = chunkData.isEmpty();
 

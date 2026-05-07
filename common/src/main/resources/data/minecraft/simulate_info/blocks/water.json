@@ -28,6 +28,6 @@
     "block_replacement": "minecraft:ice",
     "drops_resources": false,
 
-    "simulate_with_group": "unloaded_activity:water_freezing"
+    "simulate_with_group": "unloadedactivity:water_freezing"
   }
 }

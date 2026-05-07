@@ -1,24 +1,24 @@
 modLoader = "javafml"
 loaderVersion = "[43,)"
-issueTrackerURL = "https://github.com/InZan17/Unloaded-Activity-Fabric/issues"
+issueTrackerURL = "https://github.com/InZan17/Unloaded-Activity/issues"
 license = "GNU LGPLv3"
 
 [[mods]]
-modId = "unloaded_activity"
+modId = "unloadedactivity"
 version = "${version}"
 displayName = "Unloaded Activity"
 authors = "Zan"
 description = "Make certain blocks such as crops grow as if they've always grown when put into simulation distance."
 logoFile = "icon.png"
 
-[[dependencies.unloaded_activity]]
+[[dependencies.unloadedactivity]]
 modId = "forge"
 mandatory = true
 versionRange = "[43,)"
 ordering = "NONE"
 side = "SERVER"
 
-[[dependencies.unloaded_activity]]
+[[dependencies.unloadedactivity]]
 modId = "minecraft"
 mandatory = true
 versionRange = "${compatible_versions}"

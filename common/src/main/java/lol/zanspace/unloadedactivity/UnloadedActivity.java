@@ -19,7 +19,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class UnloadedActivity {
-    public static final String MOD_ID = "unloaded_activity";
+    public static final String MOD_ID = "unloadedactivity";
+    public static final String OLD_MOD_ID = "unloaded_activity";
 
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
@@ -32,7 +33,7 @@ public class UnloadedActivity {
     }
     public static void loadConfig() {
         LOGGER.info("Loading config.");
-        File configFile = new File(ExpectPlatform.getConfigDirectory().toFile(), "unloaded-activity.json");
+        File configFile = new File(ExpectPlatform.getConfigDirectory().toFile(), MOD_ID+".json");
         Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(BlockOrTag.class, new BlockOrTag.StringAdapter())
@@ -54,7 +55,7 @@ public class UnloadedActivity {
     }
 
     public static void saveConfig() {
-        File configFile = new File(ExpectPlatform.getConfigDirectory().toFile(), "unloaded-activity.json");
+        File configFile = new File(ExpectPlatform.getConfigDirectory().toFile(), MOD_ID+".json");
         Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(BlockOrTag.class, new BlockOrTag.StringAdapter())
@@ -74,11 +75,11 @@ public class UnloadedActivity {
 
     public static #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id(String path) {
         #if MC_VER >= MC_1_21_11
-        return Identifier.fromNamespaceAndPath("unloaded_activity", path);
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
         #elif MC_VER >= MC_1_21_1
-        return ResourceLocation.fromNamespaceAndPath("unloaded_activity", path);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
         #else
-        return new ResourceLocation("unloaded_activity", path);
+        return new ResourceLocation(MOD_ID, path);
         #endif
     }
 }

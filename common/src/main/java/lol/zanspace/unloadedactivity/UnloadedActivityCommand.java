@@ -22,6 +22,7 @@ import static com.mojang.brigadier.arguments.LongArgumentType.getLong;
 import static com.mojang.brigadier.arguments.LongArgumentType.longArg;
 import static com.mojang.brigadier.arguments.StringArgumentType.getString;
 import static com.mojang.brigadier.arguments.StringArgumentType.string;
+import static lol.zanspace.unloadedactivity.UnloadedActivity.MOD_ID;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
@@ -32,7 +33,7 @@ import net.minecraft.server.permissions.PermissionLevel;
 
 public class UnloadedActivityCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        LiteralArgumentBuilder commandBuilder = literal("unloadedactivity").requires(source -> {
+        LiteralArgumentBuilder commandBuilder = literal(MOD_ID).requires(source -> {
             // If it's single player then the host should have access to the commands. Otherwise, only people with permission level 4 have access to them.
 
             #if MC_VER >= MC_1_21_11

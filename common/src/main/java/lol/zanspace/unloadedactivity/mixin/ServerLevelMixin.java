@@ -37,6 +37,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import static lol.zanspace.unloadedactivity.UnloadedActivity.MOD_ID;
+
 
 @Mixin(value = ServerLevel.class, priority = 1001)
 public abstract class ServerLevelMixin extends Level implements WorldGenLevel, WorldTimeData {
@@ -114,7 +116,7 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 
 	#if MC_VER >= MC_1_21_5
 	private static SavedDataType<WorldWeatherData> type = new SavedDataType<WorldWeatherData>(
-			"unloaded_activity",
+			MOD_ID,
 	        #if MC_VER >= MC_1_21_11
             WorldWeatherData::new,
             WorldWeatherData.CODEC,
@@ -148,7 +150,7 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
                 WorldWeatherData::new
 			#endif
 			#if MC_VER < MC_1_21_5
-			, "unloaded_activity"
+			, MOD_ID
 			#endif
 		);
 	}

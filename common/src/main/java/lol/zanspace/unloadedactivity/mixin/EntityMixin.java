@@ -24,6 +24,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static java.lang.Long.max;
+import static lol.zanspace.unloadedactivity.UnloadedActivity.MOD_ID;
+import static lol.zanspace.unloadedactivity.UnloadedActivity.OLD_MOD_ID;
 
 
 @Mixin(value = Entity.class, priority = 999)
@@ -66,7 +68,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 
         entityData.putLong("last_tick", this.lastTick);
 
-        returnedNbt.put("unloaded_activity", entityData);
+        returnedNbt.put(MOD_ID, entityData);
     }
     #else
     @Inject(method = "saveWithoutId", at = @At("RETURN"))
@@ -75,7 +77,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 
         entityData.putLong("last_tick", this.lastTick);
 
-        nbt.store("unloaded_activity", CompoundTag.CODEC, entityData);
+        nbt.store(MOD_ID, CompoundTag.CODEC, entityData);
     }
     #endif
 
@@ -86,11 +88,20 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
     @Inject(method = "load", at = @At(value = "INVOKE", target = "net/minecraft/world/entity/Entity.readAdditionalSaveData (Lnet/minecraft/world/level/storage/ValueInput;)V", shift = At.Shift.AFTER))
     private void load(ValueInput nbt, CallbackInfo ci) {
     #endif
+
         #if MC_VER <= MC_1_21_5
-        CompoundTag entityData = nbt.getCompound("unloaded_activity")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
+        CompoundTag entityData = nbt.getCompound(MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag()) #endif;
         #else
-        CompoundTag entityData = nbt.read("unloaded_activity", CompoundTag.CODEC).orElse(new CompoundTag());
+        CompoundTag entityData = nbt.read(MOD_ID, CompoundTag.CODEC).orElse(new CompoundTag());
         #endif
+
+        if (entityData.isEmpty()) {
+            #if MC_VER <= MC_1_21_5
+            entityData = nbt.getCompound(OLD_MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag()) #endif;
+            #else
+            entityData = nbt.read(OLD_MOD_ID, CompoundTag.CODEC).orElse(new CompoundTag());
+            #endif
+        }
 
         boolean isEmpty = entityData.isEmpty();
 

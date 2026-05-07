@@ -20,6 +20,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static lol.zanspace.unloadedactivity.UnloadedActivity.MOD_ID;
+import static lol.zanspace.unloadedactivity.UnloadedActivity.OLD_MOD_ID;
+
 @Mixin(value = BlockEntity.class, priority = 999)
 public abstract class BlockEntityMixin implements SimulateBlockEntity, BlockEntityTimeData {
     @Unique
@@ -62,9 +65,9 @@ public abstract class BlockEntityMixin implements SimulateBlockEntity, BlockEnti
         blockData.putLong("last_tick", this.lastTick);
 
         #if MC_VER <= MC_1_21_5
-        nbt.put("unloaded_activity", blockData);
+        nbt.put(MOD_ID, blockData);
         #else
-        nbt.store("unloaded_activity", CompoundTag.CODEC, blockData);
+        nbt.store(MOD_ID, CompoundTag.CODEC, blockData);
         #endif
     }
     #if MC_VER <= MC_1_20_4
@@ -79,10 +82,18 @@ public abstract class BlockEntityMixin implements SimulateBlockEntity, BlockEnti
     #endif
     {
         #if MC_VER <= MC_1_21_5
-        CompoundTag blockData = nbt.getCompound("unloaded_activity")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
+        CompoundTag blockData = nbt.getCompound(MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
         #else
-        CompoundTag blockData = nbt.read("unloaded_activity", CompoundTag.CODEC).orElse(new CompoundTag());
+        CompoundTag blockData = nbt.read(MOD_ID, CompoundTag.CODEC).orElse(new CompoundTag());
         #endif
+
+        if (blockData.isEmpty()) {
+            #if MC_VER <= MC_1_21_5
+            blockData = nbt.getCompound(OLD_MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
+            #else
+            blockData = nbt.read(OLD_MOD_ID, CompoundTag.CODEC).orElse(new CompoundTag());
+            #endif
+        }
 
         boolean isEmpty = blockData.isEmpty();
 
