@@ -214,6 +214,22 @@ public class TimeMachine {
                 continue;
             }
 
+            List<ActiveGroupSimulateData> checkingBlockPositions = groupChunkIndex.getAndFilterBlocks(chunk);
+
+            boolean isAllInactive = true;
+
+            for (var groupSimulateData : checkingBlockPositions) {
+                if (!groupSimulateData.isActive) {
+                    isAllInactive = false;
+                    break;
+                }
+            }
+
+            if (isAllInactive) {
+                groupChunkIndex.setLastTick(currentTime);
+                continue;
+            }
+
             if (simulatedGroups >= groupUpdateBudget) {
                 // we want find all the groups where groupTimeDifference is not enough so we can update the last tick.
                 missedGroup = true;
@@ -222,10 +238,7 @@ public class TimeMachine {
 
             simulatedGroups++;
 
-
             List<ActiveGroupSimulateData> pendingBlockPositions = new ArrayList<>();
-            List<ActiveGroupSimulateData> checkingBlockPositions = groupChunkIndex.getAndFilterBlocks(chunk);
-
             List<ActiveGroupSimulateData> toBeAddedToMap = checkingBlockPositions;
 
             Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap = new HashMap<>(UnloadedActivity.config.maxGroupTickSize);
