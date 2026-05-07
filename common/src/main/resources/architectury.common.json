@@ -1,6 +1,7 @@
 {
   "injected_interfaces": {
     "net/minecraft/world/level/block/state/properties/IntegerProperty": ["lol/zanspace/unloadedactivity/mixin/IntegerPropertyAccessor"],
+    "net/minecraft/world/entity/ai/goal/GoalSelector": ["lol/zanspace/unloadedactivity/mixin/GoalSelectorAccessor"],
     "net/minecraft/world/level/block/Block": ["lol/zanspace/unloadedactivity/interfaces/SimulateChunkBlocks"],
     "net/minecraft/world/level/block/entity/BlockEntity": [
       "lol/zanspace/unloadedactivity/interfaces/SimulateBlockEntity",

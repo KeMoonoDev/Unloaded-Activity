@@ -372,6 +372,12 @@ public class UnloadedActivityConfig {
                 unused -> simulateEntitiesAgeing,
                 value -> simulateEntitiesAgeing = value
         );
+
+        registerBoolean(
+                "simulateSheepDesireToEat", simulateSheepDesireToEat,
+                unused -> simulateSheepDesireToEat,
+                value -> simulateSheepDesireToEat = value
+        );
     }
 
 
@@ -410,4 +416,5 @@ public class UnloadedActivityConfig {
 
     //Entities
     public boolean simulateEntitiesAgeing = true;
+    public boolean simulateSheepDesireToEat = true;
 }

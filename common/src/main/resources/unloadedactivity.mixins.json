@@ -14,6 +14,7 @@
     "CropBlockInvoker",
     "EntityMixin",
     "GameRulesAccessor",
+    "GoalSelectorAccessor",
     "IntegerPropertyAccessor",
     "LevelChunkMixin",
     "MinecraftServerMixin",
@@ -38,7 +39,8 @@
     "chunk.randomTicks.WeatheringCopperTrapDoorMixin",
     "chunk.randomTicks.WeatheringLanternMixin",
     "chunk.randomTicks.WeatheringLightningRodMixin",
-    "entities.AgeableMobMixin"
+    "entities.AgeableMobMixin",
+    "entities.SheepMixin"
   ],
   "injectors": {
     "defaultRequire": 1
