@@ -19,7 +19,7 @@ public class ExpectPlatformImpl {
     public static Path getConfigDirectory() {
         return FMLPaths.CONFIGDIR.get();
     }
-    public static boolean craftRecipe(
+    public static boolean burn(
         #if MC_VER >= MC_1_19_4
         RegistryAccess registryAccess,
         #endif
