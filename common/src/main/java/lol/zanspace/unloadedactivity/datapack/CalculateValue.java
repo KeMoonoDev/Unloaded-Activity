@@ -78,11 +78,6 @@ public interface CalculateValue<T> {
                 return new PropertyValue(propertyName);
             }
 
-            if (variableName.toLowerCase().startsWith("game_rule:")) {
-                String ruleName = variableName.substring("game_rule:".length());
-                return new GameRuleValue(ruleName);
-            }
-
             throw new RuntimeException(variableName + " is not a valid value.");
         }
 

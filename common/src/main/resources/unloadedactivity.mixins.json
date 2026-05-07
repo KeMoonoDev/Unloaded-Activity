@@ -13,7 +13,6 @@
     "ChunkSerializerMixin",
     "CropBlockInvoker",
     "EntityMixin",
-    "GameRulesAccessor",
     "IntegerPropertyAccessor",
     "LevelChunkMixin",
     "MinecraftServerMixin",
