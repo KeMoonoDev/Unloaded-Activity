@@ -3,6 +3,9 @@ package lol.zanspace.unloadedactivity.neoforge;
 import lol.zanspace.unloadedactivity.UnloadedActivityCommand;
 import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
 import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.SubscribeEvent;
 #if MC_VER >= MC_1_21_4
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
@@ -10,8 +13,23 @@ import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 #endif
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 
 public class NeoForgeEventHandler {
+    @SubscribeEvent
+    public void onChunkLoad(ChunkEvent.Load event) {
+        LevelAccessor level = event.getLevel();
+        MinecraftServer server = level.getServer();
+
+        if (server == null) {
+            return;
+        }
+
+        if (event.getChunk() instanceof LevelChunk chunk) {
+            server.addChunkToQueue(chunk);
+        }
+    }
+
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         UnloadedActivityCommand.register(event.getDispatcher());
@@ -29,6 +47,7 @@ public class NeoForgeEventHandler {
     public void onAddReloadListener(AddReloadListenerEvent event) {
         event.addListener(new SimulationDataResource(true));
         event.addListener(new SimulationDataResource(false));
+        event.addListener(new GroupInfoResource());
     }
     #endif
 }

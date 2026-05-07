@@ -1,5 +1,20 @@
 package lol.zanspace.unloadedactivity.config;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
+#if MC_VER >= MC_1_19_4
+import net.minecraft.core.registries.Registries;
+import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
+#else
+import net.minecraft.core.Registry;
+import net.minecraft.commands.arguments.ResourceOrTagLocationArgument;
+#endif
+
+import lol.zanspace.unloadedactivity.GameUtils;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -11,11 +26,8 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.datafixers.util.Either;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.arguments.ResourceOrTagLocationArgument;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -35,7 +47,7 @@ import static net.minecraft.commands.Commands.literal;
 
 public class UnloadedActivityConfig {
 
-    private transient HashMap<ResourceLocation, Boolean> blacklistCache = new HashMap<>();
+    private transient HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean> blacklistCache = new HashMap<>();
 
     public static class SimpleOption<T> implements ConfigOption {
         public ArgumentType<T> argumentType;
@@ -103,12 +115,20 @@ public class UnloadedActivityConfig {
         }
 
         int executeConfigAdd(CommandContext<CommandSourceStack> context) {
+            #if MC_VER >= MC_1_19_4
+            ResourceOrTagKeyArgument.Result<Block> input = context.getArgument("value", ResourceOrTagKeyArgument.Result.class);
+            #else
             ResourceOrTagLocationArgument.Result<Block> input = context.getArgument("value", ResourceOrTagLocationArgument.Result.class);
+            #endif
             Either<ResourceKey<Block>, TagKey<Block>> eitherBlockOrTag = input.unwrap();
 
             BlockOrTag blockOrTag;
             if (eitherBlockOrTag.left().isPresent()) {
+                #if MC_VER >= MC_1_21_11
+                blockOrTag = new BlockOrTag(false, eitherBlockOrTag.left().get().identifier());
+                #else
                 blockOrTag = new BlockOrTag(false, eitherBlockOrTag.left().get().location());
+                #endif
             } else {
                 blockOrTag = new BlockOrTag(true, eitherBlockOrTag.right().orElseThrow().location());
             }
@@ -141,9 +161,9 @@ public class UnloadedActivityConfig {
 
             // If user just writes "stone", this will correct it to "minecraft:stone"
             if (input.startsWith("#")) {
-                finalValue = "#" + ResourceLocation.read(new StringReader(input.substring(1)));
+                finalValue = "#" + #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.read(new StringReader(input.substring(1)));
             } else {
-                finalValue = ResourceLocation.read(new StringReader(input)).toString();
+                finalValue = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.read(new StringReader(input)).toString();
             }
 
             var list = this.getter.get();
@@ -187,9 +207,15 @@ public class UnloadedActivityConfig {
                 }
             };
 
+            #if MC_VER >= MC_1_19_4
+            ResourceOrTagKeyArgument<Block> argumentType = new ResourceOrTagKeyArgument<Block>(Registries.BLOCK);
+            #else
+            ResourceOrTagLocationArgument<Block> argumentType = new ResourceOrTagLocationArgument<Block>(Registry.BLOCK_REGISTRY);
+            #endif
+
             argumentBuilder.then(literal(this.name)
                 .then(literal("list").executes(this::executeConfigGet))
-                .then(literal("add").then(argument("value", new ResourceOrTagLocationArgument<Block>(Registry.BLOCK_REGISTRY)).executes(this::executeConfigAdd)))
+                .then(literal("add").then(argument("value", argumentType).executes(this::executeConfigAdd)))
                 .then(literal("remove").then(argument("value", StringArgumentType.greedyString()).suggests(stringListSuggestions).executes(this::executeConfigRemove)))
             );
         }
@@ -220,13 +246,19 @@ public class UnloadedActivityConfig {
     }
 
     public boolean isBlockBlacklisted(BlockState state) {
-        var blockId = Registry.BLOCK.getKey(state.getBlock());
+        var blockId = GameUtils.getBlockId(state.getBlock());
         return blacklistCache.computeIfAbsent(blockId, (unused) ->
             blacklistedBlocks.stream().anyMatch((blacklisted) -> {
                 if (blacklisted.isTag) {
-                    return state.is(TagKey.create(Registry.BLOCK_REGISTRY, blacklisted.id));
+                    #if MC_VER >= MC_1_19_4
+                    var resourceKey = Registries.BLOCK;
+                    #else
+                    var resourceKey = Registry.BLOCK_REGISTRY;
+                    #endif
+
+                    return state.is(TagKey.create(resourceKey, blacklisted.id));
                 } else {
-                    return Registry.BLOCK.getKey(state.getBlock()).equals(blacklisted.id);
+                    return blockId.equals(blacklisted.id);
                 }
             })
         );

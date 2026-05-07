@@ -132,7 +132,11 @@ public class IncompleteSimulateProperty {
     }
 
     public <T> void parseAndApplyCondition(DynamicOps<T> ops, T input) {
+        #if MC_VER >= MC_1_20_6
+        Condition condition = Condition.parse(ops, input).getOrThrow();
+        #else
         Condition condition = Condition.parse(ops, input).getOrThrow(true, e->{});
+        #endif
         this.conditions.add(condition);
     }
 
@@ -312,7 +316,7 @@ public class IncompleteSimulateProperty {
             T mapValue = propertyInfo.get("block_replacement");
             if (mapValue != null) {
                 CalculateValue<String> result = CalculateValue.parseString(ops, mapValue);
-                simulateProperty.blockReplacement = Optional.of(result.map(ResourceLocation::tryParse));
+                simulateProperty.blockReplacement = Optional.of(result.map(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif::tryParse));
             }
         }
 
@@ -371,7 +375,7 @@ public class IncompleteSimulateProperty {
         {
             T mapValue = propertyInfo.get("hatch_entity");
             if (mapValue != null) {
-                var result = ResourceLocation.CODEC.decode(ops, mapValue);
+                var result = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.CODEC.decode(ops, mapValue);
                 if (result.result().isEmpty()) {
                     returnError(result);
                 }
@@ -429,10 +433,10 @@ public class IncompleteSimulateProperty {
                     return returnError(listResult);
                 }
 
-                ArrayList< ResourceLocation > buddingBlocks = new ArrayList<>();
+                ArrayList<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif> buddingBlocks = new ArrayList<>();
 
                 for (T buddingBlockId : listResult.result().get().toList()) {
-                    var result = ResourceLocation.CODEC.decode(ops, buddingBlockId);
+                    var result = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.CODEC.decode(ops, buddingBlockId);
                     if (result.result().isEmpty()) {
                         returnError(result);
                     }
@@ -505,7 +509,7 @@ public class IncompleteSimulateProperty {
         {
             T mapValue = propertyInfo.get("simulate_with_group");
             if (mapValue != null) {
-                var result = ResourceLocation.CODEC.decode(ops, mapValue);
+                var result = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.CODEC.decode(ops, mapValue);
                 if (result.result().isEmpty()) {
                     returnError(result);
                 }

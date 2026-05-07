@@ -1,11 +1,21 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
-import lol.zanspace.unloadedactivity.Utils;
+#if MC_VER >= MC_1_21_11
+import net.minecraft.world.level.gamerules.GameRules;
+#else
+import net.minecraft.world.level.GameRules;
+#endif
+
+import lol.zanspace.unloadedactivity.ExpectPlatform;
+import lol.zanspace.unloadedactivity.GameUtils;
+import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.mixin.CropBlockInvoker;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
+
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.SnowLayerBlock;
@@ -18,7 +28,7 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         @Override
         public Number calculateValue(CalculationData data) {
             #if MC_VER >= MC_1_21_1
-            return ExpectPlatform.getGrowthSpeed(state, level, pos);
+            return ExpectPlatform.getGrowthSpeed(data.state, data.level, data.pos);
             #else
             return CropBlockInvoker.invokeGetGrowthSpeed(data.state.getBlock(), data.level, data.pos);
             #endif
@@ -28,10 +38,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     AVAILABLE_SPACE_FOR_GOURD {
         @Override
         public Number calculateValue(CalculationData data) {
-            return (Utils.isValidGourdPosition(Direction.NORTH, data.pos, data.level) ? 1 : 0)
-                + (Utils.isValidGourdPosition(Direction.EAST, data.pos, data.level) ? 1 : 0)
-                + (Utils.isValidGourdPosition(Direction.SOUTH, data.pos, data.level) ? 1 : 0)
-                + (Utils.isValidGourdPosition(Direction.WEST, data.pos, data.level) ? 1 : 0);
+            return (GameUtils.isValidGourdPosition(Direction.NORTH, data.pos, data.level) ? 1 : 0)
+                + (GameUtils.isValidGourdPosition(Direction.EAST, data.pos, data.level) ? 1 : 0)
+                + (GameUtils.isValidGourdPosition(Direction.SOUTH, data.pos, data.level) ? 1 : 0)
+                + (GameUtils.isValidGourdPosition(Direction.WEST, data.pos, data.level) ? 1 : 0);
 
         }
     },
@@ -79,7 +89,8 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.level.getBrightness(LightLayer.BLOCK, data.pos) >= 10) {
                 return 0;
             }
-            Biome biome = data.level.getBiome(data.pos).value();
+            BlockPos samplePos = data.state.isAir() ? data.pos : data.pos.above();
+            Biome biome = data.level.getBiome(samplePos).value();
             return biome.shouldSnow(data.level, data.pos) ? 1 : 0;
         }
     },
@@ -92,7 +103,8 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.level.getBrightness(LightLayer.BLOCK, data.pos) >= 10) {
                 return 0;
             }
-            Biome biome = data.level.getBiome(data.pos.above()).value();
+            BlockPos samplePos = data.state.isAir() ? data.pos : data.pos.above();
+            Biome biome = data.level.getBiome(samplePos).value();
             return biome.shouldFreeze(data.level, data.pos, false) ? 1 : 0;
         }
     },
@@ -100,13 +112,13 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     MAX_SNOW_HEIGHT {
         @Override
         public Number calculateValue(CalculationData data) {
-            int maxSnowHeight = #if MC_VER >= MC_1_21_11
-                level.getGameRules().get(GameRules.MAX_SNOW_ACCUMULATION_HEIGHT)
+            #if MC_VER >= MC_1_21_11
+            int maxSnowHeight = data.level.getGameRules().get(GameRules.MAX_SNOW_ACCUMULATION_HEIGHT);
             #elif MC_VER >= MC_1_19_4
-                level.getGameRules().getInt(GameRules.RULE_SNOW_ACCUMULATION_HEIGHT)
+            int maxSnowHeight = data.level.getGameRules().getInt(GameRules.RULE_SNOW_ACCUMULATION_HEIGHT);
             #else
-                1
-            #endif;
+            int maxSnowHeight = 1;
+            #endif
 
             return Math.min(maxSnowHeight, SnowLayerBlock.MAX_HEIGHT);
         }
@@ -115,8 +127,16 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     IS_SNOW_PRECIPITATION {
         @Override
         public Number calculateValue(CalculationData data) {
-            Biome biome = data.level.getBiome(data.pos).value();
-            boolean isSnow = biome.getPrecipitation() == Biome.Precipitation.SNOW;
+            BlockPos samplePos = data.state.isAir() ? data.pos : data.pos.above();
+            Biome biome = data.level.getBiome(samplePos).value();
+            #if MC_VER >= MC_1_21_3
+            Biome.Precipitation precipitation = biome.getPrecipitationAt(samplePos, data.level.getSeaLevel());
+            #elif MC_VER >= MC_1_19_4
+            Biome.Precipitation precipitation = biome.getPrecipitationAt(samplePos);
+            #else
+            Biome.Precipitation precipitation = biome.getPrecipitation()
+            #endif;
+            boolean isSnow = precipitation == Biome.Precipitation.SNOW;
             return isSnow ? 1 : 0;
         }
     },
@@ -124,8 +144,16 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     IS_RAIN_PRECIPITATION {
         @Override
         public Number calculateValue(CalculationData data) {
-            Biome biome = data.level.getBiome(data.pos).value();
-            boolean isRain = biome.getPrecipitation() == Biome.Precipitation.RAIN;
+            BlockPos samplePos = data.state.isAir() ? data.pos : data.pos.above();
+            Biome biome = data.level.getBiome(samplePos).value();
+            #if MC_VER >= MC_1_21_3
+            Biome.Precipitation precipitation = biome.getPrecipitationAt(samplePos, data.level.getSeaLevel());
+            #elif MC_VER >= MC_1_19_4
+            Biome.Precipitation precipitation = biome.getPrecipitationAt(samplePos);
+            #else
+            Biome.Precipitation precipitation = biome.getPrecipitation()
+            #endif;
+            boolean isRain = precipitation == Biome.Precipitation.RAIN;
             return isRain ? 1 : 0;
         }
     },

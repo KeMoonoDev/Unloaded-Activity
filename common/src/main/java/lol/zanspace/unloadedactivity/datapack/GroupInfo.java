@@ -1,22 +1,27 @@
 package lol.zanspace.unloadedactivity.datapack;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 import com.google.common.collect.AbstractIterator;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Vec3i;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
 
 public class GroupInfo {
-    public ResourceLocation id;
+    public #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id;
     // It's incomplete because it will be combined later because blocks may have multiple tags and multiple member infos assigned.
     // This should only be used for constructing GroupMemberInfos for blocks.
-    public HashMap<Pair<ResourceLocation, Boolean>, IncompleteGroupMemberInfo> values;
+    public HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values;
     public LookupShape shape;
     public int width;
     public int height;
 
-    public GroupInfo(ResourceLocation id, IncompleteGroupInfo incomplete) {
+    public GroupInfo(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, IncompleteGroupInfo incomplete) {
         this.id = id;
 
         if (incomplete.width.isEmpty())

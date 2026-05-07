@@ -1,12 +1,21 @@
 package lol.zanspace.unloadedactivity.datapack;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+#if MC_VER >= MC_1_21_4
+import net.minecraft.resources.FileToIdConverter;
+#endif
+
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.JsonOps;
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -15,7 +24,7 @@ import net.minecraft.world.level.block.Block;
 import java.util.*;
 
 public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_VER >= MC_1_21_3
-<GroupInfo>
+<IncompleteGroupInfo>
 #endif {
 
     private static final String GROUPS_LOCATION = "simulate_info/groups";
@@ -30,11 +39,11 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     #if MC_VER >= MC_1_21_3
     public GroupInfoResource() {
         super(
-            SimulationData.CODEC,
+            IncompleteGroupInfo.CODEC,
             #if MC_VER >= MC_1_21_4
             FileToIdConverter.json(GROUPS_LOCATION)
             #else
-            isBlocks ? GROUPS_ID
+            GROUPS_LOCATION
             #endif
         );
     }
@@ -47,7 +56,7 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     #if MC_VER >= MC_1_21_3
     @Override
     protected void apply(
-            Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupInfo> object,
+            Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, IncompleteGroupInfo> object,
             ResourceManager resourceManager,
             ProfilerFiller profilerFiller
     )
@@ -68,14 +77,16 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     #endif
     {
         GROUPS_MAP.clear();
+        BLOCK_MEMBERSHIPS.clear();
         BLOCKS_WITH_GROUPS_MAP.clear();
+        TAGS_WITH_GROUPS_MAP.clear();
 
         Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<IncompleteGroupInfo>> datas = new HashMap<>();
 
         object.forEach((key, input) -> {
             try {
                 #if MC_VER >= MC_1_21_3
-                SimulationData simulationData = input;
+                IncompleteGroupInfo incompleteGroupInfo = input;
                 #else
                 var result = IncompleteGroupInfo.parse(JsonOps.INSTANCE, input);
                 if (result.error().isPresent()) {
@@ -129,8 +140,8 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     }
 
     public static List<GroupMemberInfo> getBlockMemberInfo(Block block) {
-        return BLOCK_MEMBERSHIPS.computeIfAbsent(Registry.BLOCK.getKey(block), (blockId) -> {
-            HashMap<ResourceLocation, ArrayList<IncompleteGroupMemberInfo>> dataToBeCombined = new HashMap<>();
+        return BLOCK_MEMBERSHIPS.computeIfAbsent(GameUtils.getBlockId(block), (blockId) -> {
+            HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ArrayList<IncompleteGroupMemberInfo>> dataToBeCombined = new HashMap<>();
             block.builtInRegistryHolder().tags().forEach((tag) -> {
                 for (var tagGroupData : TAGS_WITH_GROUPS_MAP.getOrDefault(tag.location(), new ArrayList<>())) {
                     ArrayList<IncompleteGroupMemberInfo> dataList = dataToBeCombined.computeIfAbsent(tagGroupData.getFirst().id, (ignored) -> new ArrayList<>());

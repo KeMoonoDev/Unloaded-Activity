@@ -1,11 +1,16 @@
 package lol.zanspace.unloadedactivity;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
 import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import lol.zanspace.unloadedactivity.datapack.SimulationData;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,7 +25,7 @@ import java.util.Optional;
 public class GroupChunkIndex {
     private ArrayList<Long> positions;
     private long lastTick;
-    public final ResourceLocation groupId;
+    public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId;
 
     public long getLastTick(long lastSimulationTick) {
         return Math.max(lastSimulationTick, lastTick);
@@ -93,7 +98,7 @@ public class GroupChunkIndex {
         return blockInfoList;
     }
 
-    public GroupChunkIndex(ArrayList<Long> positions, long lastTicked, ResourceLocation groupId) {
+    public GroupChunkIndex(ArrayList<Long> positions, long lastTicked, #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
         this.positions = positions;
         this.lastTick = lastTicked;
         this.groupId = groupId;

@@ -1,17 +1,28 @@
 package lol.zanspace.unloadedactivity.datapack;
 
-import net.minecraft.core.Direction;
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 #if MC_VER >= MC_1_19_4
 import net.minecraft.core.registries.BuiltInRegistries;
 #else
 import net.minecraft.core.Registry;
 #endif
-import net.minecraft.resources.ResourceLocation;
+
+#if MC_VER >= MC_1_21_3
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+#else
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+#endif
+
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.*;
@@ -52,7 +63,7 @@ public class SimulateProperty {
 
     public List<Block> buddingBlocks;
 
-    public Optional<ResourceLocation> simulateWithGroup;
+    public Optional<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif> simulateWithGroup;
 
     public SimulateProperty(IncompleteSimulateProperty incomplete, String targetFallback) {
         // Required fields for all simulation types
@@ -165,11 +176,11 @@ public class SimulateProperty {
 
                         Property<?> property = maybeProperty.get();
 
-                        if (property instanceof DirectionProperty directionProperty) {
+                        if (property instanceof #if MC_VER >= MC_1_21_3 EnumProperty<?> #else DirectionProperty #endif directionProperty ) {
                             List<Direction> availableDirections = Arrays.stream(Direction.values()).filter(direction -> !this.ignoreBuddingDirections.contains(direction)).toList();
-                            List<Direction> possibleDirections = directionProperty.getPossibleValues().stream().toList();
+                            var possibleValues = directionProperty.getPossibleValues();
                             for (Direction direction : availableDirections) {
-                                if (!possibleDirections.contains(direction)) {
+                                if (!possibleValues.contains(direction)) {
                                     throw new RuntimeException(block + " direction property " + buddingDirectionProperty + " doesn't support the direction " + direction + ". Consider adding it to ignore_budding_directions.");
                                 }
                             }

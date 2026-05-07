@@ -1,11 +1,9 @@
 package lol.zanspace.unloadedactivity.mixin.chunk.randomTicks;
 
 import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
+import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
-import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.Utils;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
-import lol.zanspace.unloadedactivity.datapack.SimulationData;
 import lol.zanspace.unloadedactivity.mixin.AbstractCauldronBlockInvoker;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -29,8 +27,6 @@ import org.spongepowered.asm.mixin.Unique;
 #if MC_VER >= MC_1_21_11
 import net.minecraft.world.attribute.EnvironmentAttributes;
 #endif
-
-import java.util.Optional;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -186,7 +182,7 @@ public abstract class PointedDripstoneMixin extends Block {
             if (canGrow(dripstoneBlockState, liquidState)) {
                 if (PointedDripstoneBlock.canDrip(tip) && canTipGrow(tip, level, tipPos)) {
 
-                    var upperResult = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, lengthDifference, randomPickOdds, false, random, groupSimulateData);
+                    var upperResult = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, lengthDifference, randomPickOdds, false, random, groupSimulateData);
                     averageUpperProbability = upperResult.averageProbability();
                     totalUpperDripGrowth = upperResult.occurrences();
 
@@ -195,7 +191,7 @@ public abstract class PointedDripstoneMixin extends Block {
                             var recalculatedDuration = OccurrencesAndDuration.recalculatedDuration(successesUntilReachGround, timePassed, averageUpperProbability, random);
                             long leftover = timePassed - recalculatedDuration.duration();
                             int maxGroundGrowth = min(stalagmiteGroundDistance, MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING);
-                            var lowerResult = Utils.getOccurrences(level, state, pos, level.getDayTime(), leftover, simulateProperty, maxGroundGrowth, randomPickOdds, false, random, groupSimulateData);
+                            var lowerResult = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), leftover, simulateProperty, maxGroundGrowth, randomPickOdds, false, random, groupSimulateData);
                             totalLowerDripGrowth = lowerResult.occurrences();
                         }
                     }
@@ -211,7 +207,7 @@ public abstract class PointedDripstoneMixin extends Block {
 
         if (liquidState.is(Blocks.MUD) && !ultraWarm) {
             float totalDripOdds = WATER_TRANSFER_PROBABILITY_PER_RANDOM_TICK * randomPickOdds;
-            int dripOccurrences = Utils.getOccurrencesBinomial(timePassed, totalDripOdds, 1, random);
+            int dripOccurrences = MathUtils.getOccurrencesBinomial(timePassed, totalDripOdds, 1, random);
             if (dripOccurrences != 0) {
 
                 BlockState clay = Blocks.CLAY.defaultBlockState();
@@ -234,9 +230,9 @@ public abstract class PointedDripstoneMixin extends Block {
                     // if successesUntilReachCauldron is 0, that means it didn't need to grow to reach the cauldron.
                     // If it wasn't 0, it did grow to reach this point, and averageUpperProbability is now a valid value.
                     if (successesUntilReachCauldron > 0)
-                        leftover = timePassed - (Utils.sampleNegativeBinomialWithMax(timePassed, successesUntilReachCauldron, averageUpperProbability, random));
+                        leftover = timePassed - (MathUtils.sampleNegativeBinomialWithMax(timePassed, successesUntilReachCauldron, averageUpperProbability, random));
 
-                    int dripOccurrences = Utils.getOccurrencesBinomial(leftover, totalDripOdds, LayeredCauldronBlock.MAX_FILL_LEVEL, random);
+                    int dripOccurrences = MathUtils.getOccurrencesBinomial(leftover, totalDripOdds, LayeredCauldronBlock.MAX_FILL_LEVEL, random);
                     while (dripOccurrences > 0) {
                         --dripOccurrences;
                         abstractCauldronBlockInvoker.receiveStalactiteDrip(cauldronState, level, cauldronPos, dripstoneFluid);

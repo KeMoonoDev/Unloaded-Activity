@@ -1,10 +1,15 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 import com.mojang.datafixers.util.Pair;
 import lol.zanspace.unloadedactivity.GroupChunkIndex;
 import lol.zanspace.unloadedactivity.interfaces.ChunkTimeData;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -32,7 +37,7 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
 
     // All groups in the chunk with their blocks and when they were last ticked.
     @Unique
-    private HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = new HashMap<>();
+    private HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes = new HashMap<>();
 
     @Override
     public long getLastTick() {
@@ -55,9 +60,9 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     }
 
 
-    public HashMap<ResourceLocation, GroupChunkIndex> getGroupIndexes() {return groupIndexes;};
+    public HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> getGroupIndexes() {return groupIndexes;};
 
-    public void setGroupIndexes(HashMap<ResourceLocation, GroupChunkIndex> groupIndexes) {
+    public void setGroupIndexes(HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes) {
         this.groupIndexes = groupIndexes;
     };
 

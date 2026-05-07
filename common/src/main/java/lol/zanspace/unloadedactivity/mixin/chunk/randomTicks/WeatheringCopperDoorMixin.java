@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopperDoorBlock;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.Utils;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;

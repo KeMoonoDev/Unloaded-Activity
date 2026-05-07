@@ -1,12 +1,16 @@
 package lol.zanspace.unloadedactivity;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 import com.mojang.datafixers.util.Pair;
-import lol.zanspace.unloadedactivity.config.BlockOrTag;
 import lol.zanspace.unloadedactivity.datapack.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -19,7 +23,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 
-import java.time.Instant;
 import java.util.*;
 
 public class TimeMachine {
@@ -55,7 +58,7 @@ public class TimeMachine {
             return;
 
         ArrayList<Long> newSimulationBlocks = new ArrayList<>();
-        HashMap<ResourceLocation, GroupChunkIndex> newGroupIndexes = new HashMap<>();
+        HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> newGroupIndexes = new HashMap<>();
 
         if (UnloadedActivity.config.debugLogs)
             UnloadedActivity.LOGGER.info("Looping through entire chunk.");
@@ -186,7 +189,7 @@ public class TimeMachine {
 
     // This doesn't take a timeDifference parameter because that is supposed to be calculated in the function using the last group tick.
     public static Pair<Integer, Boolean> simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget) {
-        Map<ResourceLocation, GroupChunkIndex> groupIndexes = chunk.getGroupIndexes();
+        var groupIndexes = chunk.getGroupIndexes();
 
         long currentTime = level.getDayTime();
 
@@ -195,7 +198,7 @@ public class TimeMachine {
         boolean missedGroup = false;
 
         for (var entry : groupIndexes.entrySet()) {
-            ResourceLocation groupId = entry.getKey();
+            var groupId = entry.getKey();
             GroupInfo groupInfo = GroupInfoResource.GROUPS_MAP.get(groupId);
 
             if (groupInfo == null)
@@ -416,7 +419,7 @@ public class TimeMachine {
             }
 
             RandomSource random = level.getRandom();
-            float randomPickOdds = Utils.getRandomPickOdds(randomTickSpeed);
+            float randomPickOdds = MathUtils.getRandomPickOdds(randomTickSpeed);
             float precipitationPickOdds = 1F/4096F;
 
             if (UnloadedActivity.config.debugLogs)
@@ -588,7 +591,7 @@ public class TimeMachine {
 
     public static void simulateBlock(BlockPos pos, ServerLevel level, long timeLeft, int randomTickSpeed, boolean allowPrecipitationTicks) {
 
-        float randomPickChance = Utils.getRandomPickOdds(randomTickSpeed);
+        float randomPickChance = MathUtils.getRandomPickOdds(randomTickSpeed);
         float precipitationPickChance = 1F/4096F; //1/(16*(16*16)). 16 for the chance of the chunk doing the tick and (16*16) for the chance of a block to be picked.
 
         BlockState state = level.getBlockState(pos);

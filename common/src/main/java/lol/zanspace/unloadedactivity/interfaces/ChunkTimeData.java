@@ -1,9 +1,14 @@
 package lol.zanspace.unloadedactivity.interfaces;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 import com.mojang.datafixers.util.Pair;
 import lol.zanspace.unloadedactivity.GroupChunkIndex;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,9 +23,9 @@ public interface ChunkTimeData {
 
     default void setSimulationVersion(long ver) {};
 
-    default HashMap<ResourceLocation, GroupChunkIndex> getGroupIndexes() {return new HashMap<>();};
+    default HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> getGroupIndexes() {return new HashMap<>();};
 
-    default void setGroupIndexes(HashMap<ResourceLocation, GroupChunkIndex> groupIndexes) {};
+    default void setGroupIndexes(HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes) {};
 
     default ArrayList<Long> getSimulationBlocks() {return new ArrayList<>();};
 

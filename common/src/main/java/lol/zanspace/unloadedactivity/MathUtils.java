@@ -5,11 +5,8 @@ import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +14,7 @@ import static java.lang.Math.*;
 import static net.minecraft.util.Mth.sign;
 
 
-public class Utils {
+public class MathUtils {
     public static double getChoose(long x, long y) {
         double choose = 1;
         for (int i = 0; i < x; i++) {
@@ -348,12 +345,6 @@ public class Utils {
             restOfDayTicks = floorMod(restOfDayTicks, window);
 
         return restOfDayTicks + usefulTicks;
-    }
-
-    public static boolean isValidGourdPosition(Direction direction, BlockPos pos, ServerLevel level) {
-        BlockPos blockPos = pos.relative(direction);
-        BlockState blockState = level.getBlockState(blockPos.below());
-        return level.getBlockState(blockPos).isAir() && (blockState.is(Blocks.FARMLAND) || blockState.is(BlockTags.DIRT));
     }
 }
 

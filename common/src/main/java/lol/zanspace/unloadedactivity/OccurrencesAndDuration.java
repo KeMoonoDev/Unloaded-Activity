@@ -1,6 +1,5 @@
 package lol.zanspace.unloadedactivity;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.util.RandomSource;
 
 public record OccurrencesAndDuration (int occurrences, long duration, float averageProbability) {
@@ -9,6 +8,6 @@ public record OccurrencesAndDuration (int occurrences, long duration, float aver
     }
 
     public static OccurrencesAndDuration recalculatedDuration(int occurrences, long cycles, float odds, RandomSource random) {
-        return new OccurrencesAndDuration(occurrences, Utils.sampleNegativeBinomialWithMax(cycles, occurrences, odds, random), odds);
+        return new OccurrencesAndDuration(occurrences, MathUtils.sampleNegativeBinomialWithMax(cycles, occurrences, odds, random), odds);
     }
 }

@@ -1,36 +1,42 @@
 package lol.zanspace.unloadedactivity.interfaces;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.animal.turtle.Turtle;
+#else
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.animal.Turtle;
+#endif
+
+#if MC_VER >= MC_1_21_3
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+#else
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+#endif
+
 import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
+import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
-import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.Utils;
 import lol.zanspace.unloadedactivity.datapack.*;
 import lol.zanspace.unloadedactivity.mixin.IntegerPropertyAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.animal.Turtle;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +66,7 @@ public interface SimulateChunkBlocks {
         return getSimulationData().propertyMap.values().stream().filter(property -> property.simulateWithGroup.isPresent()).toList();
     };
 
-    default Optional<SimulateProperty> getGroupSimulationProperty(ResourceLocation groupId) {
+    default Optional<SimulateProperty> getGroupSimulationProperty(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
         return getSimulationData().propertyMap.values()
             .stream()
             .filter(property -> property.simulateWithGroup.equals(Optional.of(groupId)))
@@ -171,9 +177,9 @@ public interface SimulateChunkBlocks {
                     }
 
                     if (simulateProperty.buddingDirectionProperty.isPresent()) {
-                        DirectionProperty property = (DirectionProperty)getProperty(dirBlockState, simulateProperty.buddingDirectionProperty.get()).get();
+                        var property = (#if MC_VER >= MC_1_21_3 EnumProperty<?> #else DirectionProperty #endif) getProperty(dirBlockState, simulateProperty.buddingDirectionProperty.get()).get();
 
-                        Direction blockDirection = dirBlockState.getValue(property);
+                        Direction blockDirection = (Direction) dirBlockState.getValue(property);
                         if (blockDirection != direction) {
                             return false;
                         }
@@ -292,7 +298,7 @@ public interface SimulateChunkBlocks {
                 if (updateCount <= 0)
                     return Triple.of(state, OccurrencesAndDuration.empty(), pos);
 
-                OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
+                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
 
                 if (result.occurrences() == 0)
                     return Triple.of(state, result, pos);
@@ -384,7 +390,11 @@ public interface SimulateChunkBlocks {
                         level.setBlockAndUpdate(pos, state);
                         boolean updateNeighbors = simulateProperty.updateNeighbors;
                         if (updateNeighbors) {
+                            #if MC_VER >= MC_1_21_3
+                            level.neighborChanged(state, pos, thisBlock, null, false);
+                            #else
                             level.neighborChanged(state, pos, thisBlock, pos, false);
+                            #endif
                             level.scheduleTick(pos, thisBlock, 1);
                         }
                     }
@@ -494,7 +504,11 @@ public interface SimulateChunkBlocks {
                         level.setBlockAndUpdate(pos, state);
                         boolean updateNeighbors = simulateProperty.updateNeighbors;
                         if (updateNeighbors) {
+                            #if MC_VER >= MC_1_21_3
+                            level.neighborChanged(state, pos, thisBlock, null, false);
+                            #else
                             level.neighborChanged(state, pos, thisBlock, pos, false);
+                            #endif
                             level.scheduleTick(pos, thisBlock, 1);
                         }
                     }
@@ -531,9 +545,10 @@ public interface SimulateChunkBlocks {
                         Block buddingBlockStage = simulateProperty.buddingBlocks.get(i);
 
                         if (budState.is(buddingBlockStage)) {
-                            DirectionProperty directionProperty = (DirectionProperty)getProperty(budState, simulateProperty.buddingDirectionProperty.get()).get();
+                            var property = (#if MC_VER >= MC_1_21_3 EnumProperty<?> #else DirectionProperty #endif) getProperty(budState, simulateProperty.buddingDirectionProperty.get()).get();
+                            Direction budDirection = (Direction) budState.getValue(property);
 
-                            if (budState.getValue(directionProperty) == direction) {
+                            if (budDirection == direction) {
                                 stage = i+1;
                             } else {
                                 doContinue = true;
@@ -568,7 +583,7 @@ public interface SimulateChunkBlocks {
 
                     int maxOccurrences = simulateProperty.buddingBlocks.size() - stage;
 
-                    OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, maxOccurrences, randomPickOdds, calculateDuration, random, groupSimulateData);
+                    OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, maxOccurrences, randomPickOdds, calculateDuration, random, groupSimulateData);
 
                     if (result.occurrences() == 0) {
                         continue;
@@ -582,8 +597,9 @@ public interface SimulateChunkBlocks {
 
                     if (simulateProperty.buddingDirectionProperty.isPresent()) {
                         String buddingDirectionPropertyName = simulateProperty.buddingDirectionProperty.get();
-                        DirectionProperty directionProperty = (DirectionProperty)getProperty(newBudState, buddingDirectionPropertyName).get();
-                        newBudState = newBudState.setValue(directionProperty, direction);
+                        @SuppressWarnings("unchecked")
+                        var property = (#if MC_VER >= MC_1_21_3 EnumProperty<Direction> #else DirectionProperty #endif) getProperty(newBudState, buddingDirectionPropertyName).get();
+                        newBudState = newBudState.setValue(property, direction);
                     }
 
 
@@ -607,7 +623,7 @@ public interface SimulateChunkBlocks {
                     }
                 }
 
-                OccurrencesAndDuration result = Utils.getOccurrences(level, state, pos, dayTime, timePassed, simulateProperty, 1, randomPickOdds, calculateDecayDuration, random, groupSimulateData);
+                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, dayTime, timePassed, simulateProperty, 1, randomPickOdds, calculateDecayDuration, random, groupSimulateData);
 
                 if (result.occurrences() == 0)
                     return Triple.of(state, result, pos);
@@ -638,7 +654,10 @@ public interface SimulateChunkBlocks {
 
                     if (hatchCount > 0) {
                         for(int i = 0; i < hatchCount; i++) {
-                            Entity hatchedEntity = simulateProperty.hatchEntity.get().create(level);
+                            Entity hatchedEntity = simulateProperty.hatchEntity.get().create(
+                                level
+                                #if MC_VER >= MC_1_21_3 ,EntitySpawnReason.BREEDING #endif
+                            );
                             if (hatchedEntity == null)
                                 continue;
 

@@ -26,7 +26,11 @@ public class IncompleteGroupMemberInfo {
 
         DataResult<MapLike<T>> mapResult = ops.getMap(input);
         if (mapResult.result().isEmpty())
+            #if MC_VER >= MC_1_19_4
+            return DataResult.error(() -> "Group member must be a Number or an Object.");
+            #else
             return DataResult.error("Group member must be a Number or an Object.");
+            #endif
 
         MapLike<T> map = mapResult.result().get();
 

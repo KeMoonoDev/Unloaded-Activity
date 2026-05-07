@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.Mixin;
 
 #if MC_VER >= MC_1_21_10
 import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.Utils;
 import net.minecraft.world.level.block.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;

@@ -7,7 +7,6 @@ import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import net.minecraft.core.Registry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -70,7 +69,7 @@ public abstract class LevelChunkMixin extends ChunkAccess {
         List<GroupMemberInfo> memberInfoList = GroupInfoResource.getBlockMemberInfo(block);
 
         if (!memberInfoList.isEmpty()) {
-            HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = this.getGroupIndexes();
+            var groupIndexes = this.getGroupIndexes();
 
             for (var memberInfo : memberInfoList) {
                 var groupId = memberInfo.groupInfo.id;

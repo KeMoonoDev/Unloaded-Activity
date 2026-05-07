@@ -173,7 +173,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
 
             var recipe = inputCount != 0 ?
                 #if MC_VER >= MC_1_21_1
-                this.quickCheck.getRecipeFor(new SingleRecipeInput(itemStack), level).orElse(null)
+                this.quickCheck.getRecipeFor(new SingleRecipeInput(itemStack), (ServerLevel) level).orElse(null)
                 #else
                 this.quickCheck.getRecipeFor(this, level).orElse(null)
                 #endif
@@ -189,7 +189,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
 
             if (burnDuration != 0) {
                 if (this.getCookingTotalTime() == 0)
-                    this.setCookingTotalTime(getTotalCookTime(level, furnace));
+                    this.setCookingTotalTime(getTotalCookTime( (ServerLevel) level, furnace));
 
                 int spacesLeft = getMaxStackSize() - finishedStack.getCount();
 

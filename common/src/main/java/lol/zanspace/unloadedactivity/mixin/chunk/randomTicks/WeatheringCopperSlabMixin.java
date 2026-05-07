@@ -1,23 +1,9 @@
 package lol.zanspace.unloadedactivity.mixin.chunk.randomTicks;
 
-import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
-import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.Utils;
-import lol.zanspace.unloadedactivity.datapack.SimulationData;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.block.ChangeOverTimeBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.WeatheringCopper;
 import net.minecraft.world.level.block.WeatheringCopperSlabBlock;
-import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
-
-import java.util.Iterator;
-import java.util.Optional;
 
 @Mixin(WeatheringCopperSlabBlock.class)
 public abstract class WeatheringCopperSlabMixin extends SlabBlock implements WeatheringCopper {

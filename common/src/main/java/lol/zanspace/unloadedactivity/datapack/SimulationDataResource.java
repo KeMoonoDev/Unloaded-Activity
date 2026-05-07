@@ -1,12 +1,5 @@
 package lol.zanspace.unloadedactivity.datapack;
 
-import com.google.gson.*;
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.JsonOps;
-import lol.zanspace.unloadedactivity.UnloadedActivity;
 #if MC_VER >= MC_1_21_11
 import net.minecraft.resources.Identifier;
 #else
@@ -15,6 +8,14 @@ import net.minecraft.resources.ResourceLocation;
 #if MC_VER >= MC_1_21_4
 import net.minecraft.resources.FileToIdConverter;
 #endif
+
+import com.google.gson.*;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
+import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -22,7 +23,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import java.util.*;
 
 public class SimulationDataResource extends SimpleJsonResourceReloadListener #if MC_VER >= MC_1_21_3
-<SimulationData>
+<IncompleteSimulationData>
 #endif {
 
     private static final String BLOCKS_LOCATION = "simulate_info/blocks";
@@ -40,11 +41,11 @@ public class SimulationDataResource extends SimpleJsonResourceReloadListener #if
     #if MC_VER >= MC_1_21_3
     public SimulationDataResource(boolean isBlocks) {
         super(
-            SimulationData.CODEC,
+            IncompleteSimulationData.CODEC,
             #if MC_VER >= MC_1_21_4
             FileToIdConverter.json(isBlocks ? BLOCKS_LOCATION : TAGS_LOCATION)
             #else
-            isBlocks ? BLOCKS_ID : TAGS_ID
+            isBlocks ? BLOCKS_LOCATION : TAGS_LOCATION
             #endif
         );
         this.isBlocks = isBlocks;
@@ -59,7 +60,7 @@ public class SimulationDataResource extends SimpleJsonResourceReloadListener #if
     #if MC_VER >= MC_1_21_3
     @Override
     protected void apply(
-            Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, SimulationData> object,
+            Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, IncompleteSimulationData> object,
             ResourceManager resourceManager,
             ProfilerFiller profilerFiller
     )
@@ -93,7 +94,7 @@ public class SimulationDataResource extends SimpleJsonResourceReloadListener #if
         object.forEach((key, input) -> {
             try {
                 #if MC_VER >= MC_1_21_3
-                SimulationData simulationData = input;
+                IncompleteSimulationData incompleteSimulationData = input;
                 #else
                 var result = IncompleteSimulationData.CODEC.decode(com.mojang.serialization.JsonOps.INSTANCE, input);
                 if (result.error().isPresent()) {

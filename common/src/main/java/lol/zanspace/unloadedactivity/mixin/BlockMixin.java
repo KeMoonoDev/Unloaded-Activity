@@ -1,14 +1,9 @@
 package lol.zanspace.unloadedactivity.mixin;
 
-import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
-import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.Utils;
 import lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData;
-import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import lol.zanspace.unloadedactivity.datapack.SimulationData;
 import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
 import lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 
 #if MC_VER >= MC_1_21_11
@@ -16,21 +11,13 @@ import net.minecraft.resources.Identifier;
 #else
 #endif
 
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.level.block.state.properties.Property;
-import org.apache.commons.lang3.tuple.Triple;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.Iterator;
-import java.util.Optional;
 
 @Mixin(Block.class)
 public abstract class BlockMixin implements SimulateChunkBlocks {

@@ -1,9 +1,14 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 import lol.zanspace.unloadedactivity.GroupChunkIndex;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -99,14 +104,14 @@ public abstract class ChunkSerializerMixin {
             HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = new HashMap<>();
 
             CompoundTag groupsData = chunkData.getCompound("groups");
-            for (String key : groupsData.getAllKeys()) {
-                var maybeId = ResourceLocation.read(key);
+            for (String groupKey : groupsData.getAllKeys()) {
+                var maybeId = ResourceLocation.read(groupKey);
                 if (maybeId.result().isEmpty())
                     continue;
 
                 var groupId = maybeId.result().get();
 
-                CompoundTag groupData = groupsData.getCompound(key);
+                CompoundTag groupData = groupsData.getCompound(groupKey);
 
                 GroupChunkIndex groupChunkIndex = groupIndexes.computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), groupData.getLong("last_tick"), id));
                 groupChunkIndex.setLastTick(groupData.getLong("last_tick"));
@@ -156,6 +161,8 @@ public abstract class ChunkSerializerMixin {
 public abstract class ChunkSerializerMixin {
 
     @Unique
+    private HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes = new HashMap<>();
+    @Unique
     private long lastTick = 0;
     @Unique
     private long ver = 0;
@@ -175,13 +182,13 @@ public abstract class ChunkSerializerMixin {
         chunkData.putLongArray("sim_blocks", simBlocks);
 
         CompoundTag groupsData = new CompoundTag();
-        for (var entry : chunk.getGroupIndexes().entrySet()) {
+        for (var entry : groupIndexes.entrySet()) {
             var groupId = entry.getKey();
             GroupChunkIndex groupChunkIndex = entry.getValue();
             CompoundTag groupData = new CompoundTag();
 
-            groupData.putLongArray("positions", groupChunkIndex.getPositions());
-            groupData.putLong("last_tick", groupChunkIndex.getLastTick(chunkLastTick));
+            groupData.putLongArray("positions", groupChunkIndex.getPositions().stream().mapToLong(l -> l).toArray());
+            groupData.putLong("last_tick", groupChunkIndex.getLastTick(lastTick));
 
             groupsData.put(groupId.toString(), groupData);
         }
@@ -199,6 +206,7 @@ public abstract class ChunkSerializerMixin {
         chunk.setLastTick(lastTick);
         chunk.setSimulationVersion(ver);
         chunk.setSimulationBlocks(simBlocks);
+        chunk.setGroupIndexes(groupIndexes);
         if (lastTick == 0) {
             chunk.markUnsaved();
             chunk.setLastTick(level.getDayTime());
@@ -214,6 +222,7 @@ public abstract class ChunkSerializerMixin {
             serializedChunk.lastTick = chunk.getLastTick();
             serializedChunk.ver = chunk.getSimulationVersion();
             serializedChunk.simBlocks = chunk.getSimulationBlocks().stream().mapToLong(l -> l).toArray();
+            serializedChunk.groupIndexes = chunk.getGroupIndexes();
         }
     }
 
@@ -231,7 +240,7 @@ public abstract class ChunkSerializerMixin {
 
         CompoundTag chunkData = nbt.getCompound(MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
         if (chunkData.isEmpty()) {
-            CompoundTag chunkData = nbt.getCompound(OLD_MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
+            chunkData = nbt.getCompound(OLD_MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
         }
 
         boolean isEmpty = chunkData.isEmpty();
@@ -243,23 +252,29 @@ public abstract class ChunkSerializerMixin {
             serializedChunk.ver = chunkData.getLong("ver")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.simBlocks = chunkData.getLongArray("sim_blocks")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif;
 
-            HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = new HashMap<>();
-            CompoundTag groupsData = chunkData.getCompound("groups");
+            HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes = new HashMap<>();
+            CompoundTag groupsData = chunkData.getCompound("groups")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;;
+            #if MC_VER >= MC_1_21_5
+            for (String key : groupsData.keySet()) {
+            #else
             for (String key : groupsData.getAllKeys()) {
-                var maybeId = ResourceLocation.read(key);
+            #endif
+                var maybeId = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.read(key);
                 if (maybeId.result().isEmpty())
                     continue;
 
                 var groupId = maybeId.result().get();
 
-                CompoundTag groupData = groupsData.getCompound(key);
+                CompoundTag groupData = groupsData.getCompound(key)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;;
 
-                GroupChunkIndex groupChunkIndex = groupIndexes.get(groupId);
-                groupChunkIndex.setLastTick(groupData.getLong("last_tick"));
-                groupChunkIndex.setPositions(groupData.getLongArray("positions"));
+                long groupLastTicked = groupData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(serializedChunk.lastTick)#endif;
+
+                GroupChunkIndex groupChunkIndex = groupIndexes.computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), groupLastTicked, id));
+                groupChunkIndex.setLastTick(groupLastTicked);
+                groupChunkIndex.setPositions(groupData.getLongArray("positions")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif);
             }
 
-            protoChunk.setGroupIndexes(groupIndexes);
+            serializedChunk.groupIndexes = groupIndexes;
         }
 
 

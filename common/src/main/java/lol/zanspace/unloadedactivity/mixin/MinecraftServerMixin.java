@@ -1,5 +1,9 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+#if MC_VER >= MC_1_21_3
+import net.minecraft.util.profiling.Profiler;
+#endif
+
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import lol.zanspace.unloadedactivity.TimeMachine;
@@ -32,8 +36,10 @@ public class MinecraftServerMixin implements ChunkIndexQueue {
     @Shadow @Final
     private Map<ResourceKey<Level>, ServerLevel> levels;
 
+    #if MC_VER < MC_1_21_3
     @Shadow
     private ProfilerFiller profiler;
+    #endif
 
     @Unique
     private final ArrayDeque<Pair<ResourceKey<Level>, ChunkPos>> chunkQueue = new ArrayDeque<>();
@@ -84,6 +90,10 @@ public class MinecraftServerMixin implements ChunkIndexQueue {
 
     @Inject(method = "tickChildren", at = @At("HEAD"))
     public void tickChildren(BooleanSupplier booleanSupplier, CallbackInfo ci) {
+        #if MC_VER >= MC_1_21_3
+        ProfilerFiller profiler = Profiler.get();
+        #endif
+
         profiler.push("indexingChunks");
         int budget = UnloadedActivity.config.maxChunksIndexedPerTick;
 

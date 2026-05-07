@@ -1,17 +1,21 @@
 package lol.zanspace.unloadedactivity.config;
 
-import com.google.gson.*;
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
+#endif
+
+import com.google.gson.*;
 
 import java.lang.reflect.Type;
 import java.util.Objects;
 
 public class BlockOrTag {
     public boolean isTag;
-    public ResourceLocation id;
+    public #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id;
 
-    public BlockOrTag(boolean isTag, ResourceLocation id) {
+    public BlockOrTag(boolean isTag, #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
         this.isTag = isTag;
         this.id = id;
     }
@@ -49,7 +53,7 @@ public class BlockOrTag {
                 stringToParse = parsedString;
             }
 
-            var result = ResourceLocation.read(stringToParse);
+            var result = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.read(stringToParse);
             if (result.result().isEmpty()) {
                 throw new JsonParseException(result.error().get().message());
             }

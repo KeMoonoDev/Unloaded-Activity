@@ -1,11 +1,17 @@
 package lol.zanspace.unloadedactivity.datapack;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import net.minecraft.core.Vec3i;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -13,10 +19,12 @@ import java.util.stream.Stream;
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
 public class IncompleteGroupInfo {
+    public static final Codec<IncompleteGroupInfo> CODEC;
+
     public Optional<LookupShape> shape;
     public Optional<Integer> width;
     public Optional<Integer> height;
-    public HashMap<Pair<ResourceLocation, Boolean>, IncompleteGroupMemberInfo> values = new HashMap<>();
+    public HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values = new HashMap<>();
 
     public IncompleteGroupInfo replicate() {
         IncompleteGroupInfo newGroupSimulateInfo = new IncompleteGroupInfo();
@@ -36,6 +44,7 @@ public class IncompleteGroupInfo {
             thisGroupMemberInfo.merge(otherGroupMemberInfo);
         }
     }
+
     public static <T> DataResult<IncompleteGroupInfo> parse(DynamicOps<T> ops, T input) {
         var mapResult = ops.getMap(input);
 
@@ -103,7 +112,7 @@ public class IncompleteGroupInfo {
                 if (isTag)
                     idStringValue = idStringValue.substring(1);
 
-                DataResult<ResourceLocation> idResult = ResourceLocation.read(idStringValue);
+                var idResult = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.read(idStringValue);
 
                 if (idResult.result().isEmpty())
                     return returnError(idResult);
@@ -124,5 +133,19 @@ public class IncompleteGroupInfo {
         }
 
         return DataResult.success(groupInfo);
+    }
+
+    static {
+        CODEC = new Codec<>() {
+            @Override
+            public <T> DataResult<T> encode(IncompleteGroupInfo incompleteGroupInfo, DynamicOps<T> dynamicOps, T t) {
+                throw new UnsupportedOperationException("I am never using this. Therefore, it does not need to be implemented.");
+            }
+
+            @Override
+            public <T> DataResult<Pair<IncompleteGroupInfo, T>> decode(DynamicOps<T> dynamicOps, T t) {
+                return IncompleteGroupInfo.parse(dynamicOps, t).map(incompleteGroupInfo -> Pair.of(incompleteGroupInfo, t));
+            }
+        };
     }
 }

@@ -3,7 +3,6 @@ package lol.zanspace.unloadedactivity;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import lol.zanspace.unloadedactivity.config.ConfigOption;
-import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -146,7 +145,7 @@ public class UnloadedActivityCommand {
                                     java.lang.reflect.Method method;
 
                                     try {
-                                        method = Utils.class.getMethod(getString(context, "method"), long.class, double.class, int.class, RandomSource.class);
+                                        method = MathUtils.class.getMethod(getString(context, "method"), long.class, double.class, int.class, RandomSource.class);
                                     } catch (NoSuchMethodException e) {
                                         context.getSource().sendSystemMessage(Component.literal("No such method."));
                                         return 0;
@@ -166,7 +165,7 @@ public class UnloadedActivityCommand {
                                             long newAttempts = attempts > 0L ? attempts : random.nextIntBetweenInclusive(10_000, 100_000_000);
                                             int newMaxOccurrences = maxOccurrences > 0 ? maxOccurrences : random.nextIntBetweenInclusive(1, 100);
                                             double newOdds = odds > 0.0 ? odds : random.nextDouble();
-                                            method.invoke(Utils.class, newAttempts, newOdds, newMaxOccurrences, random);
+                                            method.invoke(MathUtils.class, newAttempts, newOdds, newMaxOccurrences, random);
                                         } catch (IllegalAccessException e) {
                                             throw new RuntimeException(e);
                                         } catch (InvocationTargetException e) {
