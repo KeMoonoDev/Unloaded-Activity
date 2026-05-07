@@ -728,24 +728,13 @@ public class TimeMachine {
         }
     }
 
-    public static <T extends BlockEntity> void simulateBlockEntity(ServerLevel level, BlockPos pos, BlockState blockState, T blockEntity, long timeDifference) {
+    public static void simulateBlockEntity(BlockEntity blockEntity, long timeDifference) {
         if (!UnloadedActivity.config.enableSimulatingBlockEntities) return;
-
-        long now = 0;
-        if (UnloadedActivity.config.debugLogs) now = Instant.now().toEpochMilli();
-        if (!blockEntity.unloaded_activity$canSimulate()) return;
-        blockEntity.unloaded_activity$simulateTime(level, pos, blockState, timeDifference);
-        if (UnloadedActivity.config.debugLogs) UnloadedActivity.LOGGER.info((Instant.now().toEpochMilli() - now) + "ms to simulate ticks on blockEntity after " + timeDifference + " ticks.");
+        blockEntity.unloadedactivity$simulateTime(timeDifference);
     }
 
     public static void simulateEntity(Entity entity, long timeDifference) {
         if (!UnloadedActivity.config.enableSimulatingEntities) return;
-        if (!entity.canSimulate()) return;
-
-        long now = 0;
-        if (UnloadedActivity.config.debugLogs) now = Instant.now().toEpochMilli();
-
-        entity.simulateTime(timeDifference);
-        if (UnloadedActivity.config.debugLogs) UnloadedActivity.LOGGER.info((Instant.now().toEpochMilli() - now) + "ms to simulate ticks on entity after " + timeDifference + " ticks.");
+        entity.unloadedactivity$simulateTime(timeDifference);
     }
 }

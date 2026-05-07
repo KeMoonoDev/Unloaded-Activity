@@ -657,7 +657,7 @@ public interface SimulateChunkBlocks {
                             }
 
                             level.addFreshEntity(hatchedEntity);
-                            hatchedEntity.simulateTime(timePassed - result.duration());
+                            hatchedEntity.unloadedactivity$simulateTime(timePassed - result.duration());
                         }
 
                     }

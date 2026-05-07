@@ -144,21 +144,21 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
     @Shadow
     public void setRecipeUsed(@Nullable #if MC_VER >= MC_1_20_2 RecipeHolder<?> #else Recipe<?> #endif recipe) {}
 
-    @Override
-    public boolean unloaded_activity$canSimulate() {
-        return true;
-    }
-
     @Unique
-    public boolean shouldSimulate(Level level, BlockPos pos, BlockState state) {
+    public boolean shouldSimulate(BlockState state) {
         if (state == null) return false;
         return UnloadedActivity.config.simulateFurnaceSmelting;
     }
 
-    @Override public void unloaded_activity$simulateTime(ServerLevel level, BlockPos pos, BlockState state, long timeDifference)  {
+    @Override public void unloadedactivity$simulateTime(long timeDifference)  {
+        super.unloadedactivity$simulateTime(timeDifference);
 
-        if (shouldSimulate(level, pos, state)) {
-            AbstractFurnaceBlockEntity furnace = (AbstractFurnaceBlockEntity)(Object) this;
+
+        BlockState state = this.getBlockState();
+        BlockPos pos = this.getBlockPos();
+
+        if (shouldSimulate(state)) {
+            AbstractFurnaceBlockEntity furnace = (AbstractFurnaceBlockEntity) (Object) this;
             boolean oldIsLit = this.isLit();
             boolean stateChanged = false;
             ItemStack itemStack = this.items.get(0);
@@ -180,7 +180,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
             : null;
 
             #if MC_VER >= MC_1_21_3
-            int burnDuration = this.getBurnDuration(level.fuelValues(),fuelStack);
+            int burnDuration = this.getBurnDuration(level.fuelValues(), fuelStack);
             #else
             int burnDuration = this.getBurnDuration(fuelStack);
             #endif
@@ -204,7 +204,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 long leftoverTime = timeDifference - availableBurning;
 
                 int fuelsConsumed = (int) ceil((float) max(availableBurning - this.getLitTimeRemaining(), 0) / (float) burnDuration);
-                this.setLitTimeRemaining((int) max((this.getLitTimeRemaining() - availableBurning + fuelsConsumed * burnDuration) - (int)leftoverTime, 0));
+                this.setLitTimeRemaining((int) max((this.getLitTimeRemaining() - availableBurning + fuelsConsumed * burnDuration) - (int) leftoverTime, 0));
 
                 int itemsCrafted = (availableBurning + this.getCookingTimer()) / this.getCookingTotalTime();
                 this.setCookingTimer((int) max(((availableBurning + this.getCookingTimer()) % this.getCookingTotalTime()) - leftoverTime * 2, 0));
@@ -226,7 +226,12 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 if (itemsCrafted > 0) {
                     stateChanged = true;
                     for (int i = 0; i < itemsCrafted; i++) {
-                        burn(#if MC_VER >= MC_1_19_4 level.registryAccess(), #endif recipe, #if MC_VER >= MC_1_21_3 singleRecipeInput, #endif this.items, getMaxStackSize(), furnace);
+                        burn(
+                            #if MC_VER >= MC_1_19_4 level.registryAccess(), #endif recipe,
+                            #if MC_VER >= MC_1_21_3 singleRecipeInput, #endif this.items,
+                            getMaxStackSize(),
+                            furnace
+                        );
                         setRecipeUsed(recipe);
                     }
                 }
@@ -248,7 +253,5 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 }
             }
         }
-
-        super.unloaded_activity$simulateTime(level, pos, state, timeDifference);
     }
 }

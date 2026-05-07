@@ -29,11 +29,6 @@ public abstract class AgeableMobMixin extends PathfinderMob {
     @Shadow
     public void setAge(int i) {}
 
-    @Override
-    public boolean canSimulate() {
-        return true;
-    }
-
     @Unique
     private boolean shouldSimulate() {
         if (!UnloadedActivity.config.simulateEntitiesAgeing) return false;
@@ -44,9 +39,8 @@ public abstract class AgeableMobMixin extends PathfinderMob {
     }
 
     @Override
-    public void simulateTime(long timeDifference) {
-
-        super.simulateTime(timeDifference);
+    public void unloadedactivity$simulateTime(long timeDifference) {
+        super.unloadedactivity$simulateTime(timeDifference);
 
         if (!shouldSimulate())
             return;
