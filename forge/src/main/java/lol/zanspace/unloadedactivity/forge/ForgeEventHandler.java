@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.forge;
 
+import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.UnloadedActivityCommand;
 import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
 import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
@@ -22,7 +23,7 @@ public class ForgeEventHandler {
         }
 
         if (event.getChunk() instanceof LevelChunk chunk) {
-            server.addChunkToQueue(chunk);
+            UnloadedActivity.addChunkToQueue(server, chunk);
         }
     }
 

@@ -1,60 +1,14 @@
-plugins {
-    id 'com.gradleup.shadow'
-}
-
-loom {
-    forge {
-        mixinConfig "unloadedactivity.mixins.json"
-        mixinConfig "unloadedactivityforge.mixins.json"
+unimined.minecraft {
+    minecraftForge {
+        loader rootProject.neo_or_forge_version
+        mixinConfig("unloadedactivity.mixins.json", "unloadedactivityforge.mixins.json")
     }
-}
 
-architectury {
-    platformSetupLoomIde()
-    forge()
-}
-
-configurations {
-    common {
-        canBeResolved = true
-        canBeConsumed = false
+    minecraftRemapper.config {
+        // neoforge adds 1 conflict, where 2 interfaces have a method with the same name on yarn/mojmap,
+        // but the method has different names in the intermediary mappings.
+        // this is a conflict because they have a class that extends both interfaces.
+        // this shouldn't be a problem as long as named mappings don't make the name of those 2 methods different.
+        ignoreConflicts(true)
     }
-    compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentForge.extendsFrom common
-
-    // Files in this configuration will be bundled into your mod using the Shadow plugin.
-    // Don't use the `shadow` configuration from the plugin itself as it's meant for excluding files.
-    shadowBundle {
-        canBeResolved = true
-        canBeConsumed = false
-    }
-}
-
-dependencies {
-    forge "net.minecraftforge:forge:$rootProject.neo_or_forge_version"
-    common(project(path: ':common', configuration: 'namedElements')) { transitive false }
-    shadowBundle project(path: ':common', configuration: 'transformProductionForge')
-}
-
-processResources {
-    inputs.property 'version', rootProject.mod_version
-    inputs.property "compatible_versions", rootProject.compatible_versions_neo_or_forge_format
-
-    filesMatching("META-INF/mods.toml") {
-        expand "version": rootProject.mod_version, "compatible_versions": rootProject.compatible_versions_neo_or_forge_format
-    }
-}
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs += ['-Xplugin:Manifold']
-}
-
-shadowJar {
-    configurations = [project.configurations.shadowBundle]
-    archiveClassifier = 'dev-shadow'
-}
-
-remapJar {
-    input.set shadowJar.archiveFile
 }

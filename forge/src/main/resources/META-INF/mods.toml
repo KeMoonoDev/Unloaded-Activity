@@ -21,7 +21,7 @@ side = "SERVER"
 [[dependencies.unloadedactivity]]
 modId = "minecraft"
 mandatory = true
-versionRange = "${compatible_versions}"
+versionRange = "${compatible_versions_neo_or_forge}"
 ordering = "NONE"
 side = "SERVER"
 

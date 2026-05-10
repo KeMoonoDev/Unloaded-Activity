@@ -2,6 +2,7 @@ package lol.zanspace.unloadedactivity.mixin.block_entities;
 
 import lol.zanspace.unloadedactivity.interfaces.SimulateBlockEntity;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
+import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
@@ -28,7 +29,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 import static java.lang.Math.*;
-import static lol.zanspace.unloadedactivity.ExpectPlatform.burn;
 
 @Mixin(AbstractFurnaceBlockEntity.class)
 public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlockEntity implements WorldlyContainer, StackedContentsCompatible, SimulateBlockEntity {
@@ -226,7 +226,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 if (itemsCrafted > 0) {
                     stateChanged = true;
                     for (int i = 0; i < itemsCrafted; i++) {
-                        burn(
+                        IPlatformHelper.INSTANCE.burn(
                             #if MC_VER >= MC_1_19_4 level.registryAccess(), #endif recipe,
                             #if MC_VER >= MC_1_21_3 singleRecipeInput, #endif this.items,
                             getMaxStackSize(),

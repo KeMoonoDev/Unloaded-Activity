@@ -1,10 +1,11 @@
-package lol.zanspace.unloadedactivity.neoforge;
+package lol.zanspace.unloadedactivity.neoforge.platform;
 
 #if MC_VER >= MC_1_21_1
 import lol.zanspace.unloadedactivity.neoforge.mixin.CropBlockInvoker;
 #endif
 
 #if MC_VER >= MC_1_19_4
+import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import net.minecraft.core.RegistryAccess;
 #endif
 #if MC_VER >= MC_1_21_3
@@ -31,16 +32,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
-public class ExpectPlatformImpl {
-    public static Path getConfigDirectory() {
+public class NeoForgePlatformHelper implements IPlatformHelper {
+    @Override
+    public Path getConfigDirectory() {
         return FMLPaths.CONFIGDIR.get();
     }
     #if MC_VER >= MC_1_21_1
-    public static float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos) {
+    @Override
+    public float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos) {
         return CropBlockInvoker.invokeGetGrowthSpeed(blockState, blockGetter, pos);
     }
     #endif
-    public static boolean burn(
+    @Override
+    public boolean burn(
         #if MC_VER >= MC_1_19_4
         RegistryAccess registryAccess,
         #endif

@@ -1,5 +1,6 @@
-package lol.zanspace.unloadedactivity.fabric;
+package lol.zanspace.unloadedactivity.fabric.platform;
 
+import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import org.jetbrains.annotations.Nullable;
 
 #if MC_VER >= MC_1_21_1
@@ -30,20 +31,23 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
-public class ExpectPlatformImpl {
-    public static Path getConfigDirectory() {
+public class FabricPlatformHelper implements IPlatformHelper {
+    @Override
+    public Path getConfigDirectory() {
         return FabricLoader.getInstance().getConfigDir();
     }
     #if MC_VER >= MC_1_21_1
-    public static float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos) {
+    @Override
+    public float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos) {
         return CropBlockInvoker.invokeGetGrowthSpeed(blockState.getBlock(), blockGetter, pos);
     }
     #endif
-    public static boolean burn(
+
+    @Override
+    public boolean burn(
         #if MC_VER >= MC_1_19_4
         RegistryAccess registryAccess,
         #endif

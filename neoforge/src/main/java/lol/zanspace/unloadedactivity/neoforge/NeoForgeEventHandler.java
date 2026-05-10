@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.neoforge;
 
+import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.UnloadedActivityCommand;
 import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
 import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
@@ -26,7 +27,7 @@ public class NeoForgeEventHandler {
         }
 
         if (event.getChunk() instanceof LevelChunk chunk) {
-            server.addChunkToQueue(chunk);
+            UnloadedActivity.addChunkToQueue(server, chunk);
         }
     }
 

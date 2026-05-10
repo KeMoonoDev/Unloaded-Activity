@@ -1,11 +1,11 @@
-package lol.zanspace.unloadedactivity.forge;
+package lol.zanspace.unloadedactivity.forge.platform;
 
 #if MC_VER >= MC_1_19_4
 import net.minecraft.core.RegistryAccess;
 #endif
-import lol.zanspace.unloadedactivity.UnloadedActivity;
 
 import lol.zanspace.unloadedactivity.forge.mixin.AbstractFurnaceBlockEntityInvoker;
+import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -15,11 +15,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
-public class ExpectPlatformImpl {
-    public static Path getConfigDirectory() {
+public class ForgePlatformHelper implements IPlatformHelper {
+    @Override
+    public Path getConfigDirectory() {
         return FMLPaths.CONFIGDIR.get();
     }
-    public static boolean burn(
+
+    @Override
+    public boolean burn(
         #if MC_VER >= MC_1_19_4
         RegistryAccess registryAccess,
         #endif

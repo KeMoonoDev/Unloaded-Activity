@@ -1,74 +1,38 @@
-plugins {
-    id 'com.gradleup.shadow'
-}
-
-architectury {
-    platformSetupLoomIde()
-    fabric()
-}
-
-configurations {
-    common {
-        canBeResolved = true
-        canBeConsumed = false
+unimined.minecraft {
+    mods.modImplementation {
+        mixinRemap {
+            reset()
+            enableBaseMixin()
+            enableMixinExtra()
+        }
+        catchAWNamespaceAssertion()
     }
-    compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentFabric.extendsFrom common
 
-    // Files in this configuration will be bundled into your mod using the Shadow plugin.
-    // Don't use the `shadow` configuration from the plugin itself as it's meant for excluding files.
-    shadowBundle {
-        canBeResolved = true
-        canBeConsumed = false
+    fabric {
+        loader fabric_loader_version
     }
 }
 
-def buildProperties = new Properties()
+def mc_info = new Properties()
 
 rootDir.listFiles().each { file ->
     if (file.name == "build.properties") {
-        buildProperties.load(file.newReader())
+        mc_info.load(file.newReader())
     }
 }
 
-dependencies {
-    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
-
-    [
+def fabricModules = [
         "fabric-api-base",
         "fabric-command-api-v2",
         "fabric-lifecycle-events-v1",
-        "fabric-resource-loader-v0",
-        (buildProperties.MC_VER as Integer) >= (buildProperties.MC_1_21_10 as Integer) ? "fabric-resource-loader-v1" : null
-    ]
-    .findAll {it != null}.forEach {
-        modImplementation(fabricApi.module(it, rootProject.fabric_api_version + "+" + rootProject.minecraft_version))
-        include(fabricApi.module(it, rootProject.fabric_api_version + "+" + rootProject.minecraft_version))
+        (mc_info.MC_VER as Integer) <= (mc_info.MC_1_21_10 as Integer) ? "fabric-resource-loader-v0" : null,
+        (mc_info.MC_VER as Integer) >= (mc_info.MC_1_21_10 as Integer) ? "fabric-resource-loader-v1" : null
+]
+
+dependencies {
+    fabricModules.findAll {it != null}.forEach {
+        var fabric_module = unimined.fabricModule(it, rootProject.fabric_api_version + "+" + rootProject.minecraft_version)
+        modImplementation(fabric_module)
+        include(fabric_module)
     }
-
-    common(project(path: ':common', configuration: 'namedElements')) { transitive false }
-    shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
-}
-
-processResources {
-    inputs.property "version", rootProject.mod_version
-    inputs.property "compatible_versions", rootProject.compatible_versions_fabric_format
-
-    filesMatching("fabric.mod.json") {
-        expand "version": rootProject.mod_version, "compatible_versions": rootProject.compatible_versions_fabric_format
-    }
-}
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs += ['-Xplugin:Manifold']
-}
-
-shadowJar {
-    configurations = [project.configurations.shadowBundle]
-    archiveClassifier = 'dev-shadow'
-}
-
-remapJar {
-    input.set shadowJar.archiveFile
 }

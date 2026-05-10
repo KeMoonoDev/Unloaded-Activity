@@ -1,15 +1,18 @@
 package lol.zanspace.unloadedactivity;
 
-import lol.zanspace.unloadedactivity.config.BlockOrTag;
-import lol.zanspace.unloadedactivity.config.UnloadedActivityConfig;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 #if MC_VER >= MC_1_21_11
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
-import net.minecraft.server.packs.resources.ResourceManager;
+
+import lol.zanspace.unloadedactivity.config.BlockOrTag;
+import lol.zanspace.unloadedactivity.config.UnloadedActivityConfig;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +36,7 @@ public class UnloadedActivity {
     }
     public static void loadConfig() {
         LOGGER.info("Loading config.");
-        File configFile = new File(ExpectPlatform.getConfigDirectory().toFile(), MOD_ID+".json");
+        File configFile = new File(IPlatformHelper.INSTANCE.getConfigDirectory().toFile(), MOD_ID+".json");
         Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(BlockOrTag.class, new BlockOrTag.StringAdapter())
@@ -55,7 +58,7 @@ public class UnloadedActivity {
     }
 
     public static void saveConfig() {
-        File configFile = new File(ExpectPlatform.getConfigDirectory().toFile(), MOD_ID+".json");
+        File configFile = new File(IPlatformHelper.INSTANCE.getConfigDirectory().toFile(), MOD_ID+".json");
         Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(BlockOrTag.class, new BlockOrTag.StringAdapter())
@@ -81,5 +84,9 @@ public class UnloadedActivity {
         #else
         return new ResourceLocation(MOD_ID, path);
         #endif
+    }
+
+    public static void addChunkToQueue(MinecraftServer server, LevelChunk chunk) {
+        server.addChunkToQueue(chunk);
     }
 }

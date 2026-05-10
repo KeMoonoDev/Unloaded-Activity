@@ -1,12 +1,12 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 #if MC_VER >= MC_1_21_11
+import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import net.minecraft.world.level.gamerules.GameRules;
 #else
 import net.minecraft.world.level.GameRules;
 #endif
 
-import lol.zanspace.unloadedactivity.ExpectPlatform;
 import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
@@ -28,7 +28,7 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         @Override
         public Number calculateValue(CalculationData data) {
             #if MC_VER >= MC_1_21_1
-            return ExpectPlatform.getGrowthSpeed(data.state, data.level, data.pos);
+            return IPlatformHelper.INSTANCE.getGrowthSpeed(data.state, data.level, data.pos);
             #else
             return CropBlockInvoker.invokeGetGrowthSpeed(data.state.getBlock(), data.level, data.pos);
             #endif

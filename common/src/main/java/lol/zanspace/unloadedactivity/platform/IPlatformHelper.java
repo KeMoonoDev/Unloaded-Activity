@@ -1,4 +1,4 @@
-package lol.zanspace.unloadedactivity;
+package lol.zanspace.unloadedactivity.platform;
 
 #if MC_VER >= MC_1_19_4
 import net.minecraft.core.RegistryAccess;
@@ -25,20 +25,15 @@ import net.minecraft.core.BlockPos;
 
 import java.nio.file.Path;
 
-public class ExpectPlatform {
-    @dev.architectury.injectables.annotations.ExpectPlatform
-    public static Path getConfigDirectory() {
-        throw new AssertionError();
-    }
+public interface IPlatformHelper {
+    IPlatformHelper INSTANCE = ImplLoader.load(IPlatformHelper.class);
+
+   Path getConfigDirectory();
     #if MC_VER >= MC_1_21_1
-    @dev.architectury.injectables.annotations.ExpectPlatform
-    public static float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos) {
-        throw new AssertionError();
-    }
+    float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos);
     #endif
 
-    @dev.architectury.injectables.annotations.ExpectPlatform
-    public static boolean burn(
+    boolean burn(
         #if MC_VER >= MC_1_19_4
         RegistryAccess registryAccess,
         #endif
@@ -56,7 +51,5 @@ public class ExpectPlatform {
         NonNullList<ItemStack> slots,
         int count,
         AbstractFurnaceBlockEntity furnace
-    ) {
-        throw new AssertionError("No burn impl on target platform");
-    }
+    );
 }

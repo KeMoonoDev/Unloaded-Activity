@@ -10,6 +10,8 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.UnloadedActivityCommand;
+import lol.zanspace.unloadedactivity.fabric.platform.FabricPlatformHelper;
+import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
@@ -24,7 +26,7 @@ public class UnloadedActivityFabric implements ModInitializer {
 		UnloadedActivity.init();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher,context,environment) -> UnloadedActivityCommand.register(dispatcher));
-		ServerChunkEvents.CHUNK_LOAD.register((level, chunk) -> level.getServer().addChunkToQueue(chunk));
+		ServerChunkEvents.CHUNK_LOAD.register((level, chunk) -> UnloadedActivity.addChunkToQueue(level.getServer(), chunk));
 		#if MC_VER >= MC_1_21_10
 		ResourceLoader.get(PackType.SERVER_DATA).registerReloader(SimulationDataResource.TAGS_ID, new SimulationDataResource(false));
 		ResourceLoader.get(PackType.SERVER_DATA).registerReloader(SimulationDataResource.BLOCKS_ID, new SimulationDataResource(true));

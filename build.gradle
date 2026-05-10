@@ -1,12 +1,8 @@
 plugins {
-	id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
-	id 'architectury-plugin' version '3.4-SNAPSHOT'
+	id 'java'
+	id 'xyz.wagyourtail.unimined' version '1.4.2-SNAPSHOT'
 	id 'com.gradleup.shadow' version '8.3.6' apply false
 	id "io.github.pacifistmc.forgix" version "1.2.9"
-}
-
-architectury {
-	minecraft = project.minecraft_version
 }
 
 minecraft_version_string = project.minecraft_version.replace(".", "_")
@@ -67,38 +63,35 @@ if (version_range.length == 1) {
 	throw new GradleException("Wrong version format: $project.compatible_versions")
 }
 
+
 forgix {
-	group = "lol.zanspace.unloadedactivity"
-	mergedJarName = "$archives_name-v$mod_version+${compatible_versions}.jar"
+	group = rootProject.maven_group
+	mergedJarName = "$archives_name-$mod_version+mc${compatible_versions}.jar"
 
 	fabric {
-		jarLocation = "build/libs/$archives_name-fabric-v$mod_version+${compatible_versions}.jar"
+		jarLocation = "build/libs/$archives_name-fabric-$mod_version+mc${compatible_versions}.jar"
 	}
 
 	if (using_neo) {
 		neoforge {
-			jarLocation = "build/libs/$archives_name-neoforge-v$mod_version+${compatible_versions}.jar"
+			jarLocation = "build/libs/$archives_name-neoforge-$mod_version+mc${compatible_versions}.jar"
 		}
 	} else {
 		forge {
-			jarLocation = "build/libs/$archives_name-forge-v$mod_version+${compatible_versions}.jar"
+			jarLocation = "build/libs/$archives_name-forge-$mod_version+mc${compatible_versions}.jar"
 		}
 	}
 }
 
+
 allprojects { p ->
 	group = rootProject.maven_group
-	version = "v" + rootProject.mod_version + "+" + rootProject.compatible_versions
-}
-
-tasks.withType(JavaCompile) {
-	options.compilerArgs += ['-Xplugin:Manifold']
+	version = rootProject.mod_version + "+mc" + rootProject.compatible_versions
 }
 
 subprojects {
-	apply plugin: 'dev.architectury.loom'
-	apply plugin: 'architectury-plugin'
-	apply plugin: 'maven-publish'
+	apply plugin: "xyz.wagyourtail.unimined"
+	apply plugin: "java"
 
 	base {
 		// Set up a suffixed format for the mod jar names, e.g. `example-fabric`.
@@ -106,49 +99,65 @@ subprojects {
 	}
 
 	repositories {
-		maven { url "https://maven.terraformersmc.com/releases/" }
-		maven {url "https://maven.terraformersmc.com/"}
-		maven {url "https://maven.shedaniel.me/"}
+		unimined.neoForgedMaven()
+		unimined.minecraftForgeMaven()
+		unimined.spongeMaven()
+		unimined.wagYourMaven("releases")
+		unimined.modrinthMaven()
+	}
+
+	unimined.minecraft(sourceSets.main, true) {
+		version minecraft_version
+
+		if (project.name !== 'common') {
+			combineWith(":common:main")
+			defaultRemapJar = true
+			runs.off = false
+		}
+
+		if (minecraft_version.startsWith("1.")) {
+			mappings {
+				mojmap()
+				devNamespace "mojmap"
+			}
+		}
+	}
+
+	processResources {
+		filesMatching(["fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml"]) {
+			expand (
+				"version": rootProject.mod_version,
+				"compatible_versions_fabric": rootProject.compatible_versions_fabric_format,
+				"compatible_versions_neo_or_forge": rootProject.compatible_versions_neo_or_forge_format
+			)
+		}
 	}
 
 	dependencies {
-		minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
-
-        mappings loom.officialMojangMappings()
-
 		annotationProcessor 'systems.manifold:manifold-preprocessor:2025.1.27'
 		testAnnotationProcessor 'systems.manifold:manifold-preprocessor:2025.1.27'
 	}
 
 	java {
-		// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-		// if it is present.
-		// If you remove this line, sources will not be generated.
-		withSourcesJar()
-
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(java_version_int)
+		}
 		sourceCompatibility = java_version
 		targetCompatibility = java_version
+		withSourcesJar()
 	}
 
 	tasks.withType(JavaCompile).configureEach {
+		it.options.encoding = 'UTF-8'
 		it.options.release = java_version_int
+		it.options.compilerArgs += ['-Xplugin:Manifold']
 	}
 
-	// Configure Maven publishing.
-	publishing {
-		publications {
-			mavenJava(MavenPublication) {
-				artifactId = base.archivesName.get()
-				from components.java
-			}
-		}
+	tasks.withType(GenerateModuleMetadata).configureEach {
+		enabled = false
+	}
 
-		// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-		repositories {
-			// Add repositories to publish to here.
-			// Notice: This block does NOT have the same function as the block in the top level.
-			// The repositories here will be used for publishing your artifact, not for
-			// retrieving dependencies.
-		}
+	clean {
+		delete "$rootDir/artifacts"
 	}
 }

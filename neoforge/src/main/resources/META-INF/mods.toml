@@ -23,7 +23,7 @@ side = "SERVER"
 modId = "minecraft"
 type = "required"
 mandatory = true
-versionRange = "${compatible_versions}"
+versionRange = "${compatible_versions_neo_or_forge}"
 ordering = "NONE"
 side = "SERVER"
 
