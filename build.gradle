@@ -128,6 +128,12 @@ subprojects {
 		}
 	}
 
+	sourceSets {
+		main {
+			output.resourcesDir = file("$buildDir/resources_$rootProject.minecraft_version_string")
+		}
+	}
+
 	processResources {
 		filesMatching(["fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml"]) {
 			expand (
