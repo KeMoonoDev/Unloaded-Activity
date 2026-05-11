@@ -50,3 +50,6 @@ replay_*.log
 *.hprof
 *.jfr
 build.properties
+
+# unimined makes this when calling aw2at so we just ignore it.
+accesstransformer.cfg

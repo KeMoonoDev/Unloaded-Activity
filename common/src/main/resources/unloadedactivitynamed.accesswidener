@@ -1,0 +1,4 @@
+accessWidener v1 named
+
+# Needed to check for valid gourd positions. Only for 26.1.2+
+#accessible field net/minecraft/world/level/block/StemBlock fruitSupportBlocks Lnet/minecraft/tags/TagKey;

@@ -1,7 +1,6 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 #if MC_VER >= MC_1_21_11
-import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import net.minecraft.world.level.gamerules.GameRules;
 #else
 import net.minecraft.world.level.GameRules;
@@ -9,6 +8,7 @@ import net.minecraft.world.level.GameRules;
 
 import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.MathUtils;
+import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.mixin.CropBlockInvoker;
@@ -38,10 +38,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     AVAILABLE_SPACE_FOR_GOURD {
         @Override
         public Number calculateValue(CalculationData data) {
-            return (GameUtils.isValidGourdPosition(Direction.NORTH, data.pos, data.level) ? 1 : 0)
-                + (GameUtils.isValidGourdPosition(Direction.EAST, data.pos, data.level) ? 1 : 0)
-                + (GameUtils.isValidGourdPosition(Direction.SOUTH, data.pos, data.level) ? 1 : 0)
-                + (GameUtils.isValidGourdPosition(Direction.WEST, data.pos, data.level) ? 1 : 0);
+            return (GameUtils.isValidGourdPosition(Direction.NORTH, data.pos, data.state, data.level) ? 1 : 0)
+                + (GameUtils.isValidGourdPosition(Direction.EAST, data.pos, data.state, data.level) ? 1 : 0)
+                + (GameUtils.isValidGourdPosition(Direction.SOUTH, data.pos, data.state, data.level) ? 1 : 0)
+                + (GameUtils.isValidGourdPosition(Direction.WEST, data.pos, data.state, data.level) ? 1 : 0);
 
         }
     },

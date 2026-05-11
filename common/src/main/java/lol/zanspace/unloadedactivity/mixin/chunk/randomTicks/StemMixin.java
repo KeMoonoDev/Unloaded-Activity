@@ -73,10 +73,9 @@ public abstract class StemMixin extends #if MC_VER >= MC_1_21_5 VegetationBlock 
             List<Direction> directions = Direction.Plane.HORIZONTAL.shuffledCopy(random);
 
             for (int i = 0; i < directions.size(); i++) {
-
                 Direction direction = directions.get(i);
 
-                if (!GameUtils.isValidGourdPosition(direction, pos, level)) continue;
+                if (!GameUtils.isValidGourdPosition(direction, pos, state, level)) continue;
 
                 BlockPos blockPos = pos.relative(direction);
                 #if MC_VER >= MC_1_20_4

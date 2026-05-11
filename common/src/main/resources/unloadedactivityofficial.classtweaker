@@ -8,3 +8,6 @@ inject-interface net/minecraft/world/entity/Entity lol/zanspace/unloadedactivity
 inject-interface net/minecraft/world/level/chunk/ChunkAccess lol/zanspace/unloadedactivity/interfaces/ChunkTimeData
 inject-interface net/minecraft/server/level/ServerLevel lol/zanspace/unloadedactivity/interfaces/WorldForecastGetter
 inject-interface net/minecraft/server/MinecraftServer lol/zanspace/unloadedactivity/interfaces/ChunkIndexQueue
+
+# Needed to check for valid gourd positions.
+accessible field net/minecraft/world/level/block/StemBlock fruitSupportBlocks Lnet/minecraft/tags/TagKey;

@@ -2,6 +2,15 @@ unimined.minecraft {
     neoForge {
         loader rootProject.neo_or_forge_version
         mixinConfig("unloadedactivity.mixins.json", "unloadedactivityneoforge.mixins.json")
+        if (minecraft_version.startsWith("1.")) {
+            accessTransformer = aw2at(project(":common").sourceSets.main.resources.matching{
+                include "unloadedactivitynamed.accesswidener"
+            }.singleFile)
+        } else {
+            accessTransformer = aw2at(project(":common").sourceSets.main.resources.matching{
+                include "unloadedactivityofficial.accesswidener"
+            }.singleFile)
+        }
     }
 
     minecraftRemapper.config {

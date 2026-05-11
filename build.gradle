@@ -17,23 +17,30 @@ def java_version = JavaVersion.VERSION_17
 def java_version_int = 17
 
 using_neo = false
+using_legacy_folders = true
 
 supported_versions.eachWithIndex { version, index ->
 	def version_string = version.replace(".", "_")
 	build_properties_text.append("MC_$version_string=$index\n")
 
-	if (version == neo_switch_version && version_index == -1) {
-		using_neo = true
-	}
+	if (version_index == -1) {
+		if (version == neo_switch_version) {
+			using_neo = true
+		}
 
-	if (version == java_21_switch_version && version_index == -1) {
-		java_version = JavaVersion.VERSION_21
-		java_version_int = 21
-	}
+		if (version == java_21_switch_version) {
+			java_version = JavaVersion.VERSION_21
+			java_version_int = 21
+		}
 
-	if (version == java_25_switch_version && version_index == -1) {
-		java_version = JavaVersion.VERSION_25
-		java_version_int = 25
+		if (version == java_25_switch_version) {
+			java_version = JavaVersion.VERSION_25
+			java_version_int = 25
+		}
+
+		if (version == rename_legacy_folders_version) {
+			using_legacy_folders = false
+		}
 	}
 
 	if (version_string == minecraft_version_string) {
@@ -135,6 +142,12 @@ subprojects {
 	}
 
 	processResources {
+		if (rootProject.using_legacy_folders) {
+			filesMatching("**/tags/block/**") {
+				path = path.replaceFirst("block", "blocks")
+			}
+		}
+
 		filesMatching(["fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml"]) {
 			expand (
 				"version": rootProject.mod_version,

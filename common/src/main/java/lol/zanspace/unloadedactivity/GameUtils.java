@@ -21,6 +21,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.StemBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
@@ -76,9 +77,29 @@ public class GameUtils {
         #endif
     }
 
-    public static boolean isValidGourdPosition(Direction direction, BlockPos pos, ServerLevel level) {
+    public static boolean isValidGourdPosition(Direction direction, BlockPos pos, BlockState state, ServerLevel level) {
         BlockPos blockPos = pos.relative(direction);
-        BlockState blockState = level.getBlockState(blockPos.below());
-        return level.getBlockState(blockPos).isAir() && (blockState.is(Blocks.FARMLAND) || blockState.is(BlockTags.DIRT));
+
+        BlockState growAtState = level.getBlockState(blockPos);
+        boolean isAir = growAtState.isAir();
+
+        if (!isAir)
+            return false;
+
+        #if MC_VER >= MC_26_1_2
+        Block block = state.getBlock();
+        boolean isGrowableOn;
+        if (block instanceof StemBlock stemBlock) {
+            BlockState growOnState = level.getBlockState(blockPos.below());
+            isGrowableOn = growOnState.is(stemBlock.fruitSupportBlocks);
+        } else {
+            isGrowableOn = false;
+        }
+        #else
+        BlockState belowBlockState = level.getBlockState(blockPos.below());
+        boolean isGrowableOn = (belowBlockState.is(Blocks.FARMLAND) || belowBlockState.is(BlockTags.DIRT));
+        #endif
+
+        return isGrowableOn;
     }
 }
