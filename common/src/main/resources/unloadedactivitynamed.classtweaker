@@ -1,0 +1,10 @@
+classTweaker v1 named
+
+inject-interface net/minecraft/world/level/block/state/properties/IntegerProperty lol/zanspace/unloadedactivity/mixin/IntegerPropertyAccessor
+inject-interface net/minecraft/world/level/block/Block lol/zanspace/unloadedactivity/interfaces/SimulateChunkBlocks
+inject-interface net/minecraft/world/level/block/entity/BlockEntity lol/zanspace/unloadedactivity/interfaces/SimulateBlockEntity
+inject-interface net/minecraft/world/level/block/entity/BlockEntity lol/zanspace/unloadedactivity/interfaces/BlockEntityTimeData
+inject-interface net/minecraft/world/entity/Entity lol/zanspace/unloadedactivity/interfaces/SimulateEntity
+inject-interface net/minecraft/world/level/chunk/ChunkAccess lol/zanspace/unloadedactivity/interfaces/ChunkTimeData
+inject-interface net/minecraft/server/level/ServerLevel lol/zanspace/unloadedactivity/interfaces/WorldForecastGetter
+inject-interface net/minecraft/server/MinecraftServer lol/zanspace/unloadedactivity/interfaces/ChunkIndexQueue

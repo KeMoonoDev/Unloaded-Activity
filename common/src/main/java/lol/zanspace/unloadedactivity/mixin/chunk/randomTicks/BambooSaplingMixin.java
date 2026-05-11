@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.mixin.chunk.randomTicks;
 
 import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
@@ -34,7 +35,7 @@ public abstract class BambooSaplingMixin extends Block {
             if (maxHeight <= 1 || !level.isEmptyBlock(pos.above()))
                 return Triple.of(state, OccurrencesAndDuration.empty(), pos);
 
-            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, 1, randomPickOdds, true, random, groupSimulateData);
+            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, simulateProperty, 1, randomPickOdds, true, random, groupSimulateData);
 
             if (result.occurrences() != 0) {
                 this.growBamboo(level, pos);

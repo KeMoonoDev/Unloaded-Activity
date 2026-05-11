@@ -39,7 +39,7 @@ public class MathUtils {
 
         CalculateValue<Number> probability = property.advanceProbability;
 
-        WorldWeatherData weatherData = level.getWeatherData();
+        WorldWeatherForecast weatherData = level.getWeatherForecast();
 
         while (remainingCycles > 0) {
             long currentTime = endTime - remainingCycles;

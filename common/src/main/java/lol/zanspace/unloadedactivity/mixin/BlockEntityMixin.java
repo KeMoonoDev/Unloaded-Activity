@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.interfaces.BlockEntityTimeData;
 import lol.zanspace.unloadedactivity.interfaces.SimulateBlockEntity;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
@@ -48,16 +49,19 @@ public abstract class BlockEntityMixin implements SimulateBlockEntity, BlockEnti
         return true;
     }
 
-    #if MC_VER <= MC_1_21_5
-    @Inject(method = "saveAdditional", at = @At("RETURN"))
-    #if MC_VER <= MC_1_20_4
-    private void save(CompoundTag nbt, CallbackInfo ci)
-    #else
-    private void save(CompoundTag nbt, HolderLookup.Provider provider, CallbackInfo ci)
-    #endif
-    #else
+    #if MC_VER >= MC_26_1_2
     @Inject(method = {"saveWithoutMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V", "saveCustomOnly(Lnet/minecraft/world/level/storage/ValueOutput;)V"}, at = @At("RETURN"))
     private void save(ValueOutput nbt, CallbackInfo ci)
+    #elif MC_VER >= MC_1_21_8
+    @Inject(method = {"saveWithoutMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V", "saveCustomOnly(Lnet/minecraft/world/level/storage/ValueOutput;)V"}, at = @At("RETURN"))
+    private void save(ValueOutput nbt, CallbackInfo ci)
+    #else
+    @Inject(method = "saveAdditional", at = @At("RETURN"))
+        #if MC_VER <= MC_1_20_4
+        private void save(CompoundTag nbt, CallbackInfo ci)
+        #else
+        private void save(CompoundTag nbt, HolderLookup.Provider provider, CallbackInfo ci)
+        #endif
     #endif
     {
         CompoundTag blockData = new CompoundTag();
@@ -120,7 +124,7 @@ public abstract class BlockEntityMixin implements SimulateBlockEntity, BlockEnti
         }
 
         if (this.lastTick == 0 && this.hasLevel()) {
-            this.lastTick = this.getLevel().getDayTime()  ;
+            this.lastTick = GameUtils.getTime(this.getLevel());
         }
     }
 }

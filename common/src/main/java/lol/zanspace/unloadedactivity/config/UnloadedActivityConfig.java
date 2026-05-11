@@ -268,85 +268,85 @@ public class UnloadedActivityConfig {
         registerInt(
                 "tickDifferenceThreshold", tickDifferenceThreshold, 1, Integer.MAX_VALUE,
                 unused -> tickDifferenceThreshold,
-                value -> tickDifferenceThreshold = value
+                val -> tickDifferenceThreshold = val
         );
 
         registerInt(
                 "maxNegativeBinomialAttempts", maxNegativeBinomialAttempts, 1, Integer.MAX_VALUE,
                 unused -> maxNegativeBinomialAttempts,
-                value -> maxNegativeBinomialAttempts = value
+                val -> maxNegativeBinomialAttempts = val
         );
 
         registerInt(
                 "groupTickDifferenceThreshold", groupTickDifferenceThreshold, 1, Integer.MAX_VALUE,
                 unused -> groupTickDifferenceThreshold,
-                value -> groupTickDifferenceThreshold = value
+                val -> groupTickDifferenceThreshold = val
         );
 
         registerFloat(
                 "maxGroupTickDeviationScale", maxGroupTickDeviationScale, 0F, 1F,
                 unused -> maxGroupTickDeviationScale,
-                value -> maxGroupTickDeviationScale = value
+                val -> maxGroupTickDeviationScale = val
         );
 
         registerInt(
                 "maxForcedChunkLoads", maxForcedChunkLoads, 0, Integer.MAX_VALUE,
                 unused -> maxForcedChunkLoads,
-                value -> maxForcedChunkLoads = value
+                val -> maxForcedChunkLoads = val
         );
 
         registerInt(
                 "maxGroupUpdatesPerTick", maxGroupUpdatesPerTick, 0, Integer.MAX_VALUE,
                 unused -> maxGroupUpdatesPerTick,
-                value -> maxGroupUpdatesPerTick = value
+                val -> maxGroupUpdatesPerTick = val
         );
 
         registerInt(
                 "maxGroupTickIterations", maxGroupTickIterations, 1, Integer.MAX_VALUE,
                 unused -> maxGroupTickIterations,
-                value -> maxGroupTickIterations = value
+                val -> maxGroupTickIterations = val
         );
 
         registerFloat(
                 "groupTickUpdateStrength", groupTickUpdateStrength, 0F, 100F,
                 unused -> groupTickUpdateStrength,
-                value -> groupTickUpdateStrength = value
+                val -> groupTickUpdateStrength = val
         );
 
         registerInt(
                 "maxGroupTickSize", maxGroupTickSize, 1, Integer.MAX_VALUE,
                 unused -> maxGroupTickSize,
-                value -> maxGroupTickSize = value
+                val -> maxGroupTickSize = val
         );
 
         registerBoolean(
                 "debugLogs", debugLogs,
                 unused -> debugLogs,
-                value -> debugLogs = value
+                val -> debugLogs = val
         );
 
         registerBoolean(
                 "convertCCAData", convertCCAData,
                 unused -> convertCCAData,
-                value -> convertCCAData = value
+                val -> convertCCAData = val
         );
 
         registerInt(
                 "maxChunksIndexedPerTick", maxChunksIndexedPerTick, 1, 32767,
                 unused -> maxChunksIndexedPerTick,
-                value -> maxChunksIndexedPerTick = value
+                val -> maxChunksIndexedPerTick = val
         );
 
         registerInt(
                 "maxChunkUpdatesPerTick", maxChunkUpdatesPerTick, 1, 32767,
                 unused -> maxChunkUpdatesPerTick,
-                value -> maxChunkUpdatesPerTick = value
+                val -> maxChunkUpdatesPerTick = val
         );
 
         registerBoolean(
                 "randomizeBlockUpdates", randomizeBlockUpdates,
                 unused -> randomizeBlockUpdates,
-                value -> randomizeBlockUpdates = value
+                val -> randomizeBlockUpdates = val
         );
 
         registerIdList("blacklistedBlocks", () -> blacklistedBlocks);
@@ -354,61 +354,61 @@ public class UnloadedActivityConfig {
         registerBoolean(
                 "multiplyMaxChunkUpdatesPerPlayer", multiplyMaxChunkUpdatesPerPlayer,
                 unused -> multiplyMaxChunkUpdatesPerPlayer,
-                value -> multiplyMaxChunkUpdatesPerPlayer = value
+                val -> multiplyMaxChunkUpdatesPerPlayer = val
         );
 
         registerBoolean(
                 "multiplyMaxChunksIndexedPerPlayer", multiplyMaxChunksIndexedPerPlayer,
                 unused -> multiplyMaxChunksIndexedPerPlayer,
-                value -> multiplyMaxChunksIndexedPerPlayer = value
+                val -> multiplyMaxChunksIndexedPerPlayer = val
         );
 
         registerBoolean(
                 "enableSimulatingRandomTicks", enableSimulatingRandomTicks,
                 unused -> enableSimulatingRandomTicks,
-                value -> enableSimulatingRandomTicks = value
+                val -> enableSimulatingRandomTicks = val
         );
 
         registerBoolean(
                 "enableSimulatingPrecipitationTicks", enableSimulatingPrecipitationTicks,
                 unused -> enableSimulatingPrecipitationTicks,
-                value -> enableSimulatingPrecipitationTicks = value
+                val -> enableSimulatingPrecipitationTicks = val
         );
 
                 registerBoolean(
                 "enableSimulatingGroups", enableSimulatingGroups,
                 unused -> enableSimulatingGroups,
-                value -> enableSimulatingGroups = value
+                val -> enableSimulatingGroups = val
         );
 
         registerBoolean(
                 "enableSimulatingBlockEntities", enableSimulatingBlockEntities,
                 unused -> enableSimulatingBlockEntities,
-                value -> enableSimulatingBlockEntities = value
+                val -> enableSimulatingBlockEntities = val
         );
 
         registerBoolean(
                 "enableSimulatingEntities", enableSimulatingEntities,
                 unused -> enableSimulatingEntities,
-                value -> enableSimulatingEntities = value
+                val -> enableSimulatingEntities = val
         );
 
         registerBoolean(
                 "simulateFurnaceSmelting", simulateFurnaceSmelting,
                 unused -> simulateFurnaceSmelting,
-                value -> simulateFurnaceSmelting = value
+                val -> simulateFurnaceSmelting = val
         );
 
         registerBoolean(
                 "simulateEntitiesAgeing", simulateEntitiesAgeing,
                 unused -> simulateEntitiesAgeing,
-                value -> simulateEntitiesAgeing = value
+                val -> simulateEntitiesAgeing = val
         );
 
         registerBoolean(
                 "simulateSheepDesireToEat", simulateSheepDesireToEat,
                 unused -> simulateSheepDesireToEat,
-                value -> simulateSheepDesireToEat = value
+                val -> simulateSheepDesireToEat = val
         );
     }
 

@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.interfaces.SimulateEntity;
 import lol.zanspace.unloadedactivity.TimeMachine;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
@@ -40,7 +41,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
         if (level.isClientSide())
             return;
 
-        long currentTime = level.getDayTime();
+        long currentTime = GameUtils.getTime(level);
 
         if (this.lastTick != 0) {
 
@@ -56,7 +57,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 
     @Inject( at = @At("RETURN"), method = "<init>")
     private void init(EntityType<?> type, Level level, CallbackInfo ci) {
-        this.lastTick = level.getDayTime();
+        this.lastTick = GameUtils.getTime(level);
     }
 
     #if MC_VER <= MC_1_21_5
@@ -128,7 +129,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
         }
 
         if (this.lastTick == 0) {
-            this.lastTick = level.getDayTime();
+            this.lastTick = GameUtils.getTime(level);
         }
     }
 }

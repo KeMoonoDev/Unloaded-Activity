@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
 import lol.zanspace.unloadedactivity.MathUtils;
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.datapack.*;
 import lol.zanspace.unloadedactivity.mixin.IntegerPropertyAccessor;
@@ -196,6 +197,8 @@ public interface SimulateChunkBlocks {
     }
 
     default @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, float randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
+        long currentTime = GameUtils.getTime(level);
+
         switch (simulateProperty.simulationType) {
             case PROPERTY -> {
                 Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
@@ -298,7 +301,7 @@ public interface SimulateChunkBlocks {
                 if (updateCount <= 0)
                     return Triple.of(state, OccurrencesAndDuration.empty(), pos);
 
-                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
+                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
 
                 if (result.occurrences() == 0)
                     return Triple.of(state, result, pos);
@@ -583,7 +586,7 @@ public interface SimulateChunkBlocks {
 
                     int maxOccurrences = simulateProperty.buddingBlocks.size() - stage;
 
-                    OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, maxOccurrences, randomPickOdds, calculateDuration, random, groupSimulateData);
+                    OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, simulateProperty, maxOccurrences, randomPickOdds, calculateDuration, random, groupSimulateData);
 
                     if (result.occurrences() == 0) {
                         continue;
@@ -612,8 +615,6 @@ public interface SimulateChunkBlocks {
                 }
             }
             case DECAY -> {
-                long dayTime = level.getDayTime();
-
                 boolean calculateDecayDuration = calculateDuration || simulateProperty.hatchEntity.isPresent();
                 if (simulateProperty.blockReplacement.isPresent()) {
                     Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
@@ -623,7 +624,7 @@ public interface SimulateChunkBlocks {
                     }
                 }
 
-                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, dayTime, timePassed, simulateProperty, 1, randomPickOdds, calculateDecayDuration, random, groupSimulateData);
+                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, simulateProperty, 1, randomPickOdds, calculateDecayDuration, random, groupSimulateData);
 
                 if (result.occurrences() == 0)
                     return Triple.of(state, result, pos);
@@ -646,7 +647,7 @@ public interface SimulateChunkBlocks {
                 if (simulateProperty.hatchEntity.isPresent()) {
                     int hatchCount;
                     if (simulateProperty.hatchCount.isPresent()) {
-                        long hatchTime = dayTime - timePassed + result.duration();
+                        long hatchTime = currentTime - timePassed + result.duration();
                         hatchCount = (int)simulateProperty.hatchCount.get().calculateValue(new CalculationData(level, oldState, pos, hatchTime));
                     } else {
                         hatchCount = 1;

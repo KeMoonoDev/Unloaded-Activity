@@ -48,24 +48,38 @@ public class FabricPlatformHelper implements IPlatformHelper {
 
     @Override
     public boolean burn(
-        #if MC_VER >= MC_1_19_4
-        RegistryAccess registryAccess,
-        #endif
-        #if MC_VER >= MC_1_21_3
-        @Nullable RecipeHolder<? extends AbstractCookingRecipe>
-        #elif MC_VER >= MC_1_20_2
-        @Nullable RecipeHolder<?>
+        #if MC_VER >= MC_26_1_2
+            final NonNullList<ItemStack> items,
+            final ItemStack inputItemStack,
+            final ItemStack result,
         #else
-        @Nullable Recipe<?>
+            #if MC_VER >= MC_1_19_4
+            RegistryAccess registryAccess,
+            #endif
+            #if MC_VER >= MC_1_21_3
+            @Nullable RecipeHolder<? extends AbstractCookingRecipe>
+            #elif MC_VER >= MC_1_20_2
+            @Nullable RecipeHolder<?>
+            #else
+            @Nullable Recipe<?>
+            #endif
+            recipe,
+            #if MC_VER >= MC_1_21_3
+            SingleRecipeInput input,
+            #endif
+            NonNullList<ItemStack> slots,
+            int count,
         #endif
-        recipe,
-        #if MC_VER >= MC_1_21_3
-        SingleRecipeInput input,
-        #endif
-        NonNullList<ItemStack> slots,
-        int count,
         AbstractFurnaceBlockEntity furnace
     ) {
+        #if MC_VER >= MC_26_1_2
+        AbstractFurnaceBlockEntityInvoker.invokeBurn(
+            items,
+            inputItemStack,
+            result
+        );
+        return true;
+        #else
         return AbstractFurnaceBlockEntityInvoker.invokeBurn(
             #if MC_VER >= MC_1_19_4 registryAccess, #endif
             recipe,
@@ -73,5 +87,6 @@ public class FabricPlatformHelper implements IPlatformHelper {
             slots,
             count
         );
+        #endif
     }
 }

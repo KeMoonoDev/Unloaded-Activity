@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.mixin.chunk.randomTicks;
 
 import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
@@ -46,7 +47,7 @@ public abstract class SaplingMixin extends #if MC_VER >= MC_1_21_5 VegetationBlo
     public @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, float randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (simulateProperty.isAction("grow_tree")) {
 
-            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, 1, randomPickOdds, calculateDuration, random, groupSimulateData);
+            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, simulateProperty, 1, randomPickOdds, calculateDuration, random, groupSimulateData);
 
             if (result.occurrences() == 0)
                 return Triple.of(state, result, pos);

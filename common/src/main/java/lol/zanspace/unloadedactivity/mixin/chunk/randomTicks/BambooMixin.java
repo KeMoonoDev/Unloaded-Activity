@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.mixin.chunk.randomTicks;
 
 import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
@@ -75,7 +76,7 @@ public abstract class BambooMixin extends Block implements BonemealableBlock {
             int heightDifference = maxHeight - height;
             int maxGrowth = this.countAirAboveUpToMax(level,pos, heightDifference);
 
-            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, maxGrowth, randomPickOdds, false, random, groupSimulateData);
+            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, simulateProperty, maxGrowth, randomPickOdds, false, random, groupSimulateData);
 
             int totalGrowth = 0;
 

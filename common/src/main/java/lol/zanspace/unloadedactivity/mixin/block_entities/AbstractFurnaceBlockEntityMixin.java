@@ -1,14 +1,19 @@
 package lol.zanspace.unloadedactivity.mixin.block_entities;
 
+#if MC_VER >= MC_26_1_2
+import net.minecraft.world.item.ItemStackTemplate;
+#endif
+
+#if MC_VER >= MC_1_21_3
+import net.minecraft.world.level.block.entity.FuelValues;
+#endif
+
 import lol.zanspace.unloadedactivity.interfaces.SimulateBlockEntity;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
-#if MC_VER >= MC_1_21_3
-import net.minecraft.world.level.block.entity.FuelValues;
-#endif
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.WorldlyContainer;
@@ -130,8 +135,9 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
     }
     #endif
 
-    @Shadow private boolean isLit() {
-        return true;
+    @Unique
+    private boolean isLit() {
+        return getLitTimeRemaining() > 0;
     }
     @Shadow protected NonNullList<ItemStack> items;
 
@@ -161,19 +167,19 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
             AbstractFurnaceBlockEntity furnace = (AbstractFurnaceBlockEntity) (Object) this;
             boolean oldIsLit = this.isLit();
             boolean stateChanged = false;
-            ItemStack itemStack = this.items.get(0);
+            ItemStack ingredient = this.items.get(0);
             ItemStack fuelStack = this.items.get(1);
             ItemStack finishedStack = this.items.get(2);
-            int inputCount = itemStack.getCount();
+            int inputCount = ingredient.getCount();
             int fuelCount = fuelStack.getCount();
 
-            #if MC_VER >= MC_1_21_3
-            SingleRecipeInput singleRecipeInput = new SingleRecipeInput(itemStack);
+            #if MC_VER >= MC_1_21_1
+            SingleRecipeInput singleRecipeInput = new SingleRecipeInput(ingredient);
             #endif
 
             var recipe = inputCount != 0 ?
                 #if MC_VER >= MC_1_21_1
-                this.quickCheck.getRecipeFor(new SingleRecipeInput(itemStack), (ServerLevel) level).orElse(null)
+                this.quickCheck.getRecipeFor(singleRecipeInput, (ServerLevel) level).orElse(null)
                 #else
                 this.quickCheck.getRecipeFor(this, level).orElse(null)
                 #endif
@@ -214,7 +220,10 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                     Item fuelItem = fuelStack.getItem();
                     fuelStack.shrink(fuelsConsumed);
                     if (fuelStack.isEmpty()) {
-                        #if MC_VER >= MC_1_21_3
+                        #if MC_VER >= MC_26_1_2
+                        ItemStackTemplate remainder = fuelItem.getCraftingRemainder();
+                        this.items.set(1, remainder != null ? remainder.create() : ItemStack.EMPTY);
+                        #elif MC_VER >= MC_1_21_3
                         this.items.set(1, fuelItem.getCraftingRemainder());
                         #else
                         Item remainder = fuelItem.getCraftingRemainingItem();
@@ -226,17 +235,27 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 if (itemsCrafted > 0) {
                     stateChanged = true;
                     for (int i = 0; i < itemsCrafted; i++) {
+                        #if MC_VER >= MC_26_1_2
+                        ItemStack burnResult = recipe.value().assemble(singleRecipeInput);
+                        IPlatformHelper.INSTANCE.burn(
+                            this.items,
+                            ingredient,
+                            burnResult,
+                            furnace
+                        );
+                        #else
                         IPlatformHelper.INSTANCE.burn(
                             #if MC_VER >= MC_1_19_4 level.registryAccess(), #endif recipe,
                             #if MC_VER >= MC_1_21_3 singleRecipeInput, #endif this.items,
                             getMaxStackSize(),
                             furnace
                         );
+                        #endif
                         setRecipeUsed(recipe);
                     }
                 }
 
-                if (itemStack.getCount() == 0 || getMaxStackSize() - finishedStack.getCount() == 0)
+                if (ingredient.getCount() == 0 || getMaxStackSize() - finishedStack.getCount() == 0)
                     this.setCookingTimer(0);
 
                 if (oldIsLit != isLit()) {

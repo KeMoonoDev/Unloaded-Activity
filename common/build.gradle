@@ -1,7 +1,12 @@
+
 unimined.minecraft {
     fabric {
         loader fabric_loader_version
-        accessWidener = file("src/main/resources/${rootProject.archives_name}.classtweaker")
+        if (minecraft_version.startsWith("1.")) {
+            accessWidener = file("src/main/resources/${rootProject.archives_name}named.classtweaker")
+        } else {
+            accessWidener = file("src/main/resources/${rootProject.archives_name}official.classtweaker")
+        }
     }
 
     defaultRemapJar = false

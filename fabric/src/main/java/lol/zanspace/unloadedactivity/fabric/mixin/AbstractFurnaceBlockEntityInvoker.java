@@ -25,6 +25,13 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(AbstractFurnaceBlockEntity.class)
 public interface AbstractFurnaceBlockEntityInvoker {
     @Invoker("burn")
+    #if MC_VER >= MC_26_1_2
+    public static void invokeBurn(
+        final NonNullList<ItemStack> items,
+        final ItemStack inputItemStack,
+        final ItemStack result
+    )
+    #else
     public static boolean invokeBurn(
         #if MC_VER >= MC_1_19_4
         RegistryAccess registryAccess,
@@ -42,7 +49,9 @@ public interface AbstractFurnaceBlockEntityInvoker {
         #endif
         NonNullList<ItemStack> slots,
         int count
-    ) {
+    )
+    #endif
+    {
         throw new AssertionError();
     }
 }

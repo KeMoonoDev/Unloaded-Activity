@@ -170,7 +170,7 @@ public class TimeMachine {
         for (int z=0; z<16;z++)
             for (int x=0; x<16;x++) {
                 ChunkPos chunkPos = chunk.getPos();
-                BlockPos airPos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(chunkPos.x*16+x,0,chunkPos.z*16+z));
+                BlockPos airPos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(chunkPos.getMinBlockX()+x,0,chunkPos.getMinBlockZ()+z));
                 BlockPos groundPos = airPos.below();
                 BlockState airPosState = chunk.getBlockState(airPos);
                 BlockState groundPosState = chunk.getBlockState(groundPos);
@@ -191,7 +191,7 @@ public class TimeMachine {
     public static Pair<Integer, Boolean> simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget) {
         var groupIndexes = chunk.getGroupIndexes();
 
-        long currentTime = level.getDayTime();
+        long currentTime = GameUtils.getTime(level);
 
         int simulatedGroups = 0;
 
@@ -277,7 +277,8 @@ public class TimeMachine {
 
                     if (groupSimulateData.isActive) {
                         for (var offset : groupInfo.iterateOffsets()) {
-                            ChunkPos chunkPos = new ChunkPos(groupSimulateData.position.offset(offset));
+                            BlockPos checkPos = groupSimulateData.position.offset(offset);
+                            ChunkPos chunkPos = GameUtils.chunkPosFromWorldPos(checkPos);
                             boolean isNewChunk = !checkedChunks.contains(chunkPos);
                             if (isNewChunk) {
                                 newChunks.add(chunkPos);
@@ -324,13 +325,13 @@ public class TimeMachine {
                 for (var newChunkPos : newChunks) {
                     checkedChunks.add(newChunkPos);
 
-                    if (!level.hasChunk(newChunkPos.x, newChunkPos.z)) {
+                    if (!GameUtils.isChunkLoaded(level, newChunkPos)) {
                         if (forceLoadedChunks >= UnloadedActivity.config.maxForcedChunkLoads)
                             continue;
                         forceLoadedChunks += 1;
                     }
 
-                    LevelChunk newChunk = level.getChunk(newChunkPos.x, newChunkPos.z);
+                    LevelChunk newChunk = GameUtils.getChunk(level, newChunkPos);
 
                     if (!isChunkIndexed(newChunk)) {
                         chunksAreIndexed = false;
@@ -360,7 +361,7 @@ public class TimeMachine {
                         continue;
 
 
-                    newGroupChunkIndex.setLastTick(level.getDayTime());
+                    newGroupChunkIndex.setLastTick(currentTime);
                     toBeAddedToMap.addAll(newData);
                     checkingBlockPositions.addAll(newData);
                 }
@@ -431,7 +432,7 @@ public class TimeMachine {
                 long remainingCycles = groupTimeDifference;
                 long simulationCurrentTime = currentTime - remainingCycles;
 
-                WorldWeatherData weatherData = level.getWeatherData();
+                WorldWeatherForecast weatherData = level.getWeatherForecast();
 
                 if (UnloadedActivity.config.debugLogs)
                     UnloadedActivity.LOGGER.info("Simulating isolated group of " + group.size() + " members");
@@ -710,7 +711,7 @@ public class TimeMachine {
 
                     float pickChance = simulateProperty.isPrecipitation ? precipitationPickChance : randomPickChance;
 
-                    var result = block.simulateProperty(state, level, pos, simulateProperty, level.random, simulateTime, pickChance, propertiesWithDependents.contains(propertyName), null);
+                    var result = block.simulateProperty(state, level, pos, simulateProperty, GameUtils.getRand(level), simulateTime, pickChance, propertiesWithDependents.contains(propertyName), null);
                     if (result == null) {
                         continueCheck = false;
                         break;

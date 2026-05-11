@@ -22,16 +22,14 @@ import java.util.stream.LongStream;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-public class WorldWeatherData extends SavedData {
-
-
+public class WorldWeatherForecast extends SavedData {
     #if MC_VER >= MC_1_21_11
-    public static final Codec<WorldWeatherData> CODEC = Codec.LONG_STREAM.fieldOf("weather_list").codec().xmap(
-            WorldWeatherData::new,
-            WorldWeatherData::getWeatherStream
+    public static final Codec<WorldWeatherForecast> CODEC = Codec.LONG_STREAM.fieldOf("weather_list").codec().xmap(
+            WorldWeatherForecast::new,
+            WorldWeatherForecast::getWeatherStream
     );
 
-    public WorldWeatherData(LongStream weatherList) {
+    public WorldWeatherForecast(LongStream weatherList) {
         long[] longs = weatherList.toArray();
         Long[] longObjects = ArrayUtils.toObject(longs);
         this.weatherList = new ArrayList<>(Arrays.asList(longObjects));
@@ -45,12 +43,12 @@ public class WorldWeatherData extends SavedData {
     final int maxWeatherHistory = 3;
     private ArrayList<Long> weatherList;
 
-    public WorldWeatherData() {
+    public WorldWeatherForecast() {
         this.weatherList = new ArrayList<>();
     }
 
     #if MC_VER < MC_1_21_11
-    public WorldWeatherData(ArrayList<Long> weatherList) {
+    public WorldWeatherForecast(ArrayList<Long> weatherList) {
         this.weatherList = weatherList;
     }
 
@@ -74,11 +72,11 @@ public class WorldWeatherData extends SavedData {
     }
 
     #if MC_VER <= MC_1_20_4
-    public static WorldWeatherData load(CompoundTag nbt)
+    public static WorldWeatherForecast load(CompoundTag nbt)
     #elif MC_VER >= MC_1_21_5
-    public static WorldWeatherData load(CompoundTag nbt)
+    public static WorldWeatherForecast load(CompoundTag nbt)
     #else
-    public static WorldWeatherData load(CompoundTag nbt, HolderLookup.Provider holderLookup)
+    public static WorldWeatherForecast load(CompoundTag nbt, HolderLookup.Provider holderLookup)
     #endif
     {
         #if MC_VER >= MC_1_21_5
@@ -96,7 +94,7 @@ public class WorldWeatherData extends SavedData {
             longArrayList.add(value);
         }
 
-        return new WorldWeatherData(longArrayList);
+        return new WorldWeatherForecast(longArrayList);
     }
     #endif
 
@@ -109,7 +107,7 @@ public class WorldWeatherData extends SavedData {
     }
 
     public void updateValues(Level level) {
-        long currentTime = level.getDayTime();
+        long currentTime = GameUtils.getTime(level);
 
         //if player decides to go back in time, this will try to reduce any weird behaviour.
         while (this.weatherList.size() > 0) {

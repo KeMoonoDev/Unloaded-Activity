@@ -16,16 +16,16 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.Holder;
 import lol.zanspace.unloadedactivity.TimeMachine;
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.WorldWeatherData;
-import lol.zanspace.unloadedactivity.interfaces.WorldTimeData;
+import lol.zanspace.unloadedactivity.WorldWeatherForecast;
+import lol.zanspace.unloadedactivity.interfaces.WorldForecastGetter;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.minecraft.world.level.storage.WritableLevelData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -41,7 +41,7 @@ import static lol.zanspace.unloadedactivity.UnloadedActivity.MOD_ID;
 
 
 @Mixin(value = ServerLevel.class, priority = 1001)
-public abstract class ServerLevelMixin extends Level implements WorldGenLevel, WorldTimeData {
+public abstract class ServerLevelMixin extends Level implements WorldGenLevel, WorldForecastGetter {
 	#if MC_VER >= MC_1_21_3
 	protected ServerLevelMixin(WritableLevelData writableLevelData, ResourceKey<Level> resourceKey, RegistryAccess registryAccess, Holder<DimensionType> holder, boolean bl, boolean bl2, long l, int i) {
 		super(writableLevelData, resourceKey, registryAccess, holder, bl, bl2, l, i);
@@ -64,12 +64,17 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 	@Shadow public ServerLevel getLevel() {return null;}
 
 	@Inject(method = "tickChunk", at = @At("HEAD"))
-	private void tickChunk(LevelChunk chunk, int randomTickSpeed, CallbackInfo info) {
+	#if MC_VER >= MC_26_1_2
+	private void tickChunk(final LevelChunk chunk, final int randomTickSpeed, CallbackInfo info)
+	#else
+	private void tickChunk(LevelChunk chunk, int randomTickSpeed, CallbackInfo info)
+	#endif
+	{
 		if (this.isClientSide())
 			return;
 
 		long lastTick = chunk.getLastTick();
-		long currentTime = this.getDayTime();
+		long currentTime = GameUtils.getTime(this);
 
 		if (lastTick != 0) {
 			if (!TimeMachine.isChunkIndexed(chunk)) {
@@ -108,23 +113,25 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 
 	@Inject(method = "tick", at = @At(value = "TAIL", target = "net/minecraft/server/level/ServerLevel.tickTime ()V"))
 	private void finishTickTime(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-		WorldWeatherData weatherInfo = this.getWeatherData();
+		WorldWeatherForecast weatherInfo = this.getWeatherForecast();
 		weatherInfo.updateValues(this);
 	}
 
-	@Shadow public abstract DimensionDataStorage getDataStorage();
-
 	#if MC_VER >= MC_1_21_5
-	private static SavedDataType<WorldWeatherData> type = new SavedDataType<WorldWeatherData>(
+	private static SavedDataType<WorldWeatherForecast> type = new SavedDataType<>(
+	        #if MC_VER >= MC_26_1_2
+			UnloadedActivity.id("weather_list"),
+			#else
 			MOD_ID,
+			#endif
 	        #if MC_VER >= MC_1_21_11
-            WorldWeatherData::new,
-            WorldWeatherData.CODEC,
+            WorldWeatherForecast::new,
+            WorldWeatherForecast.CODEC,
             #else
-			(ctx) -> new WorldWeatherData(),
+			(ctx) -> new WorldWeatherForecast(),
 			(ctx) -> {
 				return CompoundTag.CODEC.xmap(
-                        WorldWeatherData::load,
+                        WorldWeatherForecast::load,
 						weatherData -> weatherData.save(new CompoundTag())
 				);
 			},
@@ -133,21 +140,21 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 	);
 	#elif MC_VER >= MC_1_20_2
 	@Unique
-	private static SavedData.Factory<WorldWeatherData> type = new SavedData.Factory<>(
-			WorldWeatherData::new,
-			WorldWeatherData::load,
+	private static SavedData.Factory<WorldWeatherForecast> type = new SavedData.Factory<>(
+			WorldWeatherForecast::new,
+			WorldWeatherForecast::load,
 			net.minecraft.util.datafix.DataFixTypes.LEVEL
 	);
 	#endif
 
 	@Override
-	public WorldWeatherData getWeatherData() {
-		return this.getDataStorage().computeIfAbsent(
+	public WorldWeatherForecast getWeatherForecast() {
+		return this.getLevel().getDataStorage().computeIfAbsent(
 			#if MC_VER >= MC_1_20_2
 			type
 			#else
-                WorldWeatherData::load,
-                WorldWeatherData::new
+                WorldWeatherForecast::load,
+                WorldWeatherForecast::new
 			#endif
 			#if MC_VER < MC_1_21_5
 			, MOD_ID
@@ -157,7 +164,7 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void createState(CallbackInfo ci) {
-		this.getWeatherData();
+		this.getWeatherForecast();
 	}
 }
 

@@ -26,8 +26,17 @@ public class UnloadedActivityFabric implements ModInitializer {
 		UnloadedActivity.init();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher,context,environment) -> UnloadedActivityCommand.register(dispatcher));
+		#if MC_VER >= MC_26_1_2
+		ServerChunkEvents.CHUNK_LOAD.register((level, chunk, ignored) -> UnloadedActivity.addChunkToQueue(level.getServer(), chunk));
+		#else
 		ServerChunkEvents.CHUNK_LOAD.register((level, chunk) -> UnloadedActivity.addChunkToQueue(level.getServer(), chunk));
-		#if MC_VER >= MC_1_21_10
+		#endif
+
+		#if MC_VER >= MC_26_1_2
+		ResourceLoader.get(PackType.SERVER_DATA).registerReloadListener(SimulationDataResource.TAGS_ID, new SimulationDataResource(false));
+		ResourceLoader.get(PackType.SERVER_DATA).registerReloadListener(SimulationDataResource.BLOCKS_ID, new SimulationDataResource(true));
+		ResourceLoader.get(PackType.SERVER_DATA).registerReloadListener(GroupInfoResource.GROUPS_ID, new GroupInfoResource());
+		#elif MC_VER >= MC_1_21_10
 		ResourceLoader.get(PackType.SERVER_DATA).registerReloader(SimulationDataResource.TAGS_ID, new SimulationDataResource(false));
 		ResourceLoader.get(PackType.SERVER_DATA).registerReloader(SimulationDataResource.BLOCKS_ID, new SimulationDataResource(true));
 		ResourceLoader.get(PackType.SERVER_DATA).registerReloader(GroupInfoResource.GROUPS_ID, new GroupInfoResource());

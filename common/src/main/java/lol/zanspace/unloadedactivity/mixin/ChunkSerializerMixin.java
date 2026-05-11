@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.mixin;
 
 #if MC_VER >= MC_1_21_11
+import lol.zanspace.unloadedactivity.GameUtils;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -209,7 +210,7 @@ public abstract class ChunkSerializerMixin {
         chunk.setGroupIndexes(groupIndexes);
         if (lastTick == 0) {
             chunk.markUnsaved();
-            chunk.setLastTick(level.getDayTime());
+            chunk.setLastTick(GameUtils.getTime(level));
         } else if (needsSaving) {
             chunk.markUnsaved();
         }

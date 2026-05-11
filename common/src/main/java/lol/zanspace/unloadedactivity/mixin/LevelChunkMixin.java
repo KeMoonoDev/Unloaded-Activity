@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.GroupChunkIndex;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
@@ -98,7 +99,7 @@ public abstract class LevelChunkMixin extends ChunkAccess {
     @Inject(method = "<init>(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/chunk/ProtoChunk;Lnet/minecraft/world/level/chunk/LevelChunk$PostLoadProcessor;)V", at = @At("RETURN"))
     private void initLevelChunk(ServerLevel level, ProtoChunk protoChunk, LevelChunk.PostLoadProcessor postLoadProcessor, CallbackInfo ci) {
         if (protoChunk.getLastTick() == 0) {
-            this.setLastTick(level.getDayTime());
+            this.setLastTick(GameUtils.getTime(level));
         } else {
             this.setLastTick(protoChunk.getLastTick());
         }

@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.mixin.chunk.randomTicks;
 
 import lol.zanspace.unloadedactivity.ActiveGroupSimulateData;
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
@@ -182,7 +183,7 @@ public abstract class PointedDripstoneMixin extends Block {
             if (canGrow(dripstoneBlockState, liquidState)) {
                 if (PointedDripstoneBlock.canDrip(tip) && canTipGrow(tip, level, tipPos)) {
 
-                    var upperResult = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), timePassed, simulateProperty, lengthDifference, randomPickOdds, false, random, groupSimulateData);
+                    var upperResult = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, simulateProperty, lengthDifference, randomPickOdds, false, random, groupSimulateData);
                     averageUpperProbability = upperResult.averageProbability();
                     totalUpperDripGrowth = upperResult.occurrences();
 
@@ -191,7 +192,7 @@ public abstract class PointedDripstoneMixin extends Block {
                             var recalculatedDuration = OccurrencesAndDuration.recalculatedDuration(successesUntilReachGround, timePassed, averageUpperProbability, random);
                             long leftover = timePassed - recalculatedDuration.duration();
                             int maxGroundGrowth = min(stalagmiteGroundDistance, MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING);
-                            var lowerResult = MathUtils.getOccurrences(level, state, pos, level.getDayTime(), leftover, simulateProperty, maxGroundGrowth, randomPickOdds, false, random, groupSimulateData);
+                            var lowerResult = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), leftover, simulateProperty, maxGroundGrowth, randomPickOdds, false, random, groupSimulateData);
                             totalLowerDripGrowth = lowerResult.occurrences();
                         }
                     }

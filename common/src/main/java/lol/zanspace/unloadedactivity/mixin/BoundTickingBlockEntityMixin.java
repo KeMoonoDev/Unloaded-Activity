@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.TimeMachine;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.core.BlockPos;
@@ -37,10 +38,10 @@ public abstract class BoundTickingBlockEntityMixin<T extends BlockEntity> {
 
         Level level = blockEntity.getLevel();
 
-        if (level instanceof ServerLevel ServerLevel) {
+        if (level instanceof ServerLevel serverLevel) {
             long lastTick = blockEntity.getLastTick();
 
-            long currentTime = ServerLevel.getDayTime();
+            long currentTime = GameUtils.getTime(serverLevel);
 
             if (lastTick != 0) {
 

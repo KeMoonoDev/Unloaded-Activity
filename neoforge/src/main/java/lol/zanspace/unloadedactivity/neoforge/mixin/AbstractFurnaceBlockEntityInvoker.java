@@ -28,13 +28,16 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(AbstractFurnaceBlockEntity.class)
 public interface AbstractFurnaceBlockEntityInvoker {
 
-    #if MC_VER >= MC_1_20_6 && MC_VER <= MC_1_21_1
     @Invoker("burn")
+    #if MC_VER >= MC_26_1_2
+    public static void invokeBurn(
+        final NonNullList<ItemStack> items,
+        final ItemStack inputItemStack,
+        final ItemStack result
+    )
     #else
-    @Invoker("burn")
-    #endif
     #if MC_VER >= MC_1_20_6
-    public static boolean invokeCraftRecipe(
+    public static boolean invokeBurn(
     #else
     public boolean invokeBurn(
     #endif
@@ -57,7 +60,8 @@ public interface AbstractFurnaceBlockEntityInvoker {
         #if MC_VER >= MC_1_20_6 && MC_VER <= MC_1_21_1
         , AbstractFurnaceBlockEntity furnace
         #endif
-    ) #if MC_VER >= MC_1_20_6 {
+    ) #endif
+    #if MC_VER >= MC_1_20_6 {
         throw new AssertionError();
     } #endif;
 }

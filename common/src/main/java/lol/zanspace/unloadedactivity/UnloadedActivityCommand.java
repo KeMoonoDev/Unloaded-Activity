@@ -156,7 +156,7 @@ public class UnloadedActivityCommand {
                                     int maxOccurrences = getInteger(context, "maxOccurrences");
                                     double odds = getDouble(context, "odds");
 
-                                    RandomSource random = context.getSource().getLevel().random;
+                                    RandomSource random = GameUtils.getRand(context.getSource().getLevel());
 
                                     long now = Instant.now().toEpochMilli();
 

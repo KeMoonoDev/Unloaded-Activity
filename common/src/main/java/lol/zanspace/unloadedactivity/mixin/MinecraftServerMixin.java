@@ -6,6 +6,7 @@ import net.minecraft.util.profiling.Profiler;
 
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.TimeMachine;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.interfaces.ChunkIndexQueue;
@@ -62,12 +63,11 @@ public class MinecraftServerMixin implements ChunkIndexQueue {
                 continue;
             }
 
-            boolean chunkIsLoaded = level.hasChunk(chunkPos.x, chunkPos.z);
-            if (!chunkIsLoaded) {
+            if (!GameUtils.isChunkLoaded(level, chunkPos)) {
                 continue;
             }
 
-            LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
+            LevelChunk chunk = GameUtils.getChunk(level, chunkPos);
             return Optional.of(chunk);
         }
     }
