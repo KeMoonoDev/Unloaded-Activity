@@ -39,6 +39,7 @@ public class SimulateProperty {
 
     public List<String> dependencies;
     public List<Condition> conditions;
+    public List<String> transferProperties;
     public Optional<CalculateValue<Number>> maxValue;
     public Optional<Integer> maxHeight;
     public Optional<String> waterloggedProperty;
@@ -82,6 +83,7 @@ public class SimulateProperty {
         // Simple transfer
         this.dependencies = incomplete.dependencies.stream().toList();
         this.conditions = incomplete.conditions.stream().toList();
+        this.transferProperties = incomplete.transferProperties.stream().toList();
         this.maxValue = incomplete.maxValue;
         this.maxHeight = incomplete.maxHeight;
         this.waterloggedProperty = incomplete.waterloggedProperty;

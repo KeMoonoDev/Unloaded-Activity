@@ -36,6 +36,7 @@ public class IncompleteSimulateProperty {
     public Optional<CalculateValue<Number>> advanceProbability = Optional.empty();
     public Optional<CalculateValue<Number>> maxValue = Optional.empty();
     public ArrayList<Condition> conditions = new ArrayList<>();
+    public ArrayList<String> transferProperties = new ArrayList<>();
     public Optional<String> buddingDirectionProperty = Optional.empty();
     public Optional<Integer> minWaterValue = Optional.empty();
     public Optional<String> waterloggedProperty = Optional.empty();
@@ -60,6 +61,7 @@ public class IncompleteSimulateProperty {
         this.resetOnHeightChange = otherSimulateProperty.resetOnHeightChange.or(() -> this.resetOnHeightChange);
         this.keepUpdatingAfterMaxHeight = otherSimulateProperty.keepUpdatingAfterMaxHeight.or(() -> this.keepUpdatingAfterMaxHeight);
         this.conditions.addAll(otherSimulateProperty.conditions);
+        this.transferProperties.addAll(otherSimulateProperty.transferProperties);
         this.ignoreBuddingDirections.addAll(otherSimulateProperty.ignoreBuddingDirections);
         this.minWaterValue = otherSimulateProperty.minWaterValue.or(() -> this.minWaterValue);
         this.waterloggedProperty = otherSimulateProperty.waterloggedProperty.or(() -> this.waterloggedProperty);
@@ -458,6 +460,24 @@ public class IncompleteSimulateProperty {
 
                 for (T condition : listResult.result().get().toList()) {
                     simulateProperty.parseAndApplyCondition(ops, condition);
+                }
+            }
+        }
+
+        {
+            T mapValue = propertyInfo.get("transfer_properties");
+            if (mapValue != null) {
+                var listResult = ops.getStream(mapValue);
+                if (listResult.result().isEmpty()) {
+                    return returnError(listResult);
+                }
+
+                for (T property : listResult.result().get().toList()) {
+                    var stringResult = ops.getStringValue(property);
+                    if (stringResult.result().isEmpty()) {
+                        return returnError(stringResult);
+                    }
+                    simulateProperty.transferProperties.add(stringResult.result().get());
                 }
             }
         }

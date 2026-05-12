@@ -311,39 +311,30 @@ public interface SimulateChunkBlocks {
                 if (simulateProperty.increasePerHeight) {
                     if (simulateProperty.blockReplacement.isPresent()) {
                         Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
-
                         BlockState newState = newBlock.defaultBlockState();
-                        for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                            Optional<Property<?>> maybeNewRandomProperty = getProperty(newState, randomProperty.propertyName);
-                            if (maybeNewRandomProperty.isPresent()) {
-                                switch (randomProperty.propertyType) {
-                                    case BOOL -> {
-                                        if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                            Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
-                                            if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof BooleanProperty oldBooleanProperty) {
-                                                boolean oldValue = state.getValue(oldBooleanProperty);
-                                                newState = newState.setValue(newBooleanProperty, oldValue);
-                                            } else {
-                                                int value = randomProperty.getRandomValue(random);
-                                                newState = newState.setValue(newBooleanProperty, value != 0);
-                                            }
-                                        }
-                                    }
-                                    case INT -> {
-                                        if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                            Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
-                                            if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof IntegerProperty oldIntegerProperty) {
-                                                int oldValue = state.getValue(oldIntegerProperty);
-                                                newState = newState.setValue(newIntegerProperty, oldValue);
-                                            } else {
-                                                int value = randomProperty.getRandomValue(random);
-                                                newState = newState.setValue(newIntegerProperty, value);
-                                            }
-                                        }
-                                    }
-                                }
+
+                        for (String propertyName : simulateProperty.transferProperties) {
+                            Optional<Property<?>> maybeNewProperty = getProperty(newState, propertyName);
+
+                            if (maybeNewProperty.isEmpty()) {
+                                continue;
+                            }
+
+                            Optional<Property<?>> maybeOldProperty = getProperty(state, propertyName);
+
+                            if (maybeOldProperty.isEmpty()) {
+                                continue;
+                            }
+
+                            // Sick and twisted workaround.
+                            Object oldValue = state.getValue(maybeOldProperty.get());
+                            Object valueFromNew = newState.getValue(maybeNewProperty.get());
+                            if (oldValue.getClass().isInstance(valueFromNew)) {
+                                newState = newState.setValue((Property)maybeNewProperty.get(), (Comparable)oldValue);
                             }
                         }
+
+
                         state = newState;
                         level.setBlock(pos, state, simulateProperty.updateType);
                     }
@@ -418,37 +409,28 @@ public interface SimulateChunkBlocks {
                     } else if (simulateProperty.blockReplacement.isPresent()) {
                         Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
                         BlockState newState = newBlock.defaultBlockState();
-                        for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                            Optional<Property<?>> maybeNewRandomProperty = getProperty(newState, randomProperty.propertyName);
-                            if (maybeNewRandomProperty.isPresent()) {
-                                switch (randomProperty.propertyType) {
-                                    case BOOL -> {
-                                        if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                            Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
-                                            if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof BooleanProperty oldBooleanProperty) {
-                                                boolean oldValue = state.getValue(oldBooleanProperty);
-                                                newState = newState.setValue(newBooleanProperty, oldValue);
-                                            } else {
-                                                int value = randomProperty.getRandomValue(random);
-                                                newState = newState.setValue(newBooleanProperty, value != 0);
-                                            }
-                                        }
-                                    }
-                                    case INT -> {
-                                        if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                            Optional<Property<?>> maybeOldRandomProperty = getProperty(state, randomProperty.propertyName);
-                                            if (maybeOldRandomProperty.isPresent() && maybeOldRandomProperty.get() instanceof IntegerProperty oldIntegerProperty) {
-                                                int oldValue = state.getValue(oldIntegerProperty);
-                                                newState = newState.setValue(newIntegerProperty, oldValue);
-                                            } else {
-                                                int value = randomProperty.getRandomValue(random);
-                                                newState = newState.setValue(newIntegerProperty, value);
-                                            }
-                                        }
-                                    }
-                                }
+
+                        for (String propertyName : simulateProperty.transferProperties) {
+                            Optional<Property<?>> maybeNewProperty = getProperty(newState, propertyName);
+
+                            if (maybeNewProperty.isEmpty()) {
+                                continue;
+                            }
+
+                            Optional<Property<?>> maybeOldProperty = getProperty(state, propertyName);
+
+                            if (maybeOldProperty.isEmpty()) {
+                                continue;
+                            }
+
+                            // Sick and twisted workaround.
+                            Object oldValue = state.getValue(maybeOldProperty.get());
+                            Object valueFromNew = newState.getValue(maybeNewProperty.get());
+                            if (oldValue.getClass().isInstance(valueFromNew)) {
+                                newState = newState.setValue((Property)maybeNewProperty.get(), (Comparable)oldValue);
                             }
                         }
+
                         state = newState;
                     } else {
                         if (property instanceof IntegerProperty integerProperty) {
@@ -475,7 +457,30 @@ public interface SimulateChunkBlocks {
                             }
                         } else if (simulateProperty.blockReplacement.isPresent()) {
                             Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
-                            state = newBlock.defaultBlockState();
+                            BlockState newState = newBlock.defaultBlockState();
+
+                            for (String propertyName : simulateProperty.transferProperties) {
+                                Optional<Property<?>> maybeNewProperty = getProperty(newState, propertyName);
+
+                                if (maybeNewProperty.isEmpty()) {
+                                    continue;
+                                }
+
+                                Optional<Property<?>> maybeOldProperty = getProperty(state, propertyName);
+
+                                if (maybeOldProperty.isEmpty()) {
+                                    continue;
+                                }
+
+                                // Sick and twisted workaround.
+                                Object oldValue = state.getValue(maybeOldProperty.get());
+                                Object valueFromNew = newState.getValue(maybeNewProperty.get());
+                                if (oldValue.getClass().isInstance(valueFromNew)) {
+                                    newState = newState.setValue((Property)maybeNewProperty.get(), (Comparable)oldValue);
+                                }
+                            }
+
+                            state = newState;
                         } else {
                             if (property instanceof IntegerProperty integerProperty) {
                                 state = thisBlock.defaultBlockState().setValue(integerProperty, belowValue);
@@ -637,7 +642,28 @@ public interface SimulateChunkBlocks {
 
                 if (simulateProperty.blockReplacement.isPresent()) {
                     Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
-                    state = blockReplacement.defaultBlockState();
+                    BlockState newState = blockReplacement.defaultBlockState();
+                    for (String propertyName : simulateProperty.transferProperties) {
+                        Optional<Property<?>> maybeNewProperty = getProperty(newState, propertyName);
+
+                        if (maybeNewProperty.isEmpty()) {
+                            continue;
+                        }
+
+                        Optional<Property<?>> maybeOldProperty = getProperty(state, propertyName);
+
+                        if (maybeOldProperty.isEmpty()) {
+                            continue;
+                        }
+
+                        // Sick and twisted workaround.
+                        Object oldValue = state.getValue(maybeOldProperty.get());
+                        Object valueFromNew = newState.getValue(maybeNewProperty.get());
+                        if (oldValue.getClass().isInstance(valueFromNew)) {
+                            newState = newState.setValue((Property)maybeNewProperty.get(), (Comparable)oldValue);
+                        }
+                    }
+                    state = newState;
                     level.setBlock(pos, state, simulateProperty.updateType);
                 } else {
                     level.removeBlock(pos, false);

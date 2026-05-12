@@ -4,6 +4,9 @@
     "increase_per_height": true,
     "block_replacement": "minecraft:cave_vines_plant",
     "reverse_height_growth_direction": true,
+    "transfer_properties": [
+      "berries"
+    ],
     "random_properties": {
       "berries": {
         "property_type": "bool",
