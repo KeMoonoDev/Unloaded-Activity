@@ -1,0 +1,54 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:weathered_copper",
+    "minecraft:weathered_cut_copper",
+    "minecraft:weathered_cut_copper_stairs",
+    "minecraft:weathered_cut_copper_slab",
+    {
+      "id": "minecraft:weathered_chiseled_copper",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_grate",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_bars",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_door",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_trapdoor",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_chain",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_chest",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_golem_statue",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_copper_lantern",
+      "required": false
+    },
+    {
+      "id": "minecraft:weathered_lightning_rod",
+      "required": false
+    }
+  ]
+}
+

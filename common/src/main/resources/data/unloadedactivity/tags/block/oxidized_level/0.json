@@ -1,0 +1,53 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:copper_block",
+    "minecraft:cut_copper",
+    "minecraft:cut_copper_stairs",
+    "minecraft:cut_copper_slab",
+    {
+      "id": "minecraft:chiseled_copper",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_grate",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_bars",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_door",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_trapdoor",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_bulb",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_chain",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_chest",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_golem_statue",
+      "required": false
+    },
+    {
+      "id": "minecraft:copper_lantern",
+      "required": false
+    },
+    {
+      "id": "minecraft:lightning_rod",
+      "required": false
+    }
+  ]
+}

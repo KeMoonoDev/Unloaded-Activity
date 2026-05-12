@@ -1,0 +1,11 @@
+{
+  "values": {
+    "#unloadedactivity:oxidized_level/0": { "value": 0 },
+    "#unloadedactivity:oxidized_level/1": { "value": 1 },
+    "#unloadedactivity:oxidized_level/2": { "value": 2 },
+    "#unloadedactivity:oxidized_level/3": { "value": 3 }
+  },
+  "width": 4,
+  "height": 4,
+  "shape": "diamond"
+}

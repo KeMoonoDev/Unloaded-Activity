@@ -1,0 +1,17 @@
+{
+  "oxidize": {
+    "conditions": [
+      {
+        "check": "is_lower_door",
+        "comparison": "equal",
+        "value": true
+      }
+    ],
+    "block_replacement": "minecraft:exposed_copper_door",
+    "advance_probability": {
+      "value1": 0.75,
+      "operator": "*",
+      "value2": "super"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "oxidize": {
+    "simulation_type": "decay",
+    "simulate_with_group": "unloadedactivity:oxidized",
+    "block_replacement": "minecraft:torchflower",
+    "drops_resources": false,
+    "advance_probability": {
+      "predicate": {
+        "check": "group_lower_value_count",
+        "comparison": "equal",
+        "value": 0
+      },
+      "fail": 0,
+      "success": {
+        "value1": 0.05688889,
+        "operator": "*",
+        "value2": {
+          "operator": "^2",
+          "value": {
+            "value1": {
+              "value1": "group_higher_value_count",
+              "operator": "+",
+              "value2": 1
+            },
+            "operator": "/",
+            "value2": "group_higher_or_equal_value_count"
+          }
+        }
+      }
+    },
+    "transfer_properties": [
+      "facing",
+      "half",
+      "shape",
+      "waterlogged",
+      "type",
+      "east",
+      "north",
+      "south",
+      "west",
+      "half",
+      "hinge",
+      "open",
+      "powered",
+      "lit",
+      "axis",
+      "hanging"
+    ]
+  }
+}

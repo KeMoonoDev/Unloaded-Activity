@@ -14,16 +14,18 @@ import java.util.Optional;
 public class ActiveGroupSimulateData {
     // Simulation data that affects this data.
     public ArrayList<ActiveGroupSimulateData> surroundingData;
+    public ArrayList<ActiveGroupSimulateData> extendingData;
     public boolean isActive;
     public int groupIndex;
     public BlockPos position;
     public BlockState blockState;
     public ServerLevel level;
     private Optional<SimulateProperty> simulateProperty;
-    public GroupMemberInfo groupMemberInfo;
+    private GroupMemberInfo groupMemberInfo;
 
     public ActiveGroupSimulateData(BlockPos position, BlockState blockState, Optional<SimulateProperty> simulateProperty, GroupMemberInfo groupMemberInfo, ServerLevel level) {
         this.surroundingData = new ArrayList<>();
+        this.extendingData = new ArrayList<>();
         this.position = position;
         this.blockState = blockState;
         this.level = level;
@@ -31,6 +33,14 @@ public class ActiveGroupSimulateData {
         this.groupIndex = -1;
 
         this.setSimulateProperty(simulateProperty);
+    }
+
+    public GroupMemberInfo getGroupMemberInfo() {
+        return groupMemberInfo;
+    }
+
+    public void setGroupMemberInfo(GroupMemberInfo groupMemberInfo) {
+        this.groupMemberInfo = groupMemberInfo;
     }
 
     public Optional<SimulateProperty> getSimulateProperty() {

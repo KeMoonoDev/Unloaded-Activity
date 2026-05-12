@@ -190,10 +190,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.activeGroupSimulateData == null)
                 return sum;
 
-            sum += data.activeGroupSimulateData.groupMemberInfo.value;
+            sum += data.activeGroupSimulateData.getGroupMemberInfo().value;
 
             for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                sum += surrounding.groupMemberInfo.value;
+                sum += surrounding.getGroupMemberInfo().value;
             }
 
             return sum;
@@ -218,10 +218,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.activeGroupSimulateData == null)
                 return count;
 
-            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
 
             for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.groupMemberInfo.value > thisValue) {
+                if (surrounding.getGroupMemberInfo().value > thisValue) {
                     count++;
                 }
             }
@@ -238,10 +238,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.activeGroupSimulateData == null)
                 return count;
 
-            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
 
             for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.groupMemberInfo.value >= thisValue) {
+                if (surrounding.getGroupMemberInfo().value >= thisValue) {
                     count++;
                 }
             }
@@ -258,10 +258,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.activeGroupSimulateData == null)
                 return count;
 
-            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
 
             for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.groupMemberInfo.value < thisValue) {
+                if (surrounding.getGroupMemberInfo().value < thisValue) {
                     count++;
                 }
             }
@@ -278,10 +278,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.activeGroupSimulateData == null)
                 return count;
 
-            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
 
             for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.groupMemberInfo.value <= thisValue) {
+                if (surrounding.getGroupMemberInfo().value <= thisValue) {
                     count++;
                 }
             }
@@ -298,10 +298,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.activeGroupSimulateData == null)
                 return count;
 
-            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
 
             for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.groupMemberInfo.value == thisValue) {
+                if (surrounding.getGroupMemberInfo().value == thisValue) {
                     count++;
                 }
             }

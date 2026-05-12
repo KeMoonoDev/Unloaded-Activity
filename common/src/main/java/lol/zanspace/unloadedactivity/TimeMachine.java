@@ -17,8 +17,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -256,7 +258,17 @@ public class TimeMachine {
             while (!checkingBlockPositions.isEmpty()) {
                 if (!toBeAddedToMap.isEmpty()) {
                     for (var groupSimulateData : toBeAddedToMap) {
-                        activeGroupDataMap.put(groupSimulateData.position, groupSimulateData);
+                        // Will only fail to add if something else is extending into that position.
+                        // The extending data will always take priority.
+                         boolean added = activeGroupDataMap.putIfAbsent(groupSimulateData.position, groupSimulateData) == null;
+                        if (added && groupSimulateData.blockState.getBlock() instanceof DoorBlock) {
+                            if (groupSimulateData.blockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
+                                BlockPos abovePos = groupSimulateData.position.above();
+                                var newGroupSimulateData = new ActiveGroupSimulateData(abovePos, null, Optional.empty(), groupSimulateData.getGroupMemberInfo(), level);
+                                groupSimulateData.extendingData.add(newGroupSimulateData);
+                                activeGroupDataMap.put(abovePos, newGroupSimulateData);
+                            }
+                        }
                     }
                     toBeAddedToMap = new ArrayList<>();
                 }
@@ -546,7 +558,10 @@ public class TimeMachine {
 
                     for (var pair : pendingUpdateMembership) {
                         ActiveGroupSimulateData updatingData = pair.getFirst();
-                        updatingData.groupMemberInfo = pair.getSecond();
+                        updatingData.setGroupMemberInfo(pair.getSecond());
+                        for (ActiveGroupSimulateData extendedData : updatingData.extendingData) {
+                            extendedData.setGroupMemberInfo(pair.getSecond());
+                        }
                     }
 
                     group.removeIf(data -> !data.isActive);

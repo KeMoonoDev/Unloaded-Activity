@@ -1,0 +1,10 @@
+{
+  "oxidize": {
+    "block_replacement": "minecraft:exposed_copper_lantern",
+    "advance_probability": {
+      "value1": 0.75,
+      "operator": "*",
+      "value2": "super"
+    }
+  }
+}

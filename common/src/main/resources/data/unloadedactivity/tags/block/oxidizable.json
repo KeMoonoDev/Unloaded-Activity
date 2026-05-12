@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "#unloadedactivity:oxidized_level/0",
+    "#unloadedactivity:oxidized_level/1",
+    "#unloadedactivity:oxidized_level/2"
+  ]
+}

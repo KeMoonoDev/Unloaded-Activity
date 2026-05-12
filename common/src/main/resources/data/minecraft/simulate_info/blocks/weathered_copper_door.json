@@ -1,0 +1,12 @@
+{
+  "oxidize": {
+    "conditions": [
+      {
+        "check": "is_lower_door",
+        "comparison": "equal",
+        "value": true
+      }
+    ],
+    "block_replacement": "minecraft:oxidized_copper_door"
+  }
+}
