@@ -5,5 +5,7 @@ public enum Operator {
     SUB,
     DIV,
     MUL,
+    POW,
+    POW2,
     FLOOR,
 }

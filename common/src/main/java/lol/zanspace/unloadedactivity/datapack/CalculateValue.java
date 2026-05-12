@@ -105,6 +105,12 @@ public interface CalculateValue<T> {
                     case "*" -> {
                         return new NumberOperatorValue(Operator.MUL, parseNumber(ops, value1), parseNumber(ops, value2));
                     }
+                    case "^" -> {
+                        return new NumberOperatorValue(Operator.POW, parseNumber(ops, value1), parseNumber(ops, value2));
+                    }
+                    case "^2" -> {
+                        return new NumberOperatorValue(Operator.POW2, parseNumber(ops, oneValue));
+                    }
                     case "floor" -> {
                         return new NumberOperatorValue(Operator.FLOOR, parseNumber(ops, oneValue));
                     }

@@ -51,6 +51,12 @@ public class NumberOperatorValue implements CalculateValue<Number> {
             case MUL -> {
                 return value1 * value2;
             }
+            case POW -> {
+                return Math.pow(value1, value2);
+            }
+            case POW2 -> {
+                return value1 * value1;
+            }
             case FLOOR -> {
                 return Math.floor(value1);
             }
