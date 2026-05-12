@@ -9,8 +9,12 @@ import net.minecraft.resources.ResourceLocation;
 import com.google.common.collect.AbstractIterator;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class GroupInfo {
     public #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id;
@@ -59,53 +63,33 @@ public class GroupInfo {
         switch (this.shape) {
             case DIAMOND -> {
                 return () -> new AbstractIterator<>() {
-                    private Vec3i cursor = new Vec3i(0, -height, -width);
+                    private final Iterator<BlockPos> iterator = BlockPos.withinManhattan(BlockPos.ZERO, width, height, width).iterator();
                     @Override
                     protected Vec3i computeNext() {
-                        if (cursor == null)
+                        if (!iterator.hasNext())
                             return this.endOfData();
 
-                        Vec3i toReturn = cursor;
+                        BlockPos nextPos = iterator.next();
 
-                        int widthAtLine = width - Math.abs(cursor.getZ());
-                        if (cursor.getX() < widthAtLine) {
-                            cursor = cursor.offset(new Vec3i(1, 0, 0));
-                        } else if (cursor.getZ() < width) {
-                            int newZ = cursor.getZ() + 1;
-                            int newWidthAtLine = width - Math.abs(newZ);
-                            cursor = new Vec3i(-newWidthAtLine, cursor.getY(), newZ);
-                        } else if (cursor.getY() < height) {
-                            cursor = new Vec3i(0, cursor.getY() + 1, -width);
-                        } else {
-                            cursor = null;
-                        }
+                        int manhattanDistance = nextPos.distManhattan(BlockPos.ZERO);
+                        int maxDist = Math.max(width, height);
 
-                        return toReturn;
+                        if (manhattanDistance > maxDist)
+                            return this.endOfData();
+
+                        return nextPos;
                     }
                 };
             }
             case BLOCK -> {
                 return () -> new AbstractIterator<>() {
-                    private Vec3i cursor = new Vec3i(-width, -height, -width);
+                    private final Iterator<BlockPos> iterator = BlockPos.withinManhattan(BlockPos.ZERO, width, height, width).iterator();
                     @Override
                     protected Vec3i computeNext() {
-                        if (cursor == null)
+                        if (!iterator.hasNext())
                             return this.endOfData();
 
-                        Vec3i toReturn = cursor;
-
-                        if (cursor.getX() < width) {
-                            cursor = cursor.offset(new Vec3i(1, 0, 0));
-                        } else if (cursor.getZ() < width) {
-                            int newZ = cursor.getZ() + 1;
-                            cursor = new Vec3i(-width, cursor.getY(), newZ);
-                        } else if (cursor.getY() < height) {
-                            cursor = new Vec3i(-width, cursor.getY() + 1, -width);
-                        } else {
-                            cursor = null;
-                        }
-
-                        return toReturn;
+                        return iterator.next();
                     }
                 };
             }
