@@ -176,6 +176,116 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         }
     },
 
+    GROUP_COUNT {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            if (data.activeGroupSimulateData == null)
+                return 1; // We count ourselves
+
+            return data.activeGroupSimulateData.surroundingData.size();
+        }
+    },
+
+    GROUP_HIGHER_VALUE_COUNT {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            float count = 0;
+
+            if (data.activeGroupSimulateData == null)
+                return count;
+
+            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+
+            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
+                if (surrounding.groupMemberInfo.value > thisValue) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+    },
+
+    GROUP_HIGHER_OR_EQUAL_VALUE_COUNT {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            float count = 1; // start with 1 because we count ourselves
+
+            if (data.activeGroupSimulateData == null)
+                return count;
+
+            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+
+            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
+                if (surrounding.groupMemberInfo.value >= thisValue) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+    },
+
+    GROUP_LOWER_VALUE_COUNT {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            float count = 0;
+
+            if (data.activeGroupSimulateData == null)
+                return count;
+
+            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+
+            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
+                if (surrounding.groupMemberInfo.value < thisValue) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+    },
+
+    GROUP_LOWER_OR_EQUAL_VALUE_COUNT {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            float count = 1; // start with 1 because we count ourselves
+
+            if (data.activeGroupSimulateData == null)
+                return count;
+
+            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+
+            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
+                if (surrounding.groupMemberInfo.value <= thisValue) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+    },
+
+    GROUP_EQUAL_VALUE_COUNT {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            float count = 1; // start with 1 because we count ourselves
+
+            if (data.activeGroupSimulateData == null)
+                return count;
+
+            float thisValue = data.activeGroupSimulateData.groupMemberInfo.value;
+
+            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
+                if (surrounding.groupMemberInfo.value == thisValue) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+    },
+
     SUPER {
         @Override
         public boolean isSuper() {
@@ -256,6 +366,24 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             }
             case "group_sum" -> {
                 return Optional.of(GROUP_SUM);
+            }
+            case "group_count" -> {
+                return Optional.of(GROUP_COUNT);
+            }
+            case "group_higher_value_count" -> {
+                return Optional.of(GROUP_HIGHER_VALUE_COUNT);
+            }
+            case "group_higher_or_equal_value_count" -> {
+                return Optional.of(GROUP_HIGHER_OR_EQUAL_VALUE_COUNT);
+            }
+            case "group_lower_value_count" -> {
+                return Optional.of(GROUP_LOWER_VALUE_COUNT);
+            }
+            case "group_lower_or_equal_value_count" -> {
+                return Optional.of(GROUP_LOWER_OR_EQUAL_VALUE_COUNT);
+            }
+            case "group_equal_value_count" -> {
+                return Optional.of(GROUP_EQUAL_VALUE_COUNT);
             }
             case "super" -> {
                 return Optional.of(SUPER);
