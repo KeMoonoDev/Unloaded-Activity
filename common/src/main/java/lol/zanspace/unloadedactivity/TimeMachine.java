@@ -222,7 +222,7 @@ public class TimeMachine {
             boolean isAllInactive = true;
 
             for (var groupSimulateData : checkingBlockPositions) {
-                if (!groupSimulateData.isActive) {
+                if (groupSimulateData.isActive) {
                     isAllInactive = false;
                     break;
                 }
@@ -257,11 +257,6 @@ public class TimeMachine {
                 if (!toBeAddedToMap.isEmpty()) {
                     for (var groupSimulateData : toBeAddedToMap) {
                         activeGroupDataMap.put(groupSimulateData.position, groupSimulateData);
-                        if (groupSimulateData.simulateProperty.isPresent()) {
-                            SimulateProperty someSimulateProperty = groupSimulateData.simulateProperty.get();
-                            Block block = groupSimulateData.blockState.getBlock();
-                            groupSimulateData.isActive = block.canSimulateProperty(groupSimulateData.blockState, level, groupSimulateData.position, someSimulateProperty);
-                        }
                     }
                     toBeAddedToMap = new ArrayList<>();
                 }
@@ -450,7 +445,7 @@ public class TimeMachine {
                             continue;
 
                         // For isActive to return true, there must be a simulateProperty present.
-                        SimulateProperty simulateProperty = simulationData.simulateProperty.orElseThrow();
+                        SimulateProperty simulateProperty = simulationData.getSimulateProperty().orElseThrow();
 
                         BlockState state = simulationData.blockState;
                         BlockPos pos = simulationData.position;
@@ -494,7 +489,7 @@ public class TimeMachine {
                             continue;
 
                         // For isActive to return true, there must be a simulateProperty present.
-                        SimulateProperty simulateProperty = simulationData.simulateProperty.orElseThrow();
+                        SimulateProperty simulateProperty = simulationData.getSimulateProperty().orElseThrow();
 
                         Block block = simulationData.blockState.getBlock();
 
@@ -528,6 +523,8 @@ public class TimeMachine {
                                 .findFirst();
 
                             if (maybeGroupMemberInfo.isPresent()) {
+                                var newSimulateProperty = newBlock.getSimulationData().propertyMap.values().stream().filter(property -> property.simulateWithGroup.equals(Optional.of(groupId))).findFirst();
+                                simulationData.setSimulateProperty(newSimulateProperty);
                                 pendingUpdateMembership.add(Pair.of(simulationData, maybeGroupMemberInfo.get()));
                             } else {
                                 pendingRemoval.add(simulationData);

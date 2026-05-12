@@ -12,6 +12,7 @@ import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import lol.zanspace.unloadedactivity.datapack.SimulationData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -55,6 +56,16 @@ public class GroupChunkIndex {
 
     public ArrayList<ActiveGroupSimulateData> getAndFilterBlocks(LevelChunk chunk) {
 
+        Level level = chunk.getLevel();
+
+        ServerLevel serverLevel;
+
+        if (level instanceof ServerLevel serverLevelInstanceOf) {
+            serverLevel = serverLevelInstanceOf;
+        } else {
+            throw new RuntimeException("Please run the function getAndFilterBlocks on the server side only pls thx.");
+        }
+
         ArrayList<ActiveGroupSimulateData> blockInfoList = new ArrayList<>(this.positions.size());
 
         this.positions.removeIf((longPos) -> {
@@ -90,7 +101,7 @@ public class GroupChunkIndex {
                 }
             }
 
-            blockInfoList.add(new ActiveGroupSimulateData(pos, state, property, groupMemberInfo));
+            blockInfoList.add(new ActiveGroupSimulateData(pos, state, property, groupMemberInfo, serverLevel));
 
             return false;
         });
