@@ -12,6 +12,8 @@ import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.mixin.CropBlockInvoker;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -155,6 +157,28 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             #endif;
             boolean isRain = precipitation == Biome.Precipitation.RAIN;
             return isRain ? 1 : 0;
+        }
+    },
+
+    IS_LOWER_DOOR {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            boolean result = false;
+            if (data.state.getBlock() instanceof DoorBlock) {
+                result = data.state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER;
+            }
+            return result ? 1 : 0;
+        }
+    },
+
+    IS_UPPER_DOOR {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            boolean result = false;
+            if (data.state.getBlock() instanceof DoorBlock) {
+                result = data.state.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER;
+            }
+            return result ? 1 : 0;
         }
     },
 
@@ -363,6 +387,12 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             }
             case "is_rain_precipitation" -> {
                 return Optional.of(IS_RAIN_PRECIPITATION);
+            }
+            case "is_lower_door" -> {
+                return Optional.of(IS_LOWER_DOOR);
+            }
+            case "is_upper_door" -> {
+                return Optional.of(IS_UPPER_DOOR);
             }
             case "group_sum" -> {
                 return Optional.of(GROUP_SUM);
