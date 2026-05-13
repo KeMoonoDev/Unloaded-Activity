@@ -29,13 +29,29 @@ public abstract class AgeableMobMixin extends PathfinderMob {
     @Shadow
     public void setAge(int i) {}
 
+    #if MC_VER >= MC_26_1_2
+    @Shadow
+    public boolean canAgeUp() {
+        throw new RuntimeException("Shadow no work.");
+    }
+    #else
+    @Unique
+    private boolean canAgeUp() {
+        return this.getAge() < 0;
+    }
+    #endif
+
+    @Unique
+    private boolean canAgeDown() {
+        return this.getAge() > 0;
+    }
+
     @Unique
     private boolean shouldSimulate() {
         if (!UnloadedActivity.config.simulateEntitiesAgeing) return false;
         if (this.isRemoved()) return false;
         if (!this.isAlive()) return false;
-        if (this.getAge() == 0) return false;
-        return true;
+        return canAgeUp() || canAgeDown();
     }
 
     @Override
@@ -45,11 +61,10 @@ public abstract class AgeableMobMixin extends PathfinderMob {
         if (!shouldSimulate())
             return;
 
-        int age = this.getAge();
-        if (age < 0) {
-            this.setAge((int)min(0,age+timeDifference));
-        } else if (age > 0) {
-            this.setAge((int)max(0,age-timeDifference));
+        if (canAgeUp()) {
+            this.setAge((int)min(0,this.getAge()+timeDifference));
+        } else if (canAgeDown()) {
+            this.setAge((int)max(0,this.getAge()-timeDifference));
         }
     }
 }
