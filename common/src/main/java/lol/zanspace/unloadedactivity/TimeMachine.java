@@ -356,8 +356,8 @@ public class TimeMachine {
 
                     long newLastGroupTick = newGroupChunkIndex.getLastTick(newChunk.getLastTick());
                     long differenceFromMainChunk = lastGroupTick - newLastGroupTick;
-                    long differencePercentage = Math.abs(differenceFromMainChunk / groupTimeDifference);
-
+                    float differencePercentage = Math.abs((float)differenceFromMainChunk / (float)groupTimeDifference);
+                    
                     if (differencePercentage > UnloadedActivity.config.maxGroupTickDeviationScale)
                         continue;
 
