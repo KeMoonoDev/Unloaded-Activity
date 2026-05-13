@@ -1,7 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin;
 
 #if MC_VER >= MC_1_21_11
-import lol.zanspace.unloadedactivity.GameUtils;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -10,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import lol.zanspace.unloadedactivity.GroupChunkIndex;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.nbt.CompoundTag;
+import lol.zanspace.unloadedactivity.GameUtils;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
