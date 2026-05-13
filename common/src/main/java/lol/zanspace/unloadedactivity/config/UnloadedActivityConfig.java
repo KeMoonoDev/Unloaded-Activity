@@ -307,6 +307,12 @@ public class UnloadedActivityConfig {
                 val -> maxGroupTickIterations = val
         );
 
+        registerInt(
+                "minGroupTickIterations", minGroupTickIterations, 1, Integer.MAX_VALUE,
+                unused -> minGroupTickIterations,
+                val -> minGroupTickIterations = val
+        );
+
         registerFloat(
                 "groupTickUpdateStrength", groupTickUpdateStrength, 0F, 100F,
                 unused -> groupTickUpdateStrength,
@@ -424,7 +430,8 @@ public class UnloadedActivityConfig {
     public int groupTickDifferenceThreshold = 1000;
     public float maxGroupTickDeviationScale = 0.1F;
     public int maxForcedChunkLoads = 8;
-    public int maxGroupTickIterations = 1000;
+    public int maxGroupTickIterations = 128;
+    public int minGroupTickIterations = 8;
     public float groupTickUpdateStrength = 1F;
     public int maxGroupTickSize = 10000;
 

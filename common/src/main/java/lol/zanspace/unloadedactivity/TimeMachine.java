@@ -456,6 +456,7 @@ public class TimeMachine {
 
                 while (remainingCycles > 0 && totalIterations < UnloadedActivity.config.maxGroupTickIterations) {
                     long minProbabilityStepDuration = remainingCycles / (UnloadedActivity.config.maxGroupTickIterations - totalIterations);
+                    long maxProbabilityStepDuration = remainingCycles / Math.max(1, UnloadedActivity.config.minGroupTickIterations - totalIterations);
                     totalIterations++;
 
                     long minNextOddsSwitchDuration = Long.MAX_VALUE;
@@ -499,6 +500,7 @@ public class TimeMachine {
                         break;
 
                     long probabilityDuration = (long)Math.ceil((1.0 / maxProbability) * UnloadedActivity.config.groupTickUpdateStrength);
+                    probabilityDuration = Math.min(maxProbabilityStepDuration, probabilityDuration);
                     probabilityDuration = Math.max(minProbabilityStepDuration, probabilityDuration);
 
                     long simulationStepDuration = Math.min(Math.min(Math.min(minNextOddsSwitchDuration, nextWeatherSwitchDuration), probabilityDuration), remainingCycles);
