@@ -1,10 +1,10 @@
 {
-  "age": {
-    "simulation_type": "property",
+  "grow_cactus": {
+    "simulation_type": "action",
     "update_neighbors": true,
     "update_type": "update_invisible",
     "reset_on_height_change": true,
-    "keep_updating_after_max_height": false,
+    "keep_updating_after_max_height": true,
     "max_height": 3,
     "advance_probability": 1
   }

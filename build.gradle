@@ -19,6 +19,7 @@ def java_version_int = 17
 using_neo = false
 using_legacy_folders = true
 lightning_rod_is_oxidizable = false
+cactus_flowers_are_added = false
 
 supported_versions.eachWithIndex { version, index ->
 	def version_string = version.replace(".", "_")
@@ -45,6 +46,10 @@ supported_versions.eachWithIndex { version, index ->
 
 		if (version == oxidizable_lightning_rods_version) {
 			lightning_rod_is_oxidizable = true
+		}
+
+		if (version == added_cactus_flower_version) {
+			cactus_flowers_are_added = true
 		}
 	}
 
@@ -151,12 +156,21 @@ subprojects {
 			filesMatching("**/tags/block/**") {
 				path = path.replaceFirst("block", "blocks")
 			}
-			if (!rootProject.lightning_rod_is_oxidizable) {
-				exclude("data/minecraft/simulate_info/blocks/lightning_rod.json")
-				filesMatching("**/oxidized_level/0.json") {
-					filter { line ->
-						line.replace("minecraft:lightning_rod", "unloadedactivity:empty")
-					}
+		}
+
+		if (!rootProject.cactus_flowers_are_added) {
+			filesMatching("data/minecraft/simulate_info/blocks/cactus.json") {
+				filter { line ->
+					line.replace('"keep_updating_after_max_height": true', '"keep_updating_after_max_height": false')
+				}
+			}
+		}
+
+		if (!rootProject.lightning_rod_is_oxidizable) {
+			exclude("data/minecraft/simulate_info/blocks/lightning_rod.json")
+			filesMatching("**/oxidized_level/0.json") {
+				filter { line ->
+					line.replace("minecraft:lightning_rod", "unloadedactivity:empty")
 				}
 			}
 		}
