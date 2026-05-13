@@ -232,6 +232,11 @@ public class TimeMachine {
 
             if (isAllInactive) {
                 groupChunkIndex.setLastTick(currentTime);
+                #if MC_VER >= MC_1_21_3
+                chunk.markUnsaved();
+                #else
+                chunk.setUnsaved(true);
+                #endif
                 continue;
             }
 
@@ -369,6 +374,11 @@ public class TimeMachine {
 
 
                     newGroupChunkIndex.setLastTick(currentTime);
+                    #if MC_VER >= MC_1_21_3
+                    chunk.markUnsaved();
+                    #else
+                    chunk.setUnsaved(true);
+                    #endif
                     toBeAddedToMap.addAll(newData);
                     checkingBlockPositions.addAll(newData);
                 }
