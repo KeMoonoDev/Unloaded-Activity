@@ -129,7 +129,7 @@ public class MathUtils {
     }
 
     //41ms, 200 chunks
-    public static int getOccurrencesBinomial(long cycles, float odds, int maxOccurrences, RandomSource random) {
+    public static int getOccurrencesBinomial(long cycles, double odds, int maxOccurrences, RandomSource random) {
 
         if (odds <= 0)
             return 0;
@@ -139,7 +139,7 @@ public class MathUtils {
 
         double choose = 1;
 
-        float invertedOdds = 1-odds;
+        double invertedOdds = 1-odds;
 
         double totalProbability = 0;
 
