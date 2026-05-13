@@ -35,9 +35,11 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -196,15 +198,30 @@ public interface SimulateChunkBlocks {
         return true;
     }
 
-    default @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, float randomPickOdds, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
-        long currentTime = GameUtils.getTime(level);
+    default boolean shouldCalculateDuration(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty) {
+        if (simulateProperty.hatchEntity.isPresent()) {
+            return true;
+        }
 
+        if (simulateProperty.simulationType == SimulationType.DECAY) {
+            if (simulateProperty.blockReplacement.isPresent()) {
+                Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                SimulationData simulationData = blockReplacement.getSimulationData();
+                if (simulationData.hasRandTicksWithoutGroup || simulationData.hasPrecTicksWithoutGroup) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    default int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty) {
         switch (simulateProperty.simulationType) {
             case PROPERTY -> {
                 Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
 
                 if (maybeProperty.isEmpty())
-                    return Triple.of(state, OccurrencesAndDuration.empty(), pos);
+                    return 0;
 
                 Property<?> property = maybeProperty.get();
 
@@ -227,7 +244,7 @@ public interface SimulateChunkBlocks {
                     updateCount = 1 - current;
 
                 } else {
-                    return Triple.of(state, OccurrencesAndDuration.empty(), pos);
+                    return 0;
                 }
 
                 if (simulateProperty.maxValue.isPresent()) {
@@ -298,15 +315,47 @@ public interface SimulateChunkBlocks {
                     }
                 }
 
-                if (updateCount <= 0)
-                    return Triple.of(state, OccurrencesAndDuration.empty(), pos);
+                return updateCount;
+            }
+            case DECAY -> {
+                return 1;
+            }
+        }
 
-                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
+        throw new RuntimeException("Simulation type " + simulateProperty.simulationType + " is not able to be separated.");
+    }
 
-                if (result.occurrences() == 0)
-                    return Triple.of(state, result, pos);
+    default List<Pair<BlockPos, BlockState>> getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, int occurrences, long simulationDuration, long timePassed) {
+        ArrayList<Pair<BlockPos, BlockState>> updateList = new ArrayList<>();
+        switch (simulateProperty.simulationType) {
+            case PROPERTY -> {
+                Optional<Property<?>> maybeProperty = getProperty(state, simulateProperty.target);
 
-                int newPropertyValue = current + result.occurrences();
+                if (maybeProperty.isEmpty())
+                    return updateList;
+
+                Property<?> property = maybeProperty.get();
+
+                Block thisBlock = state.getBlock();
+                int propertyMax;
+                int max;
+                int current;
+
+                if (property instanceof IntegerProperty integerProperty) {
+                    propertyMax = ((IntegerPropertyAccessor)integerProperty).unloaded_activity$getMax();
+                    max = propertyMax;
+                    current = state.getValue(integerProperty);
+
+                } else if (property instanceof BooleanProperty booleanProperty) {
+                    propertyMax = 1;
+                    max = 1;
+                    current = state.getValue(booleanProperty) ? 1 : 0;
+
+                } else {
+                    return updateList;
+                }
+
+                int newPropertyValue = current + occurrences;
 
                 if (simulateProperty.increasePerHeight) {
                     if (simulateProperty.blockReplacement.isPresent()) {
@@ -336,18 +385,18 @@ public interface SimulateChunkBlocks {
 
 
                         state = newState;
-                        level.setBlock(pos, state, simulateProperty.updateType);
+                        updateList.add(Pair.of(pos, state));
                     }
 
 
-                    for (int i=0;i<result.occurrences();i++) {
+                    for (int i=0;i<occurrences;i++) {
                         if (simulateProperty.reverseHeightGrowthDirection) {
                             pos = pos.below();
                         } else {
                             pos = pos.above();
                         }
 
-                        boolean isFinal = i+1 == result.occurrences();
+                        boolean isFinal = i+1 == occurrences;
 
                         if (simulateProperty.blockReplacement.isPresent() && !isFinal) {
                             Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
@@ -367,13 +416,13 @@ public interface SimulateChunkBlocks {
                                 switch (randomProperty.propertyType) {
                                     case BOOL -> {
                                         if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                            int value = randomProperty.getRandomValue(random);
+                                            int value = randomProperty.getRandomValue(GameUtils.getRand(level));
                                             state = state.setValue(newBooleanProperty, value != 0);
                                         }
                                     }
                                     case INT -> {
                                         if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                            int value = randomProperty.getRandomValue(random);
+                                            int value = randomProperty.getRandomValue(GameUtils.getRand(level));
                                             state = state.setValue(newIntegerProperty, value);
                                         }
                                     }
@@ -381,16 +430,7 @@ public interface SimulateChunkBlocks {
                             }
                         }
 
-                        level.setBlockAndUpdate(pos, state);
-                        boolean updateNeighbors = simulateProperty.updateNeighbors;
-                        if (updateNeighbors) {
-                            #if MC_VER >= MC_1_21_3
-                            level.neighborChanged(state, pos, thisBlock, null, false);
-                            #else
-                            level.neighborChanged(state, pos, thisBlock, pos, false);
-                            #endif
-                            level.scheduleTick(pos, thisBlock, 1);
-                        }
+                        updateList.add(Pair.of(pos, state));
                     }
                 } else if (simulateProperty.maxHeight.isPresent()) {
                     int growBlocks = newPropertyValue/(max + 1);
@@ -440,7 +480,7 @@ public interface SimulateChunkBlocks {
                         }
                     }
 
-                    level.setBlock(pos, state, simulateProperty.updateType);
+                    updateList.add(Pair.of(pos, state));
 
                     for (int i=0;i<growBlocks;i++) {
                         if (simulateProperty.reverseHeightGrowthDirection) {
@@ -495,30 +535,20 @@ public interface SimulateChunkBlocks {
                                 switch (randomProperty.propertyType) {
                                     case BOOL -> {
                                         if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                            int value = randomProperty.getRandomValue(random);
+                                            int value = randomProperty.getRandomValue(GameUtils.getRand(level));
                                             state = state.setValue(newBooleanProperty, value != 0);
                                         }
                                     }
                                     case INT -> {
                                         if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                            int value = randomProperty.getRandomValue(random);
+                                            int value = randomProperty.getRandomValue(GameUtils.getRand(level));
                                             state = state.setValue(newIntegerProperty, value);
                                         }
                                     }
                                 }
                             }
                         }
-
-                        level.setBlockAndUpdate(pos, state);
-                        boolean updateNeighbors = simulateProperty.updateNeighbors;
-                        if (updateNeighbors) {
-                            #if MC_VER >= MC_1_21_3
-                            level.neighborChanged(state, pos, thisBlock, null, false);
-                            #else
-                            level.neighborChanged(state, pos, thisBlock, pos, false);
-                            #endif
-                            level.scheduleTick(pos, thisBlock, 1);
-                        }
+                        updateList.add(Pair.of(pos, state));
                     }
                 } else {
                     if (property instanceof IntegerProperty integerProperty) {
@@ -531,109 +561,12 @@ public interface SimulateChunkBlocks {
                     } else if (property instanceof BooleanProperty booleanProperty) {
                         state = state.setValue(booleanProperty, newPropertyValue > 0);
                     }
-                    level.setBlock(pos, state, simulateProperty.updateType);
+                    updateList.add(Pair.of(pos, state));
                 }
 
-
-                return Triple.of(state, result, pos);
-            }
-            case BUDDING -> {
-                List<Direction> availableDirections = Arrays.stream(Direction.values()).filter(direction -> !simulateProperty.ignoreBuddingDirections.contains(direction)).toList();
-
-                for(Direction direction : availableDirections) {
-                    BlockPos budPos = pos.relative(direction);
-                    BlockState budState = level.getBlockState(budPos);
-
-                    int stage = 0;
-
-
-                    boolean doContinue = false;
-
-                    for (int i=0;i<simulateProperty.buddingBlocks.size();i++) {
-                        Block buddingBlockStage = simulateProperty.buddingBlocks.get(i);
-
-                        if (budState.is(buddingBlockStage)) {
-                            var property = (#if MC_VER >= MC_1_21_3 EnumProperty<?> #else DirectionProperty #endif) getProperty(budState, simulateProperty.buddingDirectionProperty.get()).get();
-                            Direction budDirection = (Direction) budState.getValue(property);
-
-                            if (budDirection == direction) {
-                                stage = i+1;
-                            } else {
-                                doContinue = true;
-                            }
-
-                            break;
-                        }
-                    }
-
-                    if (doContinue)
-                        continue;
-
-
-                    if (stage == simulateProperty.buddingBlocks.size())
-                        continue;
-
-
-                    if (stage == 0) {
-                        if (!budState.isAir()) {
-                            if (simulateProperty.waterloggedProperty.isEmpty()) {
-                                continue;
-                            }
-
-                            if (!budState.is(Blocks.WATER))
-                                continue;
-
-                            if (budState.getFluidState().getAmount() < simulateProperty.minWaterValue)
-                                continue;
-                        }
-                        // It's either air or water.
-                    }
-
-                    int maxOccurrences = simulateProperty.buddingBlocks.size() - stage;
-
-                    OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, simulateProperty, maxOccurrences, randomPickOdds, calculateDuration, random, groupSimulateData);
-
-                    if (result.occurrences() == 0) {
-                        continue;
-                    }
-
-                    int newStage = stage + result.occurrences();
-
-                    Block newBudBlock = simulateProperty.buddingBlocks.get(newStage - 1);
-
-                    BlockState newBudState = newBudBlock.defaultBlockState();
-
-                    if (simulateProperty.buddingDirectionProperty.isPresent()) {
-                        String buddingDirectionPropertyName = simulateProperty.buddingDirectionProperty.get();
-                        @SuppressWarnings("unchecked")
-                        var property = (#if MC_VER >= MC_1_21_3 EnumProperty<Direction> #else DirectionProperty #endif) getProperty(newBudState, buddingDirectionPropertyName).get();
-                        newBudState = newBudState.setValue(property, direction);
-                    }
-
-
-                    if (simulateProperty.waterloggedProperty.isPresent()) {
-                        BooleanProperty waterloggedProperty = (BooleanProperty)getProperty(newBudState, simulateProperty.waterloggedProperty.get()).get();
-                        newBudState = newBudState.setValue(waterloggedProperty, budState.getFluidState().getType() == Fluids.WATER);
-                    }
-
-                    level.setBlock(budPos, newBudState, simulateProperty.updateType);
-                }
+                return updateList;
             }
             case DECAY -> {
-                boolean calculateDecayDuration = calculateDuration || simulateProperty.hatchEntity.isPresent();
-                if (simulateProperty.blockReplacement.isPresent()) {
-                    Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
-                    SimulationData simulationData = blockReplacement.getSimulationData();
-                    if (simulationData.hasRandTicksWithoutGroup || simulationData.hasPrecTicksWithoutGroup) {
-                        calculateDecayDuration = true;
-                    }
-                }
-
-                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, simulateProperty, 1, randomPickOdds, calculateDecayDuration, random, groupSimulateData);
-
-                if (result.occurrences() == 0)
-                    return Triple.of(state, result, pos);
-
                 if (simulateProperty.dropsResources) {
                     Block.dropResources(state, level, pos);
                 }
@@ -664,16 +597,15 @@ public interface SimulateChunkBlocks {
                         }
                     }
                     state = newState;
-                    level.setBlock(pos, state, simulateProperty.updateType);
+                    updateList.add(Pair.of(pos, state));
                 } else {
-                    level.removeBlock(pos, false);
-                    state = level.getBlockState(pos);
+                    updateList.add(Pair.of(pos, state.getFluidState().createLegacyBlock()));
                 }
 
                 if (simulateProperty.hatchEntity.isPresent()) {
                     int hatchCount;
                     if (simulateProperty.hatchCount.isPresent()) {
-                        long hatchTime = currentTime - timePassed + result.duration();
+                        long hatchTime = GameUtils.getTime(level) - timePassed + simulationDuration;
                         hatchCount = (int)simulateProperty.hatchCount.get().calculateValue(new CalculationData(level, oldState, pos, hatchTime));
                     } else {
                         hatchCount = 1;
@@ -703,18 +635,149 @@ public interface SimulateChunkBlocks {
                             }
 
                             level.addFreshEntity(hatchedEntity);
-                            hatchedEntity.unloadedactivity$simulateTime(timePassed - result.duration());
+                            hatchedEntity.unloadedactivity$simulateTime(timePassed - simulationDuration);
+                        }
+                    }
+                }
+                return updateList;
+            }
+        }
+        return updateList;
+    }
+
+    default @Nullable Triple<BlockState, OccurrencesAndDuration, BlockPos> simulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, RandomSource random, long timePassed, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+        long currentTime = GameUtils.getTime(level);
+
+        if (simulateProperty.simulationType == SimulationType.ACTION)
+            return Triple.of(state, OccurrencesAndDuration.empty(), pos);
+
+        if (simulateProperty.simulationType == SimulationType.BUDDING) {
+            List<Direction> availableDirections = Arrays.stream(Direction.values()).filter(direction -> !simulateProperty.ignoreBuddingDirections.contains(direction)).toList();
+
+            for(Direction direction : availableDirections) {
+                BlockPos budPos = pos.relative(direction);
+                BlockState budState = level.getBlockState(budPos);
+
+                int stage = 0;
+
+
+                boolean doContinue = false;
+
+                for (int i=0;i<simulateProperty.buddingBlocks.size();i++) {
+                    Block buddingBlockStage = simulateProperty.buddingBlocks.get(i);
+
+                    if (budState.is(buddingBlockStage)) {
+                        var property = (#if MC_VER >= MC_1_21_3 EnumProperty<?> #else DirectionProperty #endif) getProperty(budState, simulateProperty.buddingDirectionProperty.get()).get();
+                        Direction budDirection = (Direction) budState.getValue(property);
+
+                        if (budDirection == direction) {
+                            stage = i+1;
+                        } else {
+                            doContinue = true;
                         }
 
+                        break;
                     }
                 }
 
-                return Triple.of(state, result, pos);
+                if (doContinue)
+                    continue;
+
+
+                if (stage == simulateProperty.buddingBlocks.size())
+                    continue;
+
+
+                if (stage == 0) {
+                    if (!budState.isAir()) {
+                        if (simulateProperty.waterloggedProperty.isEmpty()) {
+                            continue;
+                        }
+
+                        if (!budState.is(Blocks.WATER))
+                            continue;
+
+                        if (budState.getFluidState().getAmount() < simulateProperty.minWaterValue)
+                            continue;
+                    }
+                    // It's either air or water.
+                }
+
+                int maxOccurrences = simulateProperty.buddingBlocks.size() - stage;
+
+                OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, simulateProperty, maxOccurrences, randomPickOdds, hasDependents, random, groupSimulateData);
+
+                if (result.occurrences() == 0) {
+                    continue;
+                }
+
+                int newStage = stage + result.occurrences();
+
+                Block newBudBlock = simulateProperty.buddingBlocks.get(newStage - 1);
+
+                BlockState newBudState = newBudBlock.defaultBlockState();
+
+                if (simulateProperty.buddingDirectionProperty.isPresent()) {
+                    String buddingDirectionPropertyName = simulateProperty.buddingDirectionProperty.get();
+                    @SuppressWarnings("unchecked")
+                    var property = (#if MC_VER >= MC_1_21_3 EnumProperty<Direction> #else DirectionProperty #endif) getProperty(newBudState, buddingDirectionPropertyName).get();
+                    newBudState = newBudState.setValue(property, direction);
+                }
+
+
+                if (simulateProperty.waterloggedProperty.isPresent()) {
+                    BooleanProperty waterloggedProperty = (BooleanProperty)getProperty(newBudState, simulateProperty.waterloggedProperty.get()).get();
+                    newBudState = newBudState.setValue(waterloggedProperty, budState.getFluidState().getType() == Fluids.WATER);
+                }
+
+                level.setBlock(budPos, newBudState, simulateProperty.updateType);
+            }
+
+            return Triple.of(state, OccurrencesAndDuration.empty(), pos);
+        }
+
+        int updateCount = getMaxUpdateCount(state, level, pos, simulateProperty);
+        boolean calculateDuration = hasDependents || shouldCalculateDuration(state, level, pos, simulateProperty);
+
+        if (updateCount <= 0)
+            return Triple.of(state, OccurrencesAndDuration.empty(), pos);
+
+        OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, simulateProperty, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
+
+        if (result.occurrences() == 0)
+            return Triple.of(state, result, pos);
+
+
+        List<Pair<BlockPos, BlockState>> newBlockStates = getNewBlockStates(state, level, pos, simulateProperty, result.occurrences(), result.duration(), timePassed);
+
+        Block thisBlock = state.getBlock();
+
+        for (var pair : newBlockStates) {
+            BlockPos newPos = pair.getLeft();
+            BlockState newState = pair.getRight();
+            if (newPos.equals(pos) && newState.getBlock().equals(thisBlock)) {
+                level.setBlock(newPos, newState, simulateProperty.updateType);
+            } else {
+                level.setBlockAndUpdate(newPos, newState);
+                boolean updateNeighbors = simulateProperty.updateNeighbors;
+                if (updateNeighbors) {
+                    #if MC_VER >= MC_1_21_3
+                    level.neighborChanged(newState, newPos, newState.getBlock(), null, false);
+                    #else
+                    level.neighborChanged(state, pos, thisBlock, pos, false);
+                    #endif
+                    level.scheduleTick(newPos, newState.getBlock(), 1);
+                }
             }
         }
 
+        if (newBlockStates.isEmpty()) {
+            return Triple.of(state, result, pos);
+        }
 
-        return Triple.of(state, OccurrencesAndDuration.empty(), pos);
+        Pair<BlockPos, BlockState> mainState = newBlockStates.get(newBlockStates.size() - 1);
+
+        return Triple.of(mainState.getRight(), result, mainState.getLeft());
     };
 
     default boolean implementsSimulatePrecTicks() {
@@ -724,6 +787,4 @@ public interface SimulateChunkBlocks {
         return this.implementsSimulatePrecTicks();
     }
     default void simulatePrecTicks(BlockState state, ServerLevel level, BlockPos pos, long timeInWeather, long timePassed, Biome.Precipitation precipitation, float precipitationPickChance) {}
-
-
 }

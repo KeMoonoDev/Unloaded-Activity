@@ -219,7 +219,7 @@ public class TimeMachine {
                 continue;
             }
 
-            List<ActiveGroupSimulateData> checkingBlockPositions = groupChunkIndex.getAndFilterBlocks(chunk);
+            ArrayList<ActiveGroupSimulateData> checkingBlockPositions = groupChunkIndex.getAndFilterBlocks(chunk);
 
             boolean isAllInactive = true;
 
@@ -248,193 +248,16 @@ public class TimeMachine {
 
             simulatedGroups++;
 
-            List<ActiveGroupSimulateData> pendingBlockPositions = new ArrayList<>();
-            List<ActiveGroupSimulateData> toBeAddedToMap = checkingBlockPositions;
+            Optional<Map<BlockPos, ActiveGroupSimulateData>> maybeActiveGroupDataMap = generateActiveGroupDataMap(level, chunk, checkingBlockPositions, groupInfo, lastGroupTick);
 
-            Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap = new HashMap<>(UnloadedActivity.config.maxGroupTickSize);
-
-            int forceLoadedChunks = 0;
-            Set<ChunkPos> checkedChunks = new HashSet<>();
-            checkedChunks.add(chunk.getPos());
-
-            boolean chunksAreIndexed = true;
-
-            // Populate activeGroupDataMap
-            while (!checkingBlockPositions.isEmpty()) {
-                if (!toBeAddedToMap.isEmpty()) {
-                    for (var groupSimulateData : toBeAddedToMap) {
-                        // Will only fail to add if something else is extending into that position.
-                        // The extending data will always take priority.
-                         boolean added = activeGroupDataMap.putIfAbsent(groupSimulateData.position, groupSimulateData) == null;
-                        if (added && groupSimulateData.blockState.getBlock() instanceof DoorBlock) {
-                            if (groupSimulateData.blockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
-                                BlockPos abovePos = groupSimulateData.position.above();
-                                var newGroupSimulateData = new ActiveGroupSimulateData(abovePos, null, Optional.empty(), groupSimulateData.getGroupMemberInfo(), level);
-                                groupSimulateData.extendingData.add(newGroupSimulateData);
-                                activeGroupDataMap.put(abovePos, newGroupSimulateData);
-                            }
-                        }
-                    }
-                    toBeAddedToMap = new ArrayList<>();
-                }
-
-                Set<ChunkPos> newChunks = new HashSet<>();
-
-                List<ActiveGroupSimulateData> finalizingBlockData = new ArrayList<>(checkingBlockPositions.size());
-
-                // Loop through all blocks.
-                // Separate blocks that wants info from another chunk and blocks that have everything they need.
-                for (var groupSimulateData : checkingBlockPositions) {
-                    boolean intersectsNewChunks = false;
-
-                    if (groupSimulateData.isActive) {
-                        for (var offset : groupInfo.iterateOffsets()) {
-                            BlockPos checkPos = groupSimulateData.position.offset(offset);
-                            ChunkPos chunkPos = GameUtils.chunkPosFromWorldPos(checkPos);
-                            boolean isNewChunk = !checkedChunks.contains(chunkPos);
-                            if (isNewChunk) {
-                                newChunks.add(chunkPos);
-                                intersectsNewChunks = true;
-                            }
-                        }
-                    }
-
-                    if (intersectsNewChunks) {
-                        pendingBlockPositions.add(groupSimulateData);
-                    } else {
-                        finalizingBlockData.add(groupSimulateData);
-                    }
-                }
-
-                checkingBlockPositions.clear();
-
-                // Get surrounding data from the blocks that have everything they need.
-                for (var data : finalizingBlockData) {
-                    if (!data.isActive)
-                        continue;
-
-                    BlockPos blockPos = data.position;
-
-                    ActiveGroupSimulateData activeGroupSimulateData = activeGroupDataMap.get(blockPos);
-
-                    for (var offset : groupInfo.iterateOffsets()) {
-                        if (offset.equals(Vec3i.ZERO)) {
-                            continue;
-                        }
-
-                        BlockPos affectingBlockPos = blockPos.offset(offset);
-
-                        ActiveGroupSimulateData affectingSimulateData = activeGroupDataMap.get(affectingBlockPos);
-
-                        if (affectingSimulateData != null)
-                            activeGroupSimulateData.surroundingData.add(affectingSimulateData);
-                    }
-                }
-
-                finalizingBlockData.clear();
-
-                // Get requested chunks and add their blocks to checkingBlockPositions
-                for (var newChunkPos : newChunks) {
-                    checkedChunks.add(newChunkPos);
-
-                    if (!GameUtils.isChunkLoaded(level, newChunkPos)) {
-                        if (forceLoadedChunks >= UnloadedActivity.config.maxForcedChunkLoads)
-                            continue;
-                        forceLoadedChunks += 1;
-                    }
-
-                    LevelChunk newChunk = GameUtils.getChunk(level, newChunkPos);
-
-                    if (!isChunkIndexed(newChunk)) {
-                        chunksAreIndexed = false;
-                        level.getServer().addChunkToQueueFront(chunk);
-                    }
-
-                    if (!chunksAreIndexed) {
-                        continue;
-                    }
-
-                    GroupChunkIndex newGroupChunkIndex = newChunk.getGroupIndexes().get(groupId);
-
-                    if (newGroupChunkIndex == null)
-                        continue;
-
-                    long newLastGroupTick = newGroupChunkIndex.getLastTick(newChunk.getLastTick());
-                    long differenceFromMainChunk = lastGroupTick - newLastGroupTick;
-                    float differencePercentage = Math.abs((float)differenceFromMainChunk / (float)groupTimeDifference);
-                    
-                    if (differencePercentage > UnloadedActivity.config.maxGroupTickDeviationScale)
-                        continue;
-
-                    List<ActiveGroupSimulateData> newData = newGroupChunkIndex.getAndFilterBlocks(newChunk);
-                    int newTotalSize = activeGroupDataMap.size() + newData.size();
-
-                    if (newTotalSize > UnloadedActivity.config.maxGroupTickSize)
-                        continue;
-
-
-                    newGroupChunkIndex.setLastTick(currentTime);
-                    #if MC_VER >= MC_1_21_3
-                    chunk.markUnsaved();
-                    #else
-                    chunk.setUnsaved(true);
-                    #endif
-                    toBeAddedToMap.addAll(newData);
-                    checkingBlockPositions.addAll(newData);
-                }
-
-                if (!chunksAreIndexed) {
-                    break;
-                }
-
-                // Prepare for next loop.
-                checkingBlockPositions.addAll(pendingBlockPositions);
-                pendingBlockPositions.clear();
-            }
-
-            if (!chunksAreIndexed) {
+            if (maybeActiveGroupDataMap.isEmpty()) {
                 break;
             }
 
+            Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap = maybeActiveGroupDataMap.get();
+
             // Separate them into isolated groups.
-            ArrayList<ArrayList<ActiveGroupSimulateData>> isolatedGroups = new ArrayList<>();
-
-            int currentIndex = 0;
-
-            for (var groupEntry : activeGroupDataMap.entrySet()) {
-                ActiveGroupSimulateData activeGroupSimulateData = groupEntry.getValue();
-                if (!activeGroupSimulateData.isActive)
-                    continue;
-
-                if (activeGroupSimulateData.groupIndex >= 0)
-                    continue;
-
-                ArrayList<ActiveGroupSimulateData> newGroup = new ArrayList<>();
-
-                ArrayList<ActiveGroupSimulateData> pendingData = new ArrayList<>();
-                pendingData.add(activeGroupSimulateData);
-
-                while (!pendingData.isEmpty()) {
-                    ArrayList<ActiveGroupSimulateData> listToLoop = pendingData;
-                    pendingData = new ArrayList<>();
-
-                    for (var updatingGroupData : listToLoop) {
-                        if (updatingGroupData.groupIndex >= 0)
-                            continue;
-
-                        newGroup.add(updatingGroupData);
-
-                        if (updatingGroupData.isActive) {
-                            updatingGroupData.groupIndex = currentIndex;
-                            pendingData.addAll(updatingGroupData.surroundingData);
-                        }
-
-                    }
-                }
-
-                isolatedGroups.add(newGroup);
-                currentIndex += 1;
-            }
+            List<List<ActiveGroupSimulateData>> isolatedGroups = separateToIsolatedGroups(activeGroupDataMap);
 
             RandomSource random = level.getRandom();
             float randomPickOdds = MathUtils.getRandomPickOdds(randomTickSpeed);
@@ -444,7 +267,7 @@ public class TimeMachine {
                 UnloadedActivity.LOGGER.info("Simulating " + isolatedGroups.size() + " isolated groups");
 
             // Data has been made. Time to actually do the simulation.
-            for (ArrayList<ActiveGroupSimulateData> group : isolatedGroups) {
+            for (List<ActiveGroupSimulateData> group : isolatedGroups) {
                 int totalIterations = 0;
                 long remainingCycles = groupTimeDifference;
                 long simulationCurrentTime = currentTime - remainingCycles;
@@ -586,6 +409,205 @@ public class TimeMachine {
         }
 
         return Pair.of(simulatedGroups, !missedGroup);
+    }
+
+
+    public static Optional<Map<BlockPos, ActiveGroupSimulateData>> generateActiveGroupDataMap(ServerLevel level, LevelChunk chunk, ArrayList<ActiveGroupSimulateData> checkingBlockPositions, GroupInfo groupInfo, long lastMainChunkGroupTick) {
+        long currentTime = GameUtils.getTime(level);
+        long groupTimeDifference = Math.max(currentTime - lastMainChunkGroupTick, 0);
+
+        List<ActiveGroupSimulateData> pendingBlockPositions = new ArrayList<>();
+        List<ActiveGroupSimulateData> toBeAddedToMap = checkingBlockPositions;
+
+        Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap = new HashMap<>(UnloadedActivity.config.maxGroupTickSize);
+
+        int forceLoadedChunks = 0;
+        Set<ChunkPos> checkedChunks = new HashSet<>();
+        checkedChunks.add(chunk.getPos());
+
+        boolean chunksAreIndexed = true;
+
+        // Populate activeGroupDataMap
+        while (!checkingBlockPositions.isEmpty()) {
+            if (!toBeAddedToMap.isEmpty()) {
+                for (var groupSimulateData : toBeAddedToMap) {
+                    // Will only fail to add if something else is extending into that position.
+                    // The extending data will always take priority.
+                    boolean added = activeGroupDataMap.putIfAbsent(groupSimulateData.position, groupSimulateData) == null;
+                    if (added && groupSimulateData.blockState.getBlock() instanceof DoorBlock) {
+                        if (groupSimulateData.blockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
+                            BlockPos abovePos = groupSimulateData.position.above();
+                            var newGroupSimulateData = new ActiveGroupSimulateData(abovePos, null, Optional.empty(), groupSimulateData.getGroupMemberInfo(), level);
+                            groupSimulateData.extendingData.add(newGroupSimulateData);
+                            activeGroupDataMap.put(abovePos, newGroupSimulateData);
+                        }
+                    }
+                }
+                toBeAddedToMap = new ArrayList<>();
+            }
+
+            Set<ChunkPos> newChunks = new HashSet<>();
+
+            List<ActiveGroupSimulateData> finalizingBlockData = new ArrayList<>(checkingBlockPositions.size());
+
+            // Loop through all blocks.
+            // Separate blocks that wants info from another chunk and blocks that have everything they need.
+            for (var groupSimulateData : checkingBlockPositions) {
+                boolean intersectsNewChunks = false;
+
+                if (groupSimulateData.isActive) {
+                    for (var offset : groupInfo.iterateOffsets()) {
+                        BlockPos checkPos = groupSimulateData.position.offset(offset);
+                        ChunkPos chunkPos = GameUtils.chunkPosFromWorldPos(checkPos);
+                        boolean isNewChunk = !checkedChunks.contains(chunkPos);
+                        if (isNewChunk) {
+                            newChunks.add(chunkPos);
+                            intersectsNewChunks = true;
+                        }
+                    }
+                }
+
+                if (intersectsNewChunks) {
+                    pendingBlockPositions.add(groupSimulateData);
+                } else {
+                    finalizingBlockData.add(groupSimulateData);
+                }
+            }
+
+            checkingBlockPositions.clear();
+
+            // Get surrounding data from the blocks that have everything they need.
+            for (var data : finalizingBlockData) {
+                if (!data.isActive)
+                    continue;
+
+                BlockPos blockPos = data.position;
+
+                ActiveGroupSimulateData activeGroupSimulateData = activeGroupDataMap.get(blockPos);
+
+                for (var offset : groupInfo.iterateOffsets()) {
+                    if (offset.equals(Vec3i.ZERO)) {
+                        continue;
+                    }
+
+                    BlockPos affectingBlockPos = blockPos.offset(offset);
+
+                    ActiveGroupSimulateData affectingSimulateData = activeGroupDataMap.get(affectingBlockPos);
+
+                    if (affectingSimulateData != null)
+                        activeGroupSimulateData.surroundingData.add(affectingSimulateData);
+                }
+            }
+
+            finalizingBlockData.clear();
+
+            // Get requested chunks and add their blocks to checkingBlockPositions
+            for (var newChunkPos : newChunks) {
+                checkedChunks.add(newChunkPos);
+
+                if (!GameUtils.isChunkLoaded(level, newChunkPos)) {
+                    if (forceLoadedChunks >= UnloadedActivity.config.maxForcedChunkLoads)
+                        continue;
+                    forceLoadedChunks += 1;
+                }
+
+                LevelChunk newChunk = GameUtils.getChunk(level, newChunkPos);
+
+                if (!isChunkIndexed(newChunk)) {
+                    chunksAreIndexed = false;
+                    level.getServer().addChunkToQueueFront(chunk);
+                }
+
+                if (!chunksAreIndexed) {
+                    continue;
+                }
+
+                GroupChunkIndex newGroupChunkIndex = newChunk.getGroupIndexes().get(groupInfo.id);
+
+                if (newGroupChunkIndex == null)
+                    continue;
+
+                long newLastGroupTick = newGroupChunkIndex.getLastTick(newChunk.getLastTick());
+                long differenceFromMainChunk = lastMainChunkGroupTick - newLastGroupTick;
+                float differencePercentage = Math.abs((float)differenceFromMainChunk / (float)groupTimeDifference);
+
+                if (differencePercentage > UnloadedActivity.config.maxGroupTickDeviationScale)
+                    continue;
+
+                List<ActiveGroupSimulateData> newData = newGroupChunkIndex.getAndFilterBlocks(newChunk);
+                int newTotalSize = activeGroupDataMap.size() + newData.size();
+
+                if (newTotalSize > UnloadedActivity.config.maxGroupTickSize)
+                    continue;
+
+
+                newGroupChunkIndex.setLastTick(currentTime);
+                    #if MC_VER >= MC_1_21_3
+                chunk.markUnsaved();
+                    #else
+                    chunk.setUnsaved(true);
+                    #endif
+                toBeAddedToMap.addAll(newData);
+                checkingBlockPositions.addAll(newData);
+            }
+
+            if (!chunksAreIndexed) {
+                break;
+            }
+
+            // Prepare for next loop.
+            checkingBlockPositions.addAll(pendingBlockPositions);
+            pendingBlockPositions.clear();
+        }
+
+        if (!chunksAreIndexed) {
+            return Optional.empty();
+        }
+
+        return Optional.of(activeGroupDataMap);
+    }
+
+    public static List<List<ActiveGroupSimulateData>> separateToIsolatedGroups(Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap) {
+        ArrayList<List<ActiveGroupSimulateData>> isolatedGroups = new ArrayList<>();
+
+        int currentIndex = 0;
+
+        for (var groupEntry : activeGroupDataMap.entrySet()) {
+            ActiveGroupSimulateData activeGroupSimulateData = groupEntry.getValue();
+            if (!activeGroupSimulateData.isActive)
+                continue;
+
+            if (activeGroupSimulateData.groupIndex >= 0)
+                continue;
+
+            ArrayList<ActiveGroupSimulateData> newGroup = new ArrayList<>();
+
+            ArrayList<ActiveGroupSimulateData> pendingData = new ArrayList<>();
+            pendingData.add(activeGroupSimulateData);
+
+            while (!pendingData.isEmpty()) {
+                ArrayList<ActiveGroupSimulateData> listToLoop = pendingData;
+                pendingData = new ArrayList<>();
+
+                for (var updatingGroupData : listToLoop) {
+                    if (updatingGroupData.groupIndex >= 0)
+                        continue;
+
+                    newGroup.add(updatingGroupData);
+
+                    if (updatingGroupData.isActive) {
+                        updatingGroupData.groupIndex = currentIndex;
+                        pendingData.addAll(updatingGroupData.surroundingData);
+                    }
+
+                }
+            }
+
+            isolatedGroups.add(newGroup);
+            currentIndex += 1;
+        }
+
+        return isolatedGroups;
     }
 
     public static void simulateTicks(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
