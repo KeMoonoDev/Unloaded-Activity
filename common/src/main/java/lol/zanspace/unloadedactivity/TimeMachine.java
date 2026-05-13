@@ -438,7 +438,7 @@ public class TimeMachine {
 
             RandomSource random = level.getRandom();
             float randomPickOdds = MathUtils.getRandomPickOdds(randomTickSpeed);
-            float precipitationPickOdds = 1F/4096F;
+            float precipitationPickOdds = MathUtils.getPrecipitationPickOdds(randomTickSpeed);
 
             if (UnloadedActivity.config.debugLogs)
                 UnloadedActivity.LOGGER.info("Simulating " + isolatedGroups.size() + " isolated groups");
@@ -615,7 +615,7 @@ public class TimeMachine {
     public static void simulateBlock(BlockPos pos, ServerLevel level, long timeLeft, int randomTickSpeed, boolean allowPrecipitationTicks) {
 
         float randomPickChance = MathUtils.getRandomPickOdds(randomTickSpeed);
-        float precipitationPickChance = 1F/4096F; //1/(16*(16*16)). 16 for the chance of the chunk doing the tick and (16*16) for the chance of a block to be picked.
+        float precipitationPickChance = MathUtils.getPrecipitationPickOdds(randomTickSpeed);
 
         BlockState state = level.getBlockState(pos);
 

@@ -27,6 +27,14 @@ public class MathUtils {
         return (float) (1F-pow(1F - 1F / 4096F, randomTickSpeed));
     }
 
+    public static float getPrecipitationPickOdds(int randomTickSpeed) {
+        #if MC_VER >= MC_1_20_2
+        return (float) (1F-pow(1F - 1F / (48F * 256F), randomTickSpeed));
+        #else
+        return 1F/4096F;
+        #endif
+    }
+
     public static OccurrencesAndDuration getOccurrences(ServerLevel level, BlockState state, BlockPos pos, long endTime, long cycles, SimulateProperty property, int maxOccurrences, float randomPickOdds, boolean calculateDuration, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (maxOccurrences <= 0)
             return OccurrencesAndDuration.empty();
