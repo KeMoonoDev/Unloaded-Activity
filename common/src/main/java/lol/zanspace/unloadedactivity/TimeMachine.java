@@ -531,22 +531,32 @@ public class TimeMachine {
                 long differenceFromMainChunk = lastMainChunkGroupTick - newLastGroupTick;
                 float differencePercentage = Math.abs((float)differenceFromMainChunk / (float)groupTimeDifference);
 
+                boolean forceInactive = false;
+
                 if (differencePercentage > UnloadedActivity.config.maxGroupTickDeviationScale)
-                    continue;
+                    forceInactive = true;
 
                 List<ActiveGroupSimulateData> newData = newGroupChunkIndex.getAndFilterBlocks(newChunk);
                 int newTotalSize = activeGroupDataMap.size() + newData.size();
 
                 if (newTotalSize > UnloadedActivity.config.maxGroupTickSize)
-                    continue;
+                    forceInactive = true;
 
-
-                newGroupChunkIndex.setLastTick(currentTime);
+                if (forceInactive) {
+                    for (var groupSimData : newData) {
+                        // This makes them inactive.
+                        // They will still be considered during the simulation, but they themselves will not be simulated.
+                        groupSimData.setSimulateProperty(Optional.empty());
+                    }
+                } else {
+                    newGroupChunkIndex.setLastTick(currentTime);
                     #if MC_VER >= MC_1_21_3
-                chunk.markUnsaved();
+                    chunk.markUnsaved();
                     #else
                     chunk.setUnsaved(true);
                     #endif
+                }
+
                 toBeAddedToMap.addAll(newData);
                 checkingBlockPositions.addAll(newData);
             }
