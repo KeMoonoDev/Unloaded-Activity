@@ -70,16 +70,12 @@ public abstract class LevelChunkMixin extends ChunkAccess {
         List<GroupMemberInfo> memberInfoList = GroupInfoResource.getBlockMemberInfo(block);
 
         if (!memberInfoList.isEmpty()) {
-            var groupIndexes = this.getGroupIndexes();
-
             for (var memberInfo : memberInfoList) {
                 var groupId = memberInfo.groupInfo.id;
                 if (UnloadedActivity.config.debugLogs)
                     UnloadedActivity.LOGGER.info("Adding position to group list " + groupId + " " + blockPos.asLong());
 
-                var positions = groupIndexes
-                        .computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), this.getLastTick(), id))
-                        .getPositions();
+                var positions = getOrCreateGroupIndex(groupId).getPositions();
 
                 if (positions.contains(blockPos.asLong()))
                     continue;

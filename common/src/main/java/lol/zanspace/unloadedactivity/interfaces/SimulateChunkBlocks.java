@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.interfaces;
 
 #if MC_VER >= MC_1_21_11
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.animal.turtle.Turtle;
 #else
@@ -35,7 +36,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
 
@@ -753,8 +753,8 @@ public interface SimulateChunkBlocks {
         Block thisBlock = state.getBlock();
 
         for (var pair : newBlockStates) {
-            BlockPos newPos = pair.getLeft();
-            BlockState newState = pair.getRight();
+            BlockPos newPos = pair.getFirst();
+            BlockState newState = pair.getSecond();
             if (newPos.equals(pos) && newState.getBlock().equals(thisBlock)) {
                 level.setBlock(newPos, newState, simulateProperty.updateType);
             } else {
@@ -777,7 +777,7 @@ public interface SimulateChunkBlocks {
 
         Pair<BlockPos, BlockState> mainState = newBlockStates.get(newBlockStates.size() - 1);
 
-        return Triple.of(mainState.getRight(), result, mainState.getLeft());
+        return Triple.of(mainState.getSecond(), result, mainState.getFirst());
     };
 
     default boolean implementsSimulatePrecTicks() {

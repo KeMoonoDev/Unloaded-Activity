@@ -89,7 +89,7 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier()) {
 					++updateCount;
 					int groupUpdateBudget = UnloadedActivity.config.maxGroupUpdatesPerTick - groupUpdateCount;
-					Pair<Integer, Boolean> result = TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed, groupUpdateBudget);
+					Pair<Integer, Boolean> result = TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed, groupUpdateBudget, currentTime);
 					groupUpdateCount += result.getFirst();
 					boolean simulatedAllGroups = result.getSecond();
 					if (!simulatedAllGroups) {

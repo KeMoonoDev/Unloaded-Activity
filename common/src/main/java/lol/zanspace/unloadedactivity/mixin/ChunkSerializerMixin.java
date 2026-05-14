@@ -162,7 +162,7 @@ public abstract class ChunkSerializerMixin {
 public abstract class ChunkSerializerMixin {
 
     @Unique
-    private HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes = new HashMap<>();
+    private ArrayList<GroupChunkIndex> groupIndexes = new ArrayList<>();
     @Unique
     private long lastTick = 0;
     @Unique
@@ -183,9 +183,8 @@ public abstract class ChunkSerializerMixin {
         chunkData.putLongArray("sim_blocks", simBlocks);
 
         CompoundTag groupsData = new CompoundTag();
-        for (var entry : groupIndexes.entrySet()) {
-            var groupId = entry.getKey();
-            GroupChunkIndex groupChunkIndex = entry.getValue();
+        for (GroupChunkIndex groupChunkIndex : groupIndexes) {
+            var groupId = groupChunkIndex.groupId;
             CompoundTag groupData = new CompoundTag();
 
             groupData.putLongArray("positions", groupChunkIndex.getPositions().stream().mapToLong(l -> l).toArray());
@@ -253,7 +252,8 @@ public abstract class ChunkSerializerMixin {
             serializedChunk.ver = chunkData.getLong("ver")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.simBlocks = chunkData.getLongArray("sim_blocks")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif;
 
-            HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes = new HashMap<>();
+            ArrayList<GroupChunkIndex> groupIndexes = new ArrayList<>();
+
             CompoundTag groupsData = chunkData.getCompound("groups")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;;
             #if MC_VER >= MC_1_21_5
             for (String key : groupsData.keySet()) {
@@ -270,9 +270,10 @@ public abstract class ChunkSerializerMixin {
 
                 long groupLastTicked = groupData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(serializedChunk.lastTick)#endif;
 
-                GroupChunkIndex groupChunkIndex = groupIndexes.computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), groupLastTicked, id));
-                groupChunkIndex.setLastTick(groupLastTicked);
+                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastTicked, groupId);
                 groupChunkIndex.setPositions(groupData.getLongArray("positions")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif);
+
+                groupIndexes.add(groupChunkIndex);
             }
 
             serializedChunk.groupIndexes = groupIndexes;

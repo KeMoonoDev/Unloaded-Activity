@@ -13,17 +13,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 public class GroupInfo {
     public #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id;
     // It's incomplete because it will be combined later because blocks may have multiple tags and multiple member infos assigned.
     // This should only be used for constructing GroupMemberInfos for blocks.
     public HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values;
-    public LookupShape shape;
-    public int width;
-    public int height;
+    public final LookupShape shape;
+    public final int width;
+    public final int height;
+    public final List<Vec3i> finalOffsetsWithoutZero;
 
     public GroupInfo(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, IncompleteGroupInfo incomplete) {
         this.id = id;
@@ -57,9 +60,17 @@ public class GroupInfo {
             IncompleteGroupMemberInfo incompleteGroupMemberInfo = entry.getValue();
             this.values.put(key, incompleteGroupMemberInfo);
         }
+
+        ArrayList<Vec3i> finalOffsetsWithoutZero = new ArrayList<>();
+        for (Vec3i offset : this.iterateOffsets()) {
+            if (offset.equals(Vec3i.ZERO))
+                continue;
+            finalOffsetsWithoutZero.add(new Vec3i(offset.getX(), offset.getY(), offset.getZ()));
+        }
+        this.finalOffsetsWithoutZero = finalOffsetsWithoutZero;
     }
 
-    public Iterable<Vec3i> iterateOffsets() {
+    private Iterable<Vec3i> iterateOffsets() {
         switch (this.shape) {
             case DIAMOND -> {
                 return () -> new AbstractIterator<>() {

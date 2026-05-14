@@ -1,6 +1,8 @@
 package lol.zanspace.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -24,12 +26,13 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.*;
 
 public class TimeMachine {
     /// Returns how many groups were simulated and if the last ticked time should be updated/if normal ticks were simulated.
-    public static Pair<Integer, Boolean> simulateChunk(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget) {
+    public static Pair<Integer, Boolean> simulateChunk(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget, long currentTime) {
         if (!UnloadedActivity.config.enableSimulatingRandomTicks
             && !UnloadedActivity.config.enableSimulatingPrecipitationTicks
             && !UnloadedActivity.config.enableSimulatingGroups) return Pair.of(0, true);
@@ -37,7 +40,7 @@ public class TimeMachine {
         int simulatedGroupCount = 0;
 
         if (UnloadedActivity.config.enableSimulatingGroups) {
-            Pair<Integer, Boolean> result = TimeMachine.simulateGroupTicks(level, chunk, randomTickSpeed, groupUpdateBudget);
+            Pair<Integer, Boolean> result = TimeMachine.simulateGroupTicks(level, chunk, randomTickSpeed, groupUpdateBudget, currentTime);
             simulatedGroupCount = result.getFirst();
             boolean simulatedAllGroups = result.getSecond();
             if (!simulatedAllGroups) {
@@ -121,7 +124,7 @@ public class TimeMachine {
         }
 
         chunk.setSimulationBlocks(newSimulationBlocks);
-        chunk.setGroupIndexes(newGroupIndexes);
+        chunk.setGroupIndexes(new ArrayList<>(newGroupIndexes.values()));
         chunk.setSimulationVersion(UnloadedActivity.chunkSimVer);
         #if MC_VER >= MC_1_21_3
         chunk.markUnsaved();
@@ -190,25 +193,18 @@ public class TimeMachine {
     }
 
     // This doesn't take a timeDifference parameter because that is supposed to be calculated in the function using the last group tick.
-    public static Pair<Integer, Boolean> simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget) {
-        var groupIndexes = chunk.getGroupIndexes();
-
-        long currentTime = GameUtils.getTime(level);
+    public static Pair<Integer, Boolean> simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget, long currentTime) {
+        ArrayList<GroupChunkIndex> groupIndexes = chunk.getGroupIndexes();
 
         int simulatedGroups = 0;
 
         boolean missedGroup = false;
 
-        for (var entry : groupIndexes.entrySet()) {
-            var groupId = entry.getKey();
+        for (GroupChunkIndex groupChunkIndex : groupIndexes) {
+            var groupId = groupChunkIndex.groupId;
             GroupInfo groupInfo = GroupInfoResource.GROUPS_MAP.get(groupId);
 
             if (groupInfo == null)
-                continue;
-
-            GroupChunkIndex groupChunkIndex = entry.getValue();
-
-            if (groupChunkIndex == null)
                 continue;
 
             long lastGroupTick = groupChunkIndex.getLastTick(chunk.getLastTick());
@@ -248,13 +244,13 @@ public class TimeMachine {
 
             simulatedGroups++;
 
-            Optional<Map<BlockPos, ActiveGroupSimulateData>> maybeActiveGroupDataMap = generateActiveGroupDataMap(level, chunk, checkingBlockPositions, groupInfo, lastGroupTick);
+            Optional<Collection<ActiveGroupSimulateData>> maybeActiveGroupDataMap = generateActiveGroupDataMap(level, chunk, checkingBlockPositions, groupInfo, lastGroupTick, currentTime);
 
             if (maybeActiveGroupDataMap.isEmpty()) {
                 break;
             }
 
-            Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap = maybeActiveGroupDataMap.get();
+            Collection<ActiveGroupSimulateData> activeGroupDataMap = maybeActiveGroupDataMap.get();
 
             // Separate them into isolated groups.
             List<List<ActiveGroupSimulateData>> isolatedGroups = separateToIsolatedGroups(activeGroupDataMap);
@@ -283,8 +279,10 @@ public class TimeMachine {
                     totalIterations++;
 
                     long minNextOddsSwitchDuration = Long.MAX_VALUE;
-                    long nextWeatherSwitchDuration = Long.MAX_VALUE;
                     float maxProbability = 0F;
+
+                    long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(simulationCurrentTime);
+                    boolean isRaining = weatherData.getWeatherAtTime(simulationCurrentTime);
 
                     for (ActiveGroupSimulateData simulationData : group) {
                         if (!simulationData.isActive)
@@ -292,19 +290,6 @@ public class TimeMachine {
 
                         // For isActive to return true, there must be a simulateProperty present.
                         SimulateProperty simulateProperty = simulationData.getSimulateProperty().orElseThrow();
-
-                        BlockState state = simulationData.blockState;
-                        BlockPos pos = simulationData.position;
-                        boolean isRaining = weatherData.getWeatherAtTime(simulationCurrentTime);
-
-                        CalculationData calculationData = new CalculationData(level, state, pos, simulationCurrentTime, isRaining, false, simulationData);
-
-                        long nextOddsSwitchDuration = simulateProperty.advanceProbability.getNextValueSwitchDuration(calculationData);
-                        minNextOddsSwitchDuration = Math.min(minNextOddsSwitchDuration, nextOddsSwitchDuration);
-
-                        if (nextWeatherSwitchDuration == Long.MAX_VALUE && simulateProperty.advanceProbability.isAffectedByWeather(calculationData)) {
-                            nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(simulationCurrentTime);
-                        }
 
                         float pickOdds;
 
@@ -314,7 +299,16 @@ public class TimeMachine {
                             pickOdds = randomPickOdds;
                         }
 
-                        float probability = simulateProperty.advanceProbability.calculateValue(calculationData).floatValue() * pickOdds;
+                        BlockState state = simulationData.getState();
+                        BlockPos pos = simulationData.position;
+
+                        CalculationData calculationData = new CalculationData(level, state, pos, simulationCurrentTime, isRaining, false, simulationData);
+
+                        Pair<Float, Long> oddsAndDuration = simulationData.updateAndGetOdds(nextWeatherSwitchDuration, calculationData);
+
+                        minNextOddsSwitchDuration = Math.min(minNextOddsSwitchDuration, oddsAndDuration.getSecond());
+
+                        float probability = oddsAndDuration.getFirst() * pickOdds;
 
                         maxProbability = Math.max(probability, maxProbability);
                     }
@@ -326,19 +320,21 @@ public class TimeMachine {
                     probabilityDuration = Math.min(maxProbabilityStepDuration, probabilityDuration);
                     probabilityDuration = Math.max(minProbabilityStepDuration, probabilityDuration);
 
-                    long simulationStepDuration = Math.min(Math.min(Math.min(minNextOddsSwitchDuration, nextWeatherSwitchDuration), probabilityDuration), remainingCycles);
+                    long simulationStepDuration = Math.min(Math.min(minNextOddsSwitchDuration, probabilityDuration), remainingCycles);
 
-                    ArrayList<ActiveGroupSimulateData> pendingRemoval = new ArrayList<>();
-                    ArrayList<Pair<ActiveGroupSimulateData, GroupMemberInfo>> pendingUpdateMembership = new ArrayList<>();
+                    ArrayList<Triple<BlockState, ActiveGroupSimulateData, Optional<GroupMemberInfo>>> pendingUpdateBlockInfo = new ArrayList<>();
 
                     for (ActiveGroupSimulateData simulationData : group) {
                         if (!simulationData.isActive)
                             continue;
 
+                        simulationData.passTime(simulationStepDuration);
+
                         // For isActive to return true, there must be a simulateProperty present.
                         SimulateProperty simulateProperty = simulationData.getSimulateProperty().orElseThrow();
 
-                        Block block = simulationData.blockState.getBlock();
+                        BlockState state = simulationData.getState();
+                        Block block = state.getBlock();
 
                         float pickOdds;
 
@@ -348,62 +344,108 @@ public class TimeMachine {
                             pickOdds = randomPickOdds;
                         }
 
-                        var result = block.simulateProperty(simulationData.blockState, level, simulationData.position, simulateProperty, random, simulationStepDuration, pickOdds, false, simulationData);
+                        int remainingUpdates = simulationData.getRemainingUpdates();
 
-                        if (result == null) {
-                            pendingRemoval.add(simulationData);
+                        if (remainingUpdates > 0) {
+                            float totalOdds = simulationData.currentOdds * pickOdds;
+                            int occurrences = MathUtils.getOccurrencesBinomial(simulationStepDuration, totalOdds, remainingUpdates, random);
+                            simulationData.addUpdateCount(occurrences);
+                        }
+
+                        remainingUpdates = simulationData.getRemainingUpdates();
+
+                        if (remainingUpdates > 0) {
                             continue;
                         }
 
-                        if (!result.getRight().equals(simulationData.position)) {
-                            pendingRemoval.add(simulationData);
+                        int updateCount = simulationData.getCurrentUpdateCount();
+
+                        List<Pair<BlockPos, BlockState>> newBlockStates = block.getNewBlockStates(state, level, simulationData.position, simulateProperty, updateCount, simulationStepDuration, simulationStepDuration);
+
+                        if (newBlockStates.size() > 1) {
+                            throw new RuntimeException("Group simulation type must only return 1 or 0 new blockstates.");
+                        }
+
+                        if (newBlockStates.isEmpty()) {
+                            simulationData.isActive = false;
                             continue;
                         }
 
-                        simulationData.blockState = result.getLeft();
+                        Pair<BlockPos, BlockState> newBlockData = newBlockStates.getFirst();
 
-                        Block newBlock = simulationData.blockState.getBlock();
-                        if (newBlock != block) {
-                            Optional<GroupMemberInfo> maybeGroupMemberInfo = GroupInfoResource.getBlockMemberInfo(newBlock)
-                                .stream()
-                                .filter(info -> info.groupInfo == groupInfo)
-                                .findFirst();
+                        if (!newBlockData.getFirst().equals(simulationData.position)) {
+                            throw new RuntimeException("Group simulation type must not change its position.");
+                        }
 
-                            if (maybeGroupMemberInfo.isPresent()) {
-                                var newSimulateProperty = newBlock.getSimulationData().propertyMap.values().stream().filter(property -> property.simulateWithGroup.equals(Optional.of(groupId))).findFirst();
-                                simulationData.setSimulateProperty(newSimulateProperty);
-                                pendingUpdateMembership.add(Pair.of(simulationData, maybeGroupMemberInfo.get()));
-                            } else {
-                                pendingRemoval.add(simulationData);
+                        simulationData.placeBlock = true;
+
+                        BlockState newBlockState = newBlockData.getSecond();
+                        Block newBlock = newBlockState.getBlock();
+                        if (newBlock == block) {
+                            simulationData.isActive = false;
+                            pendingUpdateBlockInfo.add(Triple.of(newBlockState, simulationData, Optional.of(simulationData.getGroupMemberInfo())));
+                            simulationData.updateType = simulateProperty.updateType;
+                            continue;
+                        }
+
+                        simulationData.blockIsReplaced = true;
+
+                        Optional<GroupMemberInfo> maybeGroupMemberInfo = GroupInfoResource.getBlockMemberInfo(newBlock)
+                            .stream()
+                            .filter(info -> info.groupInfo == groupInfo)
+                            .findFirst();
+
+                        pendingUpdateBlockInfo.add(Triple.of(newBlockState, simulationData, maybeGroupMemberInfo));
+                    }
+
+                    for (var triple : pendingUpdateBlockInfo) {
+                        ActiveGroupSimulateData updatingData = triple.getMiddle();
+                        Optional<GroupMemberInfo> maybeGroupMemberInfo = triple.getRight();
+                        BlockState state = triple.getLeft();
+
+                        if (maybeGroupMemberInfo.isEmpty()) {
+                            updatingData.updateBlockInfo(state, Optional.empty(), null);
+                            // The line above already invalidates the surrounding data's caches. No need to be worried.
+                            for (var nearData : updatingData.surroundingData) {
+                                nearData.surroundingData.removeIf(data -> data == updatingData);
+                            }
+                            for (ActiveGroupSimulateData extendedData : updatingData.extendingData) {
+                                extendedData.updateBlockInfo(null, Optional.empty(), null);
+                                for (var nearData : extendedData.surroundingData) {
+                                    nearData.surroundingData.removeIf(data -> data == extendedData);
+                                }
                             }
                             continue;
                         }
 
-                        if (block.isPropertyFinished(simulationData.blockState, level, simulationData.position, simulateProperty)) {
-                            simulationData.isActive = false;
+                        if (!updatingData.isActive) {
+                            updatingData.updateBlockInfo(state, Optional.empty(), maybeGroupMemberInfo.get());
+                        } else {
+                            var newSimulateProperty = state.getBlock().getSimulationData().propertyMap.values().stream().filter(property -> property.simulateWithGroup.equals(Optional.of(groupId))).findFirst();
+                            updatingData.updateBlockInfo(state, newSimulateProperty, maybeGroupMemberInfo.get());
                         }
-                    }
 
-                    for (var removingData : pendingRemoval) {
-                        removingData.isActive = false;
-                        for (var nearData : removingData.surroundingData) {
-                            nearData.surroundingData.removeIf(data -> data == removingData);
-                        }
-                    }
-
-                    for (var pair : pendingUpdateMembership) {
-                        ActiveGroupSimulateData updatingData = pair.getFirst();
-                        updatingData.setGroupMemberInfo(pair.getSecond());
                         for (ActiveGroupSimulateData extendedData : updatingData.extendingData) {
-                            extendedData.setGroupMemberInfo(pair.getSecond());
+                            extendedData.updateBlockInfo(null, Optional.empty(), maybeGroupMemberInfo.get());
                         }
                     }
 
-                    group.removeIf(data -> !data.isActive);
+                    //group.removeIf(data -> !data.isActive);
 
                     remainingCycles -= simulationStepDuration;
 
 
+                }
+
+                for (var data : group) {
+                    if (!data.placeBlock)
+                        continue;
+
+                    if (data.blockIsReplaced) {
+                        level.setBlockAndUpdate(data.position, data.getState());
+                    } else {
+                        level.setBlock(data.position, data.getState(), data.updateType);
+                    }
                 }
             }
         }
@@ -412,20 +454,24 @@ public class TimeMachine {
     }
 
 
-    public static Optional<Map<BlockPos, ActiveGroupSimulateData>> generateActiveGroupDataMap(ServerLevel level, LevelChunk chunk, ArrayList<ActiveGroupSimulateData> checkingBlockPositions, GroupInfo groupInfo, long lastMainChunkGroupTick) {
-        long currentTime = GameUtils.getTime(level);
+    public static Optional<Collection<ActiveGroupSimulateData>> generateActiveGroupDataMap(ServerLevel level, LevelChunk chunk, ArrayList<ActiveGroupSimulateData> checkingBlockPositions, GroupInfo groupInfo, long lastMainChunkGroupTick, long currentTime) {
         long groupTimeDifference = Math.max(currentTime - lastMainChunkGroupTick, 0);
 
         List<ActiveGroupSimulateData> pendingBlockPositions = new ArrayList<>();
-        List<ActiveGroupSimulateData> toBeAddedToMap = checkingBlockPositions;
+        List<ActiveGroupSimulateData> toBeAddedToMap = new ArrayList<>(checkingBlockPositions);
 
-        Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap = new HashMap<>(UnloadedActivity.config.maxGroupTickSize);
+        Long2ObjectOpenHashMap<ActiveGroupSimulateData> activeGroupDataMap = new Long2ObjectOpenHashMap<>();
 
         int forceLoadedChunks = 0;
-        Set<ChunkPos> checkedChunks = new HashSet<>();
-        checkedChunks.add(chunk.getPos());
+        // Might be able to replace this with a list and call .contains() considering it's not going to be that big.
+        LongOpenHashSet checkedChunks = new LongOpenHashSet();
+        checkedChunks.add(chunk.getPos().pack());
 
         boolean chunksAreIndexed = true;
+
+        // Define things up here to not have to reallocate it every loop.
+        ArrayList<ActiveGroupSimulateData> finalizingBlockData = new ArrayList<>();
+        LongOpenHashSet newChunks = new LongOpenHashSet();
 
         // Populate activeGroupDataMap
         while (!checkingBlockPositions.isEmpty()) {
@@ -433,22 +479,21 @@ public class TimeMachine {
                 for (var groupSimulateData : toBeAddedToMap) {
                     // Will only fail to add if something else is extending into that position.
                     // The extending data will always take priority.
-                    boolean added = activeGroupDataMap.putIfAbsent(groupSimulateData.position, groupSimulateData) == null;
-                    if (added && groupSimulateData.blockState.getBlock() instanceof DoorBlock) {
-                        if (groupSimulateData.blockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
+                    boolean added = activeGroupDataMap.putIfAbsent(groupSimulateData.position.asLong(), groupSimulateData) == null;
+                    if (added && groupSimulateData.getState().getBlock() instanceof DoorBlock) {
+                        if (groupSimulateData.getState().getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
                             BlockPos abovePos = groupSimulateData.position.above();
                             var newGroupSimulateData = new ActiveGroupSimulateData(abovePos, null, Optional.empty(), groupSimulateData.getGroupMemberInfo(), level);
                             groupSimulateData.extendingData.add(newGroupSimulateData);
-                            activeGroupDataMap.put(abovePos, newGroupSimulateData);
+                            activeGroupDataMap.put(abovePos.asLong(), newGroupSimulateData);
                         }
                     }
                 }
-                toBeAddedToMap = new ArrayList<>();
+                toBeAddedToMap.clear();
             }
 
-            Set<ChunkPos> newChunks = new HashSet<>();
-
-            List<ActiveGroupSimulateData> finalizingBlockData = new ArrayList<>(checkingBlockPositions.size());
+            finalizingBlockData.clear();
+            newChunks.clear();
 
             // Loop through all blocks.
             // Separate blocks that wants info from another chunk and blocks that have everything they need.
@@ -456,12 +501,12 @@ public class TimeMachine {
                 boolean intersectsNewChunks = false;
 
                 if (groupSimulateData.isActive) {
-                    for (var offset : groupInfo.iterateOffsets()) {
+                    for (var offset : groupInfo.finalOffsetsWithoutZero) {
                         BlockPos checkPos = groupSimulateData.position.offset(offset);
                         ChunkPos chunkPos = GameUtils.chunkPosFromWorldPos(checkPos);
-                        boolean isNewChunk = !checkedChunks.contains(chunkPos);
+                        boolean isNewChunk = !checkedChunks.contains(chunkPos.pack());
                         if (isNewChunk) {
-                            newChunks.add(chunkPos);
+                            newChunks.add(chunkPos.pack());
                             intersectsNewChunks = true;
                         }
                     }
@@ -477,34 +522,27 @@ public class TimeMachine {
             checkingBlockPositions.clear();
 
             // Get surrounding data from the blocks that have everything they need.
-            for (var data : finalizingBlockData) {
-                if (!data.isActive)
+            for (var currentActiveGroupSimulateData : finalizingBlockData) {
+                if (!currentActiveGroupSimulateData.isActive)
                     continue;
 
-                BlockPos blockPos = data.position;
+                BlockPos blockPos = currentActiveGroupSimulateData.position;
 
-                ActiveGroupSimulateData activeGroupSimulateData = activeGroupDataMap.get(blockPos);
-
-                for (var offset : groupInfo.iterateOffsets()) {
-                    if (offset.equals(Vec3i.ZERO)) {
-                        continue;
-                    }
-
+                for (var offset : groupInfo.finalOffsetsWithoutZero) {
                     BlockPos affectingBlockPos = blockPos.offset(offset);
 
-                    ActiveGroupSimulateData affectingSimulateData = activeGroupDataMap.get(affectingBlockPos);
+                    ActiveGroupSimulateData affectingSimulateData = activeGroupDataMap.get(affectingBlockPos.asLong());
 
                     if (affectingSimulateData != null)
-                        activeGroupSimulateData.surroundingData.add(affectingSimulateData);
+                        currentActiveGroupSimulateData.surroundingData.add(affectingSimulateData);
                 }
             }
 
-            finalizingBlockData.clear();
-
             // Get requested chunks and add their blocks to checkingBlockPositions
-            for (var newChunkPos : newChunks) {
-                checkedChunks.add(newChunkPos);
+            for (long newChunkPosLong : newChunks) {
+                checkedChunks.add(newChunkPosLong);
 
+                ChunkPos newChunkPos = ChunkPos.unpack(newChunkPosLong);
                 if (!GameUtils.isChunkLoaded(level, newChunkPos)) {
                     if (forceLoadedChunks >= UnloadedActivity.config.maxForcedChunkLoads)
                         continue;
@@ -522,7 +560,7 @@ public class TimeMachine {
                     continue;
                 }
 
-                GroupChunkIndex newGroupChunkIndex = newChunk.getGroupIndexes().get(groupInfo.id);
+                GroupChunkIndex newGroupChunkIndex = newChunk.getOrCreateGroupIndex(groupInfo.id);
 
                 if (newGroupChunkIndex == null)
                     continue;
@@ -544,9 +582,8 @@ public class TimeMachine {
 
                 if (forceInactive) {
                     for (var groupSimData : newData) {
-                        // This makes them inactive.
                         // They will still be considered during the simulation, but they themselves will not be simulated.
-                        groupSimData.setSimulateProperty(Optional.empty());
+                        groupSimData.isActive = false;
                     }
                 } else {
                     newGroupChunkIndex.setLastTick(currentTime);
@@ -574,16 +611,15 @@ public class TimeMachine {
             return Optional.empty();
         }
 
-        return Optional.of(activeGroupDataMap);
+        return Optional.of(activeGroupDataMap.values());
     }
 
-    public static List<List<ActiveGroupSimulateData>> separateToIsolatedGroups(Map<BlockPos, ActiveGroupSimulateData> activeGroupDataMap) {
+    public static List<List<ActiveGroupSimulateData>> separateToIsolatedGroups(Collection<ActiveGroupSimulateData> activeGroupDataMap) {
         ArrayList<List<ActiveGroupSimulateData>> isolatedGroups = new ArrayList<>();
 
         int currentIndex = 0;
 
-        for (var groupEntry : activeGroupDataMap.entrySet()) {
-            ActiveGroupSimulateData activeGroupSimulateData = groupEntry.getValue();
+        for (var activeGroupSimulateData : activeGroupDataMap) {
             if (!activeGroupSimulateData.isActive)
                 continue;
 

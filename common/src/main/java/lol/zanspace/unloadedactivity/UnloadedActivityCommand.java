@@ -101,8 +101,8 @@ public class UnloadedActivityCommand {
                                 int z = getInteger(context, "z");
                                 var chunk = context.getSource().getLevel().getChunk(x, z);
                                 String finalStr = "";
-                                for (var entry : chunk.getGroupIndexes().entrySet()) {
-                                    finalStr = finalStr + entry.getKey() + ": " + entry.getValue().getPositions() + " " + entry.getValue().getLastTick(0) + " or " + entry.getValue().getLastTick(chunk.getLastTick()) + "\n";
+                                for (var groupIndex : chunk.getGroupIndexes()) {
+                                    finalStr = finalStr + groupIndex.groupId + ": " + groupIndex.getPositions() + " " + groupIndex.getLastTick(0) + " or " + groupIndex.getLastTick(chunk.getLastTick()) + "\n";
                                 }
                                 context.getSource().sendSystemMessage(Component.literal(finalStr));
                             } catch (RuntimeException err) {

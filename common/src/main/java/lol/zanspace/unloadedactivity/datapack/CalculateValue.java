@@ -42,7 +42,7 @@ public interface CalculateValue<T> {
 
         var numberValue = ops.getNumberValue(input);
         if (numberValue.result().isPresent()) {
-            return new SimpleValue<>(numberValue.result().get());
+            return new SimpleValue<>(numberValue.result().get().floatValue());
         }
 
         var booleanValue = ops.getBooleanValue(input);

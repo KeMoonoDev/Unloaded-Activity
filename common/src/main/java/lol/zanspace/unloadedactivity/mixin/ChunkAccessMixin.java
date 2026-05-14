@@ -37,7 +37,7 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
 
     // All groups in the chunk with their blocks and when they were last ticked.
     @Unique
-    private HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes = new HashMap<>();
+    private ArrayList<GroupChunkIndex> groupIndexes = new ArrayList<>();
 
     @Override
     public long getLastTick() {
@@ -60,9 +60,9 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     }
 
 
-    public HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> getGroupIndexes() {return groupIndexes;};
+    public ArrayList<GroupChunkIndex> getGroupIndexes() {return groupIndexes;};
 
-    public void setGroupIndexes(HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes) {
+    public void setGroupIndexes(ArrayList<GroupChunkIndex> groupIndexes) {
         this.groupIndexes = groupIndexes;
     };
 

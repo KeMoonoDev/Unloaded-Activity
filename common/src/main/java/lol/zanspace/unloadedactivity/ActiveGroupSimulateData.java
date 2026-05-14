@@ -1,5 +1,7 @@
 package lol.zanspace.unloadedactivity;
 
+import com.mojang.datafixers.util.Pair;
+import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import net.minecraft.core.BlockPos;
@@ -17,9 +19,18 @@ public class ActiveGroupSimulateData {
     public ArrayList<ActiveGroupSimulateData> extendingData;
     public boolean isActive;
     public int groupIndex;
-    public BlockPos position;
-    public BlockState blockState;
-    public ServerLevel level;
+    public final BlockPos position;
+    private BlockState blockState;
+    public final ServerLevel level;
+    private int currentUpdateCount;
+    private int maxUpdateCount;
+    public boolean placeBlock;
+    public boolean blockIsReplaced;
+    public int updateType;
+
+    public long nextOddsSwitchDuration;
+    public float currentOdds;
+
     private Optional<SimulateProperty> simulateProperty;
     private GroupMemberInfo groupMemberInfo;
 
@@ -27,34 +38,100 @@ public class ActiveGroupSimulateData {
         this.surroundingData = new ArrayList<>();
         this.extendingData = new ArrayList<>();
         this.position = position;
-        this.blockState = blockState;
         this.level = level;
-        this.groupMemberInfo = groupMemberInfo;
         this.groupIndex = -1;
+        this.currentUpdateCount = 0;
+        this.maxUpdateCount = 0;
+        this.placeBlock = false;
+        this.updateType = Block.UPDATE_ALL;
+        this.nextOddsSwitchDuration = 0;
+        this.currentOdds = 0;
 
-        this.setSimulateProperty(simulateProperty);
+        this.updateBlockInfo(blockState, simulateProperty, groupMemberInfo);
     }
 
     public GroupMemberInfo getGroupMemberInfo() {
         return groupMemberInfo;
     }
 
-    public void setGroupMemberInfo(GroupMemberInfo groupMemberInfo) {
-        this.groupMemberInfo = groupMemberInfo;
-    }
-
     public Optional<SimulateProperty> getSimulateProperty() {
         return simulateProperty;
     }
 
-    public void setSimulateProperty(Optional<SimulateProperty> simulateProperty) {
+    public int getRemainingUpdates() {
+        return maxUpdateCount - currentUpdateCount;
+    }
+
+    public void addUpdateCount(int count) {
+        currentUpdateCount += count;
+    }
+
+    public int getCurrentUpdateCount() {
+        return currentUpdateCount;
+    }
+
+    public BlockState getState() {
+        return blockState;
+    }
+
+    public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, CalculationData calculationData) {
+        if (this.nextOddsSwitchDuration <= 0) {
+            if (this.simulateProperty.isEmpty()) {
+                this.nextOddsSwitchDuration = Long.MAX_VALUE;
+                this.currentOdds = 0;
+                return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
+            }
+
+            SimulateProperty simulateProperty = this.simulateProperty.get();
+
+            this.nextOddsSwitchDuration = simulateProperty.advanceProbability.getNextValueSwitchDuration(calculationData);
+
+            if (simulateProperty.advanceProbability.isAffectedByWeather(calculationData)) {
+                this.nextOddsSwitchDuration = Math.min(this.nextOddsSwitchDuration, nextWeatherSwitchDuration);
+            }
+
+            this.currentOdds = simulateProperty.advanceProbability.calculateValue(calculationData).floatValue();
+        }
+        return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
+    }
+
+    public void passTime(long duration) {
+        this.nextOddsSwitchDuration -= duration;
+    }
+
+    public void invalidateCaches() {
+        this.nextOddsSwitchDuration = 0;
+        this.currentOdds = 0;
+    }
+
+    public void updateBlockInfo(BlockState state, Optional<SimulateProperty> simulateProperty, GroupMemberInfo groupMemberInfo) {
+        boolean invalidateOtherCaches = this.groupMemberInfo != groupMemberInfo;
+        this.groupMemberInfo = groupMemberInfo;
         this.simulateProperty = simulateProperty;
+        this.blockState = state;
+        this.maxUpdateCount = 0;
+        this.currentUpdateCount = 0;
         if (this.simulateProperty.isPresent()) {
             SimulateProperty someSimulateProperty = this.simulateProperty.get();
             Block block = this.blockState.getBlock();
             this.isActive = block.canSimulateProperty(this.blockState, this.level, this.position, someSimulateProperty);
+            if (this.isActive) {
+                this.maxUpdateCount = block.getMaxUpdateCount(this.blockState, this.level, this.position, someSimulateProperty);
+                this.currentUpdateCount = 0;
+            }
         } else {
             this.isActive = false;
+        }
+
+        this.invalidateCaches();
+
+        if (invalidateOtherCaches) {
+            for (var data : this.surroundingData) {
+                data.invalidateCaches();
+            }
+            for (var data : this.extendingData) {
+                data.invalidateCaches();
+            }
         }
     }
 }

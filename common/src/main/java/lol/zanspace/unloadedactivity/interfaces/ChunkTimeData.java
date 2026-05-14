@@ -23,9 +23,23 @@ public interface ChunkTimeData {
 
     default void setSimulationVersion(long ver) {};
 
-    default HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> getGroupIndexes() {return new HashMap<>();};
+    default ArrayList<GroupChunkIndex> getGroupIndexes() {return new ArrayList<>();};
 
-    default void setGroupIndexes(HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupChunkIndex> groupIndexes) {};
+    default GroupChunkIndex getOrCreateGroupIndex(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
+        ArrayList<GroupChunkIndex> groupChunkIndexes = getGroupIndexes();
+
+        for (GroupChunkIndex groupChunkIndex : groupChunkIndexes) {
+            if (groupChunkIndex.groupId.equals(groupId)) {
+                return groupChunkIndex;
+            }
+        }
+
+        GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), getLastTick(), groupId);
+        groupChunkIndexes.add(groupChunkIndex);
+        return groupChunkIndex;
+    };
+
+    default void setGroupIndexes(ArrayList<GroupChunkIndex> groupIndexes) {};
 
     default ArrayList<Long> getSimulationBlocks() {return new ArrayList<>();};
 
