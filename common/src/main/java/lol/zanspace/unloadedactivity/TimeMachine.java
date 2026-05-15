@@ -405,15 +405,9 @@ public class TimeMachine {
 
                         if (maybeGroupMemberInfo.isEmpty()) {
                             updatingData.updateBlockInfo(state, Optional.empty(), null);
-                            // The line above already invalidates the surrounding data's caches. No need to be worried.
-                            for (var nearData : updatingData.surroundingData) {
-                                nearData.surroundingData.removeIf(data -> data == updatingData);
-                            }
+                            // The line above already invalidates the surrounding data's caches and removes itself from them. No need to be worried.
                             for (ActiveGroupSimulateData extendedData : updatingData.extendingData) {
                                 extendedData.updateBlockInfo(null, Optional.empty(), null);
-                                for (var nearData : extendedData.surroundingData) {
-                                    nearData.surroundingData.removeIf(data -> data == extendedData);
-                                }
                             }
                             continue;
                         }

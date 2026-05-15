@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -103,14 +104,8 @@ public class ActiveGroupSimulateData {
         this.nextOddsSwitchDuration -= duration;
     }
 
-    public void invalidateOddsCaches() {
-        this.nextOddsSwitchDuration = 0;
-        this.currentOdds = 0;
-    }
 
-    public void updateBlockInfo(BlockState state, Optional<SimulateProperty> simulateProperty, GroupMemberInfo groupMemberInfo) {
-        boolean invalidateOtherCaches = this.groupMemberInfo != groupMemberInfo;
-        this.groupMemberInfo = groupMemberInfo;
+    public void updateBlockInfo(BlockState state, Optional<SimulateProperty> simulateProperty, @Nullable GroupMemberInfo groupMemberInfo) {
         this.simulateProperty = simulateProperty;
         this.blockState = state;
         this.maxUpdateCount = 0;
@@ -142,15 +137,172 @@ public class ActiveGroupSimulateData {
             this.isActive = false;
         }
 
-        this.invalidateOddsCaches();
+        boolean invalidateOtherCaches = this.groupMemberInfo != groupMemberInfo;
+        GroupMemberInfo oldGroupMemberInfo = this.groupMemberInfo;
+
+        this.groupMemberInfo = groupMemberInfo;
+        this.invalidateAllCaches();
+        for (var data : this.extendingData) {
+            data.groupMemberInfo = groupMemberInfo;
+            data.invalidateAllCaches();
+        }
 
         if (invalidateOtherCaches) {
             for (var data : this.surroundingData) {
-                data.invalidateOddsCaches();
+                data.invalidateAndFixCaches(oldGroupMemberInfo, this);
             }
-            for (var data : this.extendingData) {
-                data.invalidateOddsCaches();
+            for (var extendedData : this.extendingData) {
+                for (var data : this.surroundingData) {
+                    data.invalidateAndFixCaches(oldGroupMemberInfo, extendedData);
+                }
             }
         }
+    }
+
+    @Nullable
+    private Float groupSum = null;
+
+    @Nullable
+    private Integer groupHigherValueCount = null;
+
+    @Nullable
+    private Integer groupLowerValueCount = null;
+
+    @Nullable
+    private Integer groupEqualValueCount = null;
+
+    public void invalidateAllCaches() {
+        this.nextOddsSwitchDuration = 0;
+        this.currentOdds = 0;
+        this.groupSum = null;
+        this.groupHigherValueCount = null;
+        this.groupLowerValueCount = null;
+        this.groupEqualValueCount = null;
+    }
+
+    public void invalidateAndFixCaches(GroupMemberInfo oldMemberInfo, ActiveGroupSimulateData newGroupSimulateData) {
+        this.nextOddsSwitchDuration = 0;
+        this.currentOdds = 0;
+
+        GroupMemberInfo newMemberInfo = newGroupSimulateData.groupMemberInfo;
+
+        if (groupSum != null) {
+            groupSum -= oldMemberInfo.value;
+            if (newMemberInfo != null) {
+                groupSum += newMemberInfo.value;
+            }
+        }
+
+        if (groupHigherValueCount != null) {
+            if (oldMemberInfo.value > groupMemberInfo.value) {
+                groupHigherValueCount -= 1;
+            }
+            if (newMemberInfo != null) {
+                if (newMemberInfo.value > groupMemberInfo.value) {
+                    groupHigherValueCount += 1;
+                }
+            }
+        }
+
+        if (groupLowerValueCount != null) {
+            if (oldMemberInfo.value < groupMemberInfo.value) {
+                groupLowerValueCount -= 1;
+            }
+            if (newMemberInfo != null) {
+                if (newMemberInfo.value < groupMemberInfo.value) {
+                    groupLowerValueCount += 1;
+                }
+            }
+        }
+
+        if (groupEqualValueCount != null) {
+            if (oldMemberInfo.value == groupMemberInfo.value) {
+                groupEqualValueCount -= 1;
+            }
+            if (newMemberInfo != null) {
+                if (newMemberInfo.value == groupMemberInfo.value) {
+                    groupEqualValueCount += 1;
+                }
+            }
+        }
+
+        if (newMemberInfo == null) {
+            this.surroundingData.removeIf(data -> data == newGroupSimulateData);
+        }
+    }
+
+    public float getGroupSum() {
+        if (groupSum != null) {
+            return groupSum;
+        }
+
+        float sum = this.groupMemberInfo.value;
+
+        for (var surrounding : this.surroundingData) {
+            sum += surrounding.getGroupMemberInfo().value;
+        }
+
+        groupSum = sum;
+        return sum;
+    }
+
+    public int getGroupHigherValueCount() {
+        if (groupHigherValueCount != null) {
+            return groupHigherValueCount;
+        }
+
+        int count = 0;
+
+        float thisValue = this.getGroupMemberInfo().value;
+
+        for (var surrounding : this.surroundingData) {
+            if (surrounding.getGroupMemberInfo().value > thisValue) {
+                count++;
+            }
+        }
+
+        groupHigherValueCount = count;
+
+        return count;
+    }
+
+    public int getGroupLowerValueCount() {
+        if (groupLowerValueCount != null) {
+            return groupLowerValueCount;
+        }
+
+        int count = 0;
+
+        float thisValue = this.getGroupMemberInfo().value;
+
+        for (var surrounding : this.surroundingData) {
+            if (surrounding.getGroupMemberInfo().value < thisValue) {
+                count++;
+            }
+        }
+
+        groupLowerValueCount = count;
+
+        return count;
+    }
+
+    public int getGroupEqualValueCount() {
+        if (groupEqualValueCount != null) {
+            return groupEqualValueCount;
+        }
+
+        int count = 1;
+
+        float thisValue = this.getGroupMemberInfo().value;
+
+        for (var surrounding : this.surroundingData) {
+            if (surrounding.getGroupMemberInfo().value == thisValue) {
+                count++;
+            }
+        }
+
+        groupEqualValueCount = count;
+
+        return count;
     }
 }

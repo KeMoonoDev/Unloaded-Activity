@@ -206,18 +206,10 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     GROUP_SUM {
         @Override
         public Number calculateValue(CalculationData data) {
-            float sum = 0;
-
             if (data.activeGroupSimulateData == null)
-                return sum;
+                return 0;
 
-            sum += data.activeGroupSimulateData.getGroupMemberInfo().value;
-
-            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                sum += surrounding.getGroupMemberInfo().value;
-            }
-
-            return sum;
+            return data.activeGroupSimulateData.getGroupSum();
         }
     },
 
@@ -227,107 +219,57 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.activeGroupSimulateData == null)
                 return 1; // We count ourselves
 
-            return data.activeGroupSimulateData.surroundingData.size();
+            return data.activeGroupSimulateData.surroundingData.size() + 1;
         }
     },
 
     GROUP_HIGHER_VALUE_COUNT {
         @Override
         public Number calculateValue(CalculationData data) {
-            float count = 0;
-
             if (data.activeGroupSimulateData == null)
-                return count;
+                return 0;
 
-            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
-
-            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.getGroupMemberInfo().value > thisValue) {
-                    count++;
-                }
-            }
-
-            return count;
+            return data.activeGroupSimulateData.getGroupHigherValueCount();
         }
     },
 
     GROUP_HIGHER_OR_EQUAL_VALUE_COUNT {
         @Override
         public Number calculateValue(CalculationData data) {
-            float count = 1; // start with 1 because we count ourselves
-
             if (data.activeGroupSimulateData == null)
-                return count;
+                return 1;
 
-            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
-
-            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.getGroupMemberInfo().value >= thisValue) {
-                    count++;
-                }
-            }
-
-            return count;
+            return data.activeGroupSimulateData.getGroupHigherValueCount() + data.activeGroupSimulateData.getGroupEqualValueCount();
         }
     },
 
     GROUP_LOWER_VALUE_COUNT {
         @Override
         public Number calculateValue(CalculationData data) {
-            float count = 0;
-
             if (data.activeGroupSimulateData == null)
-                return count;
+                return 0;
 
-            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
-
-            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.getGroupMemberInfo().value < thisValue) {
-                    count++;
-                }
-            }
-
-            return count;
+            return data.activeGroupSimulateData.getGroupLowerValueCount();
         }
     },
 
     GROUP_LOWER_OR_EQUAL_VALUE_COUNT {
         @Override
         public Number calculateValue(CalculationData data) {
-            float count = 1; // start with 1 because we count ourselves
-
             if (data.activeGroupSimulateData == null)
-                return count;
+                return 1;
 
-            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
-
-            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.getGroupMemberInfo().value <= thisValue) {
-                    count++;
-                }
-            }
-
-            return count;
+            return data.activeGroupSimulateData.getGroupLowerValueCount() + data.activeGroupSimulateData.getGroupEqualValueCount();
         }
     },
 
     GROUP_EQUAL_VALUE_COUNT {
         @Override
         public Number calculateValue(CalculationData data) {
-            float count = 1; // start with 1 because we count ourselves
-
             if (data.activeGroupSimulateData == null)
-                return count;
+                return 1;
 
-            float thisValue = data.activeGroupSimulateData.getGroupMemberInfo().value;
-
-            for (var surrounding : data.activeGroupSimulateData.surroundingData) {
-                if (surrounding.getGroupMemberInfo().value == thisValue) {
-                    count++;
-                }
-            }
-
-            return count;
+            return data.activeGroupSimulateData.getGroupEqualValueCount();
         }
     },
 
