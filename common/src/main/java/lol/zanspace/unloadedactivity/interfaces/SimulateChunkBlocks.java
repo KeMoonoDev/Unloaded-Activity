@@ -595,6 +595,22 @@ public interface SimulateChunkBlocks {
                             newState = newState.setValue((Property)maybeNewProperty.get(), (Comparable)oldValue);
                         }
                     }
+                    for (var setProperty : simulateProperty.setProperties) {
+                        String propertyName = setProperty.getFirst();
+                        CalculateValue<Number> propertyValue = setProperty.getSecond();
+                        Optional<Property<?>> maybeSetProperty = SimulateChunkBlocks.getProperty(newState, propertyName);
+                        if (maybeSetProperty.isPresent()) {
+                            Property<?> newSetProperty = maybeSetProperty.get();
+                            if (newSetProperty instanceof BooleanProperty booleanProperty) {
+                                float value = propertyValue.calculateValue(new CalculationData(level, newState, pos)).floatValue();
+                                newState = newState.setValue(booleanProperty, value != 0);
+                            }
+                            if (newSetProperty instanceof IntegerProperty integerProperty) {
+                                int value = propertyValue.calculateValue(new CalculationData(level, newState, pos)).intValue();
+                                newState = newState.setValue(integerProperty, value);
+                            }
+                        }
+                    }
                     state = newState;
                     updateList.add(Pair.of(pos, state));
                 } else {
