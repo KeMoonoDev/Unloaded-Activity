@@ -415,22 +415,19 @@ public interface SimulateChunkBlocks {
                             }
                         }
 
-                        for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                            Optional<Property<?>> maybeNewRandomProperty = getProperty(state, randomProperty.propertyName);
-                            if (maybeNewRandomProperty.isPresent()) {
-                                switch (randomProperty.propertyType) {
-                                    case BOOL -> {
-                                        if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                            int value = randomProperty.getRandomValue(GameUtils.getRand(level));
-                                            state = state.setValue(newBooleanProperty, value != 0);
-                                        }
-                                    }
-                                    case INT -> {
-                                        if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                            int value = randomProperty.getRandomValue(GameUtils.getRand(level));
-                                            state = state.setValue(newIntegerProperty, value);
-                                        }
-                                    }
+                        for (var setProperty : simulateProperty.setProperties) {
+                            String propertyName = setProperty.getFirst();
+                            CalculateValue<Number> propertyValue = setProperty.getSecond();
+                            Optional<Property<?>> maybeSetProperty = SimulateChunkBlocks.getProperty(state, propertyName);
+                            if (maybeSetProperty.isPresent()) {
+                                Property<?> newSetProperty = maybeSetProperty.get();
+                                if (newSetProperty instanceof BooleanProperty booleanProperty) {
+                                    float value = propertyValue.calculateValue(new CalculationData(level, state, pos)).floatValue();
+                                    state = state.setValue(booleanProperty, value != 0);
+                                }
+                                if (newSetProperty instanceof IntegerProperty integerProperty) {
+                                    int value = propertyValue.calculateValue(new CalculationData(level, state, pos)).intValue();
+                                    state = state.setValue(integerProperty, value);
                                 }
                             }
                         }
@@ -534,22 +531,19 @@ public interface SimulateChunkBlocks {
                             }
                         }
 
-                        for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                            Optional<Property<?>> maybeNewRandomProperty = getProperty(state, randomProperty.propertyName);
-                            if (maybeNewRandomProperty.isPresent()) {
-                                switch (randomProperty.propertyType) {
-                                    case BOOL -> {
-                                        if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                            int value = randomProperty.getRandomValue(GameUtils.getRand(level));
-                                            state = state.setValue(newBooleanProperty, value != 0);
-                                        }
-                                    }
-                                    case INT -> {
-                                        if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                            int value = randomProperty.getRandomValue(GameUtils.getRand(level));
-                                            state = state.setValue(newIntegerProperty, value);
-                                        }
-                                    }
+                        for (var setProperty : simulateProperty.setProperties) {
+                            String propertyName = setProperty.getFirst();
+                            CalculateValue<Number> propertyValue = setProperty.getSecond();
+                            Optional<Property<?>> maybeSetProperty = SimulateChunkBlocks.getProperty(state, propertyName);
+                            if (maybeSetProperty.isPresent()) {
+                                Property<?> newSetProperty = maybeSetProperty.get();
+                                if (newSetProperty instanceof BooleanProperty booleanProperty) {
+                                    float value = propertyValue.calculateValue(new CalculationData(level, state, pos)).floatValue();
+                                    state = state.setValue(booleanProperty, value != 0);
+                                }
+                                if (newSetProperty instanceof IntegerProperty integerProperty) {
+                                    int value = propertyValue.calculateValue(new CalculationData(level, state, pos)).intValue();
+                                    state = state.setValue(integerProperty, value);
                                 }
                             }
                         }

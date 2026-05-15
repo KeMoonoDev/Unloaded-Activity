@@ -41,7 +41,7 @@ public class IncompleteSimulateProperty {
     public Optional<Integer> minWaterValue = Optional.empty();
     public Optional<String> waterloggedProperty = Optional.empty();
     public ArrayList<Direction> ignoreBuddingDirections = new ArrayList<>();
-    public HashMap<String, IncompleteRandomProperty> randomProperties = new HashMap<>();
+    public HashMap<String, CalculateValue<Number>> setProperties = new HashMap<>();
     public Optional<CalculateValue<Number>> hatchCount = Optional.empty();
     public Optional<Integer> startingAge = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > simulateWithGroup = Optional.empty();
@@ -76,11 +76,13 @@ public class IncompleteSimulateProperty {
         this.startingAge = otherSimulateProperty.startingAge.or(() -> this.startingAge);
         this.simulateWithGroup = otherSimulateProperty.simulateWithGroup.or(() -> this.simulateWithGroup);
 
-        for (var entry : otherSimulateProperty.randomProperties.entrySet()) {
-            IncompleteRandomProperty thisRandomProperty = this.randomProperties.computeIfAbsent(entry.getKey(), k -> new IncompleteRandomProperty());
-            IncompleteRandomProperty otherRandomProperty = entry.getValue();
-
-            thisRandomProperty.merge(otherRandomProperty);
+        for (var entry : otherSimulateProperty.setProperties.entrySet()) {
+            CalculateValue<Number> oldProperty = this.setProperties.get(entry.getKey());
+            CalculateValue<Number> newProperty = entry.getValue().replicate();
+            if (oldProperty != null) {
+                newProperty.replaceSuper(oldProperty);
+            }
+            this.setProperties.put(entry.getKey(), newProperty);
         }
 
         if (otherSimulateProperty.advanceProbability.isPresent() && this.advanceProbability.isPresent()) {
@@ -503,7 +505,7 @@ public class IncompleteSimulateProperty {
         }
 
         {
-            T mapValue = propertyInfo.get("random_properties");
+            T mapValue = propertyInfo.get("set_properties");
             if (mapValue != null) {
                 var mapResult = ops.getMap(mapValue);
                 if (mapResult.result().isEmpty()) {
@@ -513,15 +515,12 @@ public class IncompleteSimulateProperty {
                 for (Pair<T, T> pair : mapResult.result().get().entries().toList()) {
                     var keyResult = ops.getStringValue(pair.getFirst());
                     if (keyResult.result().isEmpty()) {
-                        returnError(keyResult);
+                        return returnError(keyResult);
                     }
 
-                    var valueResult = IncompleteRandomProperty.parse(ops, pair.getSecond());
-                    if (valueResult.result().isEmpty()) {
-                        returnError(valueResult);
-                    }
+                    var calculateValue = CalculateValue.parseNumber(ops, pair.getSecond());
 
-                    simulateProperty.randomProperties.put(keyResult.result().get(), valueResult.result().get());
+                    simulateProperty.setProperties.put(keyResult.result().get(), calculateValue);
                 }
             }
         }

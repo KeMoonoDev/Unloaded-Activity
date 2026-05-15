@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -46,7 +47,7 @@ public class SimulateProperty {
     public final Optional<Integer> maxHeight;
     public final Optional<String> waterloggedProperty;
     public final List<Direction> ignoreBuddingDirections;
-    public final List<RandomProperty> randomProperties;
+    public final List<Pair<String, CalculateValue<Number>>> setProperties;
     public final Optional<String> buddingDirectionProperty;
     public final Optional<Integer> startingAge;
     public final Optional<CalculateValue<Number>> hatchCount;
@@ -125,11 +126,11 @@ public class SimulateProperty {
             return maybeEntity.get();
         });
 
-        ArrayList<RandomProperty> randomPropertiesList = new ArrayList<>();
-        for (var entry : incomplete.randomProperties.entrySet()) {
-            randomPropertiesList.add(new RandomProperty(entry.getValue(), entry.getKey()));
+        ArrayList<Pair<String, CalculateValue<Number>>> setPropertiesList = new ArrayList<>();
+        for (var entry : incomplete.setProperties.entrySet()) {
+            setPropertiesList.add(Pair.of(entry.getKey(), entry.getValue()));
         }
-        this.randomProperties = randomPropertiesList.stream().toList();
+        this.setProperties = setPropertiesList.stream().toList();
 
         // Default values for optional fields with defaults.
         this.isPrecipitation = incomplete.isPrecipitation.orElse(false);

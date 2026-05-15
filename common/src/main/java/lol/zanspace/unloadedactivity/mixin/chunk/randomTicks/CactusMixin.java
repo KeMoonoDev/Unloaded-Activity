@@ -308,22 +308,19 @@ public abstract class CactusMixin extends Block {
                     state = this.defaultBlockState().setValue(CactusBlock.AGE, newValue);
                 }
 
-                for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                    Optional<Property<?>> maybeNewRandomProperty = SimulateChunkBlocks.getProperty(state, randomProperty.propertyName);
-                    if (maybeNewRandomProperty.isPresent()) {
-                        switch (randomProperty.propertyType) {
-                            case BOOL -> {
-                                if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                    int value = randomProperty.getRandomValue(random);
-                                    state = state.setValue(newBooleanProperty, value != 0);
-                                }
-                            }
-                            case INT -> {
-                                if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                    int value = randomProperty.getRandomValue(random);
-                                    state = state.setValue(newIntegerProperty, value);
-                                }
-                            }
+                for (var setProperty : simulateProperty.setProperties) {
+                    String propertyName = setProperty.getFirst();
+                    CalculateValue<Number> propertyValue = setProperty.getSecond();
+                    Optional<Property<?>> maybeProperty = SimulateChunkBlocks.getProperty(state, propertyName);
+                    if (maybeProperty.isPresent()) {
+                        Property<?> property = maybeProperty.get();
+                        if (property instanceof BooleanProperty booleanProperty) {
+                            float value = propertyValue.calculateValue(new CalculationData(level, state, pos)).floatValue();
+                            state = state.setValue(booleanProperty, value != 0);
+                        }
+                        if (property instanceof IntegerProperty integerProperty) {
+                            int value = propertyValue.calculateValue(new CalculationData(level, state, pos)).intValue();
+                            state = state.setValue(integerProperty, value);
                         }
                     }
                 }
@@ -420,22 +417,19 @@ public abstract class CactusMixin extends Block {
                     state = this.defaultBlockState().setValue(CactusBlock.AGE, belowValue);
                 }
 
-                for (RandomProperty randomProperty : simulateProperty.randomProperties) {
-                    Optional<Property<?>> maybeNewRandomProperty = SimulateChunkBlocks.getProperty(state, randomProperty.propertyName);
-                    if (maybeNewRandomProperty.isPresent()) {
-                        switch (randomProperty.propertyType) {
-                            case BOOL -> {
-                                if (maybeNewRandomProperty.get() instanceof BooleanProperty newBooleanProperty) {
-                                    int value = randomProperty.getRandomValue(random);
-                                    state = state.setValue(newBooleanProperty, value != 0);
-                                }
-                            }
-                            case INT -> {
-                                if (maybeNewRandomProperty.get() instanceof IntegerProperty newIntegerProperty) {
-                                    int value = randomProperty.getRandomValue(random);
-                                    state = state.setValue(newIntegerProperty, value);
-                                }
-                            }
+                for (var setProperty : simulateProperty.setProperties) {
+                    String propertyName = setProperty.getFirst();
+                    CalculateValue<Number> propertyValue = setProperty.getSecond();
+                    Optional<Property<?>> maybeProperty = SimulateChunkBlocks.getProperty(state, propertyName);
+                    if (maybeProperty.isPresent()) {
+                        Property<?> property = maybeProperty.get();
+                        if (property instanceof BooleanProperty booleanProperty) {
+                            float value = propertyValue.calculateValue(new CalculationData(level, state, pos)).floatValue();
+                            state = state.setValue(booleanProperty, value != 0);
+                        }
+                        if (property instanceof IntegerProperty integerProperty) {
+                            int value = propertyValue.calculateValue(new CalculationData(level, state, pos)).intValue();
+                            state = state.setValue(integerProperty, value);
                         }
                     }
                 }

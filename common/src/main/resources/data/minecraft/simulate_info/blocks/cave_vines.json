@@ -7,10 +7,15 @@
     "transfer_properties": [
       "berries"
     ],
-    "random_properties": {
+    "set_properties": {
       "berries": {
-        "property_type": "bool",
-        "probability": 0.11
+        "predicate": {
+          "check": "random",
+          "comparison": "less_than",
+          "value": 0.11
+        },
+        "success": true,
+        "fail": false
       }
     },
     "advance_probability": 0.1
