@@ -137,9 +137,13 @@ public class MathUtils {
         if (maxOccurrences <= 0)
             return 0;
 
-        double choose = 1;
-
         double invertedOdds = 1-odds;
+
+        if (maxOccurrences == 1) {
+            return random.nextDouble() < 1 - pow(invertedOdds, cycles) ? 1 : 0;
+        }
+
+        double choose = 1;
 
         double totalProbability = 0;
 
@@ -164,11 +168,11 @@ public class MathUtils {
         return maxOccurrences;
     }
 
-    public static long sampleNegativeBinomial(int successes, float odds, RandomSource random) {
+    public static long sampleNegativeBinomial(int successes, double odds, RandomSource random) {
         return samplePoisson(sampleGamma(successes, (1.0-odds)/odds, random), random);
     }
 
-    public static long sampleNegativeBinomialWithMax(long cycles, int successes, float odds, RandomSource random) {
+    public static long sampleNegativeBinomialWithMax(long cycles, int successes, double odds, RandomSource random) {
         long failedTrials = Long.MAX_VALUE;
         long attempts = 0;
         while (failedTrials > cycles && attempts < UnloadedActivity.config.maxNegativeBinomialAttempts) {

@@ -613,6 +613,10 @@ public class TimeMachine {
 
         int currentIndex = 0;
 
+        // Define them up here to reduce allocations during the loop.
+        ArrayList<ActiveGroupSimulateData> pendingData = new ArrayList<>();
+        ArrayList<ActiveGroupSimulateData> listToLoop = new ArrayList<>();
+
         for (var activeGroupSimulateData : activeGroupDataMap) {
             if (!activeGroupSimulateData.isActive)
                 continue;
@@ -621,13 +625,14 @@ public class TimeMachine {
                 continue;
 
             ArrayList<ActiveGroupSimulateData> newGroup = new ArrayList<>();
-
-            ArrayList<ActiveGroupSimulateData> pendingData = new ArrayList<>();
             pendingData.add(activeGroupSimulateData);
 
+
             while (!pendingData.isEmpty()) {
-                ArrayList<ActiveGroupSimulateData> listToLoop = pendingData;
-                pendingData = new ArrayList<>();
+                var temp = listToLoop;
+                listToLoop = pendingData;
+                pendingData = temp;
+                pendingData.clear();
 
                 for (var updatingGroupData : listToLoop) {
                     if (updatingGroupData.groupIndex >= 0)
