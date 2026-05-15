@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 #if MC_VER >= MC_1_21_11
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gamerules.GameRules;
 #else
 import net.minecraft.world.level.GameRules;
@@ -86,14 +87,34 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     SHOULD_SNOW {
         @Override
         public Number calculateValue(CalculationData data) {
-            // This is already checked by shouldSnow, but according to the spark profiler (1.19.2),
-            // getBiome and shouldSnow takes a bit of time to run. Check the cheap stuff first.
+            if (!data.level.isInsideBuildHeight(data.pos.getY())) {
+                return 0;
+            }
+
+            if (!Blocks.SNOW.defaultBlockState().canSurvive(data.level, data.pos)) {
+                return 0;
+            }
+
             if (data.level.getBrightness(LightLayer.BLOCK, data.pos) >= 10) {
                 return 0;
             }
+
             BlockPos samplePos = data.state.isAir() ? data.pos : data.pos.above();
             Biome biome = data.level.getBiome(samplePos).value();
-            return biome.shouldSnow(data.level, data.pos) ? 1 : 0;
+            #if MC_VER >= MC_1_21_3
+            Biome.Precipitation precipitation = biome.getPrecipitationAt(samplePos, data.level.getSeaLevel());
+            #elif MC_VER >= MC_1_19_4
+            Biome.Precipitation precipitation = biome.getPrecipitationAt(samplePos);
+            #else
+            Biome.Precipitation precipitation = biome.getPrecipitation()
+            #endif;
+
+            if (precipitation != Biome.Precipitation.SNOW) {
+                return 0;
+            }
+
+            return 1;
+            //return biome.shouldSnow(data.level, data.pos) ? 1 : 0;
         }
     },
 

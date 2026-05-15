@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.config;
 
 #if MC_VER >= MC_1_21_11
+import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -47,7 +48,7 @@ import static net.minecraft.commands.Commands.literal;
 
 public class UnloadedActivityConfig {
 
-    private transient HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean> blacklistCache = new HashMap<>();
+    private transient Int2BooleanOpenHashMap blacklistCache = new Int2BooleanOpenHashMap();
 
     public static class SimpleOption<T> implements ConfigOption {
         public ArgumentType<T> argumentType;
@@ -246,9 +247,10 @@ public class UnloadedActivityConfig {
     }
 
     public boolean isBlockBlacklisted(BlockState state) {
-        var blockId = GameUtils.getBlockId(state.getBlock());
-        return blacklistCache.computeIfAbsent(blockId, (unused) ->
-            blacklistedBlocks.stream().anyMatch((blacklisted) -> {
+        return blacklistCache.computeIfAbsent(GameUtils.getBlockIntId(state.getBlock()), (unused) -> {
+            var blockId = GameUtils.getBlockId(state.getBlock());
+            for (var blacklisted : blacklistedBlocks) {
+                boolean isBlacklisted;
                 if (blacklisted.isTag) {
                     #if MC_VER >= MC_1_19_4
                     var resourceKey = Registries.BLOCK;
@@ -256,12 +258,17 @@ public class UnloadedActivityConfig {
                     var resourceKey = Registry.BLOCK_REGISTRY;
                     #endif
 
-                    return state.is(TagKey.create(resourceKey, blacklisted.id));
+                    isBlacklisted = state.is(TagKey.create(resourceKey, blacklisted.id));
                 } else {
-                    return blockId.equals(blacklisted.id);
+                    isBlacklisted = blockId.equals(blacklisted.id);
                 }
-            })
-        );
+
+                if (isBlacklisted) {
+                    return true;
+                }
+            }
+            return false;
+        });
     }
 
     public UnloadedActivityConfig() {

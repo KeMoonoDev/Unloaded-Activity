@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack;
 
 #if MC_VER >= MC_1_21_11
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +33,7 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     public static final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif GROUPS_ID = UnloadedActivity.id("simulate_groups");
 
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupInfo> GROUPS_MAP = new HashMap<>();
-    public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<GroupMemberInfo>> BLOCK_MEMBERSHIPS = new HashMap<>();
+    public static final Int2ObjectOpenHashMap<List<GroupMemberInfo>> BLOCK_MEMBERSHIPS = new Int2ObjectOpenHashMap<>();
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ArrayList<Pair<GroupInfo, IncompleteGroupMemberInfo>>> BLOCKS_WITH_GROUPS_MAP = new HashMap<>();
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ArrayList<Pair<GroupInfo, IncompleteGroupMemberInfo>>> TAGS_WITH_GROUPS_MAP = new HashMap<>();
 
@@ -140,17 +141,19 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     }
 
     public static List<GroupMemberInfo> getBlockMemberInfo(Block block) {
-        return BLOCK_MEMBERSHIPS.computeIfAbsent(GameUtils.getBlockId(block), (blockId) -> {
+        return BLOCK_MEMBERSHIPS.computeIfAbsent(GameUtils.getBlockIntId(block), (ignored) -> {
             HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ArrayList<IncompleteGroupMemberInfo>> dataToBeCombined = new HashMap<>();
             block.builtInRegistryHolder().tags().forEach((tag) -> {
                 for (var tagGroupData : TAGS_WITH_GROUPS_MAP.getOrDefault(tag.location(), new ArrayList<>())) {
-                    ArrayList<IncompleteGroupMemberInfo> dataList = dataToBeCombined.computeIfAbsent(tagGroupData.getFirst().id, (ignored) -> new ArrayList<>());
+                    ArrayList<IncompleteGroupMemberInfo> dataList = dataToBeCombined.computeIfAbsent(tagGroupData.getFirst().id, (ignored2) -> new ArrayList<>());
                     dataList.add(tagGroupData.getSecond());
                 }
             });
 
+            var blockId = GameUtils.getBlockId(block);
+
             for (var blockGroupData : BLOCKS_WITH_GROUPS_MAP.getOrDefault(blockId, new ArrayList<>())) {
-                ArrayList<IncompleteGroupMemberInfo> dataList = dataToBeCombined.computeIfAbsent(blockGroupData.getFirst().id, (ignored) -> new ArrayList<>());
+                ArrayList<IncompleteGroupMemberInfo> dataList = dataToBeCombined.computeIfAbsent(blockGroupData.getFirst().id, (ignored2) -> new ArrayList<>());
                 dataList.add(blockGroupData.getSecond());
             }
 

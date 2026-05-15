@@ -782,7 +782,9 @@ public class TimeMachine {
 
                     iterator.remove();
 
-                    if (!block.canSimulateProperty(state, level, pos, simulateProperty)) {
+                    // For the block to get to this point, isPropertyFinished must have returned false.
+                    // We can use hasValidConditions instead of canSimulateProperty.
+                    if (!block.hasValidConditions(state, level, pos, simulateProperty)) {
                         if (UnloadedActivity.config.debugLogs)
                             UnloadedActivity.LOGGER.info("Skipping simulating property " + propertyName + " due to invalid conditions.");
                         continue;

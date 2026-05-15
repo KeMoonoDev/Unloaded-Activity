@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack;
 
 #if MC_VER >= MC_1_21_11
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -36,7 +37,7 @@ public class SimulationDataResource extends SimpleJsonResourceReloadListener #if
 
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, IncompleteSimulationData> TAG_MAP = new HashMap<>();
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, IncompleteSimulationData> BLOCK_MAP = new HashMap<>();
-    public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, SimulationData> COMPLETE_BLOCK_MAP = new HashMap<>();
+    public static final Int2ObjectOpenHashMap<SimulationData> COMPLETE_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
 
     #if MC_VER >= MC_1_21_3
     public SimulationDataResource(boolean isBlocks) {

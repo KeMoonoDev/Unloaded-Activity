@@ -35,6 +35,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluids;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
@@ -81,6 +82,10 @@ public interface SimulateChunkBlocks {
         if (isFinished)
             return false;
 
+        return hasValidConditions(state, level, pos, simulateProperty);
+    }
+
+    default boolean hasValidConditions(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty) {
         CalculationData calculationData = new CalculationData(level, state, pos);
 
         for (Condition condition : simulateProperty.conditions) {

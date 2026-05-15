@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData;
 import lol.zanspace.unloadedactivity.datapack.SimulationData;
 import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
@@ -26,40 +27,33 @@ public abstract class BlockMixin implements SimulateChunkBlocks {
 
     @Override
     public SimulationData getSimulationData() {
+        return SimulationDataResource.COMPLETE_BLOCK_MAP.computeIfAbsent(GameUtils.getBlockIntId((Block)(Object)this), (blockIntId) -> {
+            var blockId = GameUtils.getBlockId((Block)(Object)this);
+            IncompleteSimulationData blockSimulationData = SimulationDataResource.BLOCK_MAP.get(blockId);
 
-        var blockId = this.builtInRegistryHolder.key()#if MC_VER >= MC_1_21_11 .identifier() #else .location() #endif;
+            IncompleteSimulationData finalSimulationData = new IncompleteSimulationData();
 
-        {
-            SimulationData simulationData = SimulationDataResource.COMPLETE_BLOCK_MAP.get(blockId);
-            if (simulationData != null)
-                return simulationData;
-        }
+            for (Iterator<TagKey<Block>> it = builtInRegistryHolder.tags().iterator(); it.hasNext(); ) {
+                TagKey<Block> tag = it.next();
+                var tagId = tag.location();
 
-        IncompleteSimulationData blockSimulationData = SimulationDataResource.BLOCK_MAP.get(blockId);
+                IncompleteSimulationData tagSimulationData = SimulationDataResource.TAG_MAP.get(tagId);
 
-        IncompleteSimulationData finalSimulationData = new IncompleteSimulationData();
-
-        for (Iterator<TagKey<Block>> it = builtInRegistryHolder.tags().iterator(); it.hasNext(); ) {
-            TagKey<Block> tag = it.next();
-            var tagId = tag.location();
-
-            IncompleteSimulationData tagSimulationData = SimulationDataResource.TAG_MAP.get(tagId);
-
-            if (tagSimulationData != null) {
-                finalSimulationData.merge(tagSimulationData);
+                if (tagSimulationData != null) {
+                    finalSimulationData.merge(tagSimulationData);
+                }
             }
-        }
 
-        if (blockSimulationData != null) {
-            finalSimulationData.merge(blockSimulationData);
-        }
+            if (blockSimulationData != null) {
+                finalSimulationData.merge(blockSimulationData);
+            }
 
-        try {
-            SimulationData simulationData = new SimulationData(finalSimulationData);
-            SimulationDataResource.COMPLETE_BLOCK_MAP.put(blockId, simulationData);
-            return simulationData;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create SimulationData for " + blockId + ".\n" + e.getMessage());
-        }
+            try {
+                SimulationData simulationData = new SimulationData(finalSimulationData);
+                return simulationData;
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create SimulationData for " + blockId + ".\n" + e.getMessage());
+            }
+        });
     }
 }

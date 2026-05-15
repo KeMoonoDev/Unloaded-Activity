@@ -37,6 +37,15 @@ public class GameUtils {
         return blockRegistry.getKey(block);
     }
 
+    public static int getBlockIntId(Block block) {
+        #if MC_VER >= MC_1_19_4
+        var blockRegistry = BuiltInRegistries.BLOCK;
+        #else
+        var blockRegistry = Registry.BLOCK;
+        #endif
+        return blockRegistry.getId(block);
+    }
+
     public static long getTime(Level level) {
         #if MC_VER >= MC_26_1_2
         return level.getDefaultClockTime();

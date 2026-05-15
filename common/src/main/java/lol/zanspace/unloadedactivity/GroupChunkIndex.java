@@ -74,7 +74,15 @@ public class GroupChunkIndex {
             Block block = state.getBlock();
 
             List<GroupMemberInfo> memberInfoList = GroupInfoResource.getBlockMemberInfo(block);
-            Optional<GroupMemberInfo> maybeGroupMemberInfo = memberInfoList.stream().filter((info) -> info.groupInfo.id.equals(groupId)).findFirst();
+            Optional<GroupMemberInfo> maybeGroupMemberInfo = Optional.empty();
+
+            for (var groupMemberInfo : memberInfoList) {
+                if (groupMemberInfo.groupInfo.id.equals(groupId)) {
+                    maybeGroupMemberInfo = Optional.of(groupMemberInfo);
+                    break;
+                }
+            }
+
             if (maybeGroupMemberInfo.isEmpty())
                 return true;
 
