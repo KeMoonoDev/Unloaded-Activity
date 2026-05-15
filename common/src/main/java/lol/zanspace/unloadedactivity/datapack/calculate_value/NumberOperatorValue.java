@@ -99,6 +99,17 @@ public class NumberOperatorValue implements CalculateValue<Number> {
     }
 
     @Override
+    public boolean isRandom() {
+        if (value.isRandom())
+            return true;
+
+        if (secondaryValue != null)
+            return secondaryValue.isRandom();
+
+        return false;
+    }
+
+    @Override
     public long getNextValueSwitchDuration(CalculationData data) {
         long firstLong = value.getNextValueSwitchDuration(data);
 

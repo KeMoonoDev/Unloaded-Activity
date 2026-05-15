@@ -30,6 +30,9 @@ public record Condition (CalculateValue<Number> value1, CalculateValue<Number> v
     public boolean canBeAffectedByWeather() {
         return value1.canBeAffectedByWeather() || value2.canBeAffectedByWeather();
     };
+    public boolean isRandom() {
+        return value1.isRandom() || value2.isRandom();
+    }
     public boolean canBeAffectedByTime() {
         return value1.canBeAffectedByTime() || value2.canBeAffectedByTime();
     };

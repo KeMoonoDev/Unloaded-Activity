@@ -218,6 +218,18 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         }
     },
 
+    RANDOM {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            return GameUtils.getRand(data.level).nextFloat();
+        }
+
+        @Override
+        public boolean isRandom() {
+            return true;
+        }
+    },
+
     GROUP_SUM {
         @Override
         public Number calculateValue(CalculationData data) {
@@ -288,6 +300,56 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         }
     },
 
+    GROUP_RANDOM_HIGHER_VALUE {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            if (data.activeGroupSimulateData == null)
+                return 0;
+
+            return data.activeGroupSimulateData.getGroupRandomHigherValue();
+        }
+    },
+
+    GROUP_RANDOM_HIGHER_OR_EQUAL_VALUE {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            if (data.activeGroupSimulateData == null)
+                return 0;
+
+            return data.activeGroupSimulateData.getGroupRandomHigherOrEqualValue();
+        }
+    },
+
+    GROUP_RANDOM_LOWER_VALUE {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            if (data.activeGroupSimulateData == null)
+                return 0;
+
+            return data.activeGroupSimulateData.getGroupRandomLowerValue();
+        }
+    },
+
+    GROUP_RANDOM_LOWER_OR_EQUAL_VALUE {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            if (data.activeGroupSimulateData == null)
+                return 0;
+
+            return data.activeGroupSimulateData.getGroupRandomLowerOrEqualValue();
+        }
+    },
+
+    GROUP_RANDOM_NOT_EQUAL_VALUE {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            if (data.activeGroupSimulateData == null)
+                return 0;
+
+            return data.activeGroupSimulateData.getGroupRandomNotEqualValue();
+        }
+    },
+
     SUPER {
         @Override
         public boolean isSuper() {
@@ -322,6 +384,11 @@ public enum FetchNumberValue implements CalculateValue<Number> {
 
     @Override
     public void replaceSuper(CalculateValue<Number> superValue) {}
+
+    @Override
+    public boolean isRandom() {
+        return false;
+    }
 
     @Override
     public <U> CalculateValue<U> map(Function<Number, U> mapFunction) {
@@ -378,6 +445,9 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             case "is_upper_door" -> {
                 return Optional.of(IS_UPPER_DOOR);
             }
+            case "random" -> {
+                return Optional.of(RANDOM);
+            }
             case "group_sum" -> {
                 return Optional.of(GROUP_SUM);
             }
@@ -398,6 +468,21 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             }
             case "group_equal_value_count" -> {
                 return Optional.of(GROUP_EQUAL_VALUE_COUNT);
+            }
+            case "group_random_higher_value" -> {
+                return Optional.of(GROUP_RANDOM_HIGHER_VALUE);
+            }
+            case "group_random_higher_or_equal_value" -> {
+                return Optional.of(GROUP_RANDOM_HIGHER_OR_EQUAL_VALUE);
+            }
+            case "group_random_lower_value" -> {
+                return Optional.of(GROUP_RANDOM_LOWER_VALUE);
+            }
+            case "group_random_lower_or_equal_value" -> {
+                return Optional.of(GROUP_RANDOM_LOWER_OR_EQUAL_VALUE);
+            }
+            case "group_random_not_equal_value" -> {
+                return Optional.of(GROUP_RANDOM_NOT_EQUAL_VALUE);
             }
             case "super" -> {
                 return Optional.of(SUPER);

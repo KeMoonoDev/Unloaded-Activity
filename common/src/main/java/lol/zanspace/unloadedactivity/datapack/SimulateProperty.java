@@ -80,6 +80,9 @@ public class SimulateProperty {
         if (incomplete.advanceProbability.isEmpty())
             throw new RuntimeException("advance_probability has not been set.");
 
+        if (incomplete.advanceProbability.get().isRandom())
+            throw new RuntimeException("advance_probability cannot have random values.");
+
         this.advanceProbability = incomplete.advanceProbability.get();
         this.canBeAffectedByWeather = this.advanceProbability.canBeAffectedByWeather();
         this.canBeAffectedByTime = this.advanceProbability.canBeAffectedByTime();

@@ -22,6 +22,11 @@ public record SimpleValue<T>(T v) implements CalculateValue<T> {
     }
 
     @Override
+    public boolean isRandom() {
+        return false;
+    }
+
+    @Override
     public long getNextValueSwitchDuration(CalculationData data) {
         return Long.MAX_VALUE;
     }

@@ -25,6 +25,8 @@ public interface CalculateValue<T> {
 
     boolean canBeAffectedByTime();
 
+    boolean isRandom();
+
     long getNextValueSwitchDuration(CalculationData data);
 
     /// Doesn't guarantee a clone. If a type doesn't get mutated, it's able to return itself.

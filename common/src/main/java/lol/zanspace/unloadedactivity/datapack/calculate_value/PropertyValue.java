@@ -51,6 +51,11 @@ public class PropertyValue implements CalculateValue<Number> {
     }
 
     @Override
+    public boolean isRandom() {
+        return false;
+    }
+
+    @Override
     public long getNextValueSwitchDuration(CalculationData data) {
         return Long.MAX_VALUE;
     }

@@ -50,6 +50,13 @@ public class ConditionalValue<T> implements CalculateValue<T> {
     }
 
     @Override
+    public boolean isRandom() {
+        return condition.isRandom()
+            || trueValue.isRandom()
+            || falseValue.isRandom();
+    }
+
+    @Override
     public long getNextValueSwitchDuration(CalculationData data) {
         boolean isValid = condition.isValid(data);
         long conditionSwitch = condition.getNextConditionSwitchDuration(data);

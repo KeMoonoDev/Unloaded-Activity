@@ -359,4 +359,116 @@ public class ActiveGroupSimulateData {
 
         return count;
     }
+
+    public float getGroupRandomHigherValue() {
+        ArrayList<Float> availableValues = new ArrayList<>(this.surroundingData.size());
+
+        float thisValue = this.getGroupMemberInfo().value;
+
+        for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
+            float surroundingValue = surrounding.getGroupMemberInfo().value;
+            if (surroundingValue > thisValue) {
+                availableValues.add(surroundingValue);
+            }
+        }
+
+        if (availableValues.isEmpty()) {
+            return 0;
+        }
+
+        return availableValues.get(GameUtils.getRand(level).nextInt(availableValues.size()));
+    }
+
+    public float getGroupRandomHigherOrEqualValue() {
+        ArrayList<Float> availableValues = new ArrayList<>(this.surroundingData.size() + 1);
+
+        float thisValue = this.getGroupMemberInfo().value;
+        availableValues.add(thisValue);
+
+        for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
+            float surroundingValue = surrounding.getGroupMemberInfo().value;
+            if (surroundingValue >= thisValue) {
+                availableValues.add(surroundingValue);
+            }
+        }
+
+        if (availableValues.isEmpty()) {
+            return 0;
+        }
+
+        return availableValues.get(GameUtils.getRand(level).nextInt(availableValues.size()));
+    }
+
+    public float getGroupRandomLowerValue() {
+        ArrayList<Float> availableValues = new ArrayList<>(this.surroundingData.size());
+
+        float thisValue = this.getGroupMemberInfo().value;
+
+        for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
+            float surroundingValue = surrounding.getGroupMemberInfo().value;
+            if (surroundingValue < thisValue) {
+                availableValues.add(surroundingValue);
+            }
+        }
+
+        if (availableValues.isEmpty()) {
+            return 0;
+        }
+
+        return availableValues.get(GameUtils.getRand(level).nextInt(availableValues.size()));
+    }
+
+    public float getGroupRandomLowerOrEqualValue() {
+        ArrayList<Float> availableValues = new ArrayList<>(this.surroundingData.size() + 1);
+
+        float thisValue = this.getGroupMemberInfo().value;
+        availableValues.add(thisValue);
+
+        for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
+            float surroundingValue = surrounding.getGroupMemberInfo().value;
+            if (surroundingValue <= thisValue) {
+                availableValues.add(surroundingValue);
+            }
+        }
+
+        if (availableValues.isEmpty()) {
+            return 0;
+        }
+
+        return availableValues.get(GameUtils.getRand(level).nextInt(availableValues.size()));
+    }
+
+    public float getGroupRandomNotEqualValue() {
+        ArrayList<Float> availableValues = new ArrayList<>(this.surroundingData.size());
+
+        float thisValue = this.getGroupMemberInfo().value;
+
+        for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
+            float surroundingValue = surrounding.getGroupMemberInfo().value;
+            if (surroundingValue != thisValue) {
+                availableValues.add(surroundingValue);
+            }
+        }
+
+        if (availableValues.isEmpty()) {
+            return 0;
+        }
+
+        return availableValues.get(GameUtils.getRand(level).nextInt(availableValues.size()));
+    }
 }

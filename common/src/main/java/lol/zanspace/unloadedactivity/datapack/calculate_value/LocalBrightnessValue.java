@@ -134,6 +134,11 @@ public class LocalBrightnessValue implements CalculateValue<Number> {
     }
 
     @Override
+    public boolean isRandom() {
+        return false;
+    }
+
+    @Override
     public long getNextValueSwitchDuration(CalculationData data) {
         int blockLight = data.level.getBrightness(LightLayer.BLOCK, data.pos.offset(offset));
         int skyLight = data.level.getBrightness(LightLayer.SKY, data.pos.offset(offset));

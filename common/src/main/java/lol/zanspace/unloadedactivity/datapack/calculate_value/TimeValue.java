@@ -36,8 +36,25 @@ public class TimeValue<T> implements CalculateValue<T> {
 
         return currentPair.getSecond().calculateValue(data);
     }
+
     @Override
     public boolean canBeAffectedByWeather() {
+        for (var pair : this.list) {
+            if (pair.getSecond().canBeAffectedByWeather()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    @Override
+    public boolean isRandom() {
+        for (var pair : this.list) {
+            if (pair.getSecond().isRandom()) {
+                return true;
+            }
+        }
         return false;
     }
 
