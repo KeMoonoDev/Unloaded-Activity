@@ -234,7 +234,7 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             if (data.activeGroupSimulateData == null)
                 return 1; // We count ourselves
 
-            return data.activeGroupSimulateData.surroundingData.size() + 1;
+            return data.activeGroupSimulateData.getGroupCount();
         }
     },
 

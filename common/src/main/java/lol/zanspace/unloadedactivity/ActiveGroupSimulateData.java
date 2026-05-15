@@ -5,6 +5,7 @@ import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -163,6 +164,9 @@ public class ActiveGroupSimulateData {
     private Float groupSum = null;
 
     @Nullable
+    private Integer groupCount = null;
+
+    @Nullable
     private Integer groupHigherValueCount = null;
 
     @Nullable
@@ -180,9 +184,23 @@ public class ActiveGroupSimulateData {
         this.groupEqualValueCount = null;
     }
 
+    public boolean isIgnored(ActiveGroupSimulateData groupSimulateData) {
+        if (this.groupMemberInfo.ignoredOffsets.isEmpty()) {
+            return false;
+        }
+
+        Vec3i deltaPos = groupSimulateData.position.subtract(this.position);
+
+        return this.groupMemberInfo.ignoredOffsets.contains(deltaPos);
+    }
+
     public void invalidateAndFixCaches(GroupMemberInfo oldMemberInfo, ActiveGroupSimulateData newGroupSimulateData) {
         this.nextOddsSwitchDuration = 0;
         this.currentOdds = 0;
+
+        if (this.isIgnored(newGroupSimulateData)) {
+            return;
+        }
 
         GroupMemberInfo newMemberInfo = newGroupSimulateData.groupMemberInfo;
 
@@ -190,6 +208,12 @@ public class ActiveGroupSimulateData {
             groupSum -= oldMemberInfo.value;
             if (newMemberInfo != null) {
                 groupSum += newMemberInfo.value;
+            }
+        }
+
+        if (groupCount != null) {
+            if (newMemberInfo == null) {
+                groupCount -= 1;
             }
         }
 
@@ -239,11 +263,32 @@ public class ActiveGroupSimulateData {
         float sum = this.groupMemberInfo.value;
 
         for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
             sum += surrounding.getGroupMemberInfo().value;
         }
 
         groupSum = sum;
         return sum;
+    }
+
+    public int getGroupCount() {
+        if (groupCount != null) {
+            return groupCount;
+        }
+
+        int count = 1;
+
+        for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
+            count++;
+        }
+
+        groupCount = count;
+        return count;
     }
 
     public int getGroupHigherValueCount() {
@@ -256,6 +301,9 @@ public class ActiveGroupSimulateData {
         float thisValue = this.getGroupMemberInfo().value;
 
         for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
             if (surrounding.getGroupMemberInfo().value > thisValue) {
                 count++;
             }
@@ -276,6 +324,9 @@ public class ActiveGroupSimulateData {
         float thisValue = this.getGroupMemberInfo().value;
 
         for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
             if (surrounding.getGroupMemberInfo().value < thisValue) {
                 count++;
             }
@@ -296,6 +347,9 @@ public class ActiveGroupSimulateData {
         float thisValue = this.getGroupMemberInfo().value;
 
         for (var surrounding : this.surroundingData) {
+            if (this.isIgnored(surrounding)) {
+                continue;
+            }
             if (surrounding.getGroupMemberInfo().value == thisValue) {
                 count++;
             }

@@ -355,7 +355,7 @@ public class IncompleteSimulateProperty {
                 for (T ignoredDirection : listResult.result().get().toList()) {
                     var result = Direction.CODEC.decode(ops, ignoredDirection);
                     if (result.result().isEmpty()) {
-                        returnError(result);
+                        return returnError(result);
                     }
 
                     simulateProperty.ignoreBuddingDirections.add(result.result().get().getFirst());
