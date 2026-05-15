@@ -1,15 +1,12 @@
 package lol.zanspace.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import lol.zanspace.unloadedactivity.datapack.*;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
 
-import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
-import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
-import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
-import lol.zanspace.unloadedactivity.datapack.SimulationData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -91,6 +88,15 @@ public class GroupChunkIndex {
             }
 
             GroupMemberInfo groupMemberInfo = maybeGroupMemberInfo.get();
+
+            if (!groupMemberInfo.conditions.isEmpty()) {
+                CalculationData data = new CalculationData(serverLevel, state, pos);
+                for (var condition : groupMemberInfo.conditions) {
+                    if (!condition.isValid(data)) {
+                        return false;
+                    }
+                }
+            }
 
             Optional<SimulateProperty> property = Optional.empty();
 

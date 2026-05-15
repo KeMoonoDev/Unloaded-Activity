@@ -8,6 +8,7 @@ public class GroupMemberInfo {
     public float value;
     public GroupInfo groupInfo;
     public List<Vec3i> ignoredOffsets;
+    public List<Condition> conditions;
 
     public GroupMemberInfo(IncompleteGroupMemberInfo incomplete, GroupInfo groupInfo) {
         if (incomplete.value.isEmpty())
@@ -16,5 +17,6 @@ public class GroupMemberInfo {
         this.value = incomplete.value.get();
         this.groupInfo = groupInfo;
         this.ignoredOffsets = incomplete.ignoredOffsets.stream().toList();
+        this.conditions = incomplete.conditions.stream().toList();
     }
 }

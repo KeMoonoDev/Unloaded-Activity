@@ -15,10 +15,12 @@ import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.re
 public class IncompleteGroupMemberInfo {
     public Optional<Float> value = Optional.empty();
     public ArrayList<Vec3i> ignoredOffsets = new ArrayList<>();
+    public ArrayList<Condition> conditions = new ArrayList<>();
 
     public void merge(IncompleteGroupMemberInfo otherGroupMemberInfo) {
         this.value = otherGroupMemberInfo.value.or(() -> this.value);
         this.ignoredOffsets.addAll(otherGroupMemberInfo.ignoredOffsets);
+        this.conditions.addAll(otherGroupMemberInfo.conditions);
     }
 
     static public <T> DataResult<IncompleteGroupMemberInfo> parse(DynamicOps<T> ops, T input) {
@@ -50,6 +52,30 @@ public class IncompleteGroupMemberInfo {
         }
 
         {
+            T mapValue = map.get("conditions");
+            if (mapValue != null) {
+                var listResult = ops.getStream(mapValue);
+                if (listResult.error().isPresent()) {
+                    return returnError(listResult);
+                }
+
+                for (T unparsedCondition : listResult.result().get().toList()) {
+                    #if MC_VER >= MC_1_20_6
+                    var result = Condition.parse(ops, unparsedCondition);
+                    #else
+                    var result = Condition.parse(ops, unparsedCondition);
+                    #endif
+
+                    if (result.error().isPresent()) {
+                        return returnError(result);
+                    }
+
+                    groupMemberInfo.conditions.add(result.result().get());
+                }
+            }
+        }
+
+        {
             T mapValue = map.get("ignored_offsets");
             if (mapValue != null) {
                 var listResult = ops.getStream(mapValue);
@@ -66,7 +92,6 @@ public class IncompleteGroupMemberInfo {
                     groupMemberInfo.ignoredOffsets.add(result.result().get().getFirst());
                 }
             }
-
         }
 
         return DataResult.success(groupMemberInfo);
