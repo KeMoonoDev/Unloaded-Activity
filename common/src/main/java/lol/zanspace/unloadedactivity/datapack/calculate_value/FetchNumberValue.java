@@ -1,7 +1,6 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 #if MC_VER >= MC_1_21_11
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gamerules.GameRules;
 #else
 import net.minecraft.world.level.GameRules;
@@ -15,6 +14,8 @@ import lol.zanspace.unloadedactivity.datapack.CalculationData;
 import lol.zanspace.unloadedactivity.mixin.CropBlockInvoker;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SpreadingSnowyBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -81,6 +82,20 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         @Override
         public Number calculateValue(CalculationData data) {
             return data.level.getBlockState(data.pos.below()).is(BlockTags.SAND) ? 1 : 0;
+        }
+    },
+
+    GRASS_CAN_STAY_ALIVE {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            return SpreadingSnowyBlock.canStayAlive(data.state, data.level, data.pos) ? 1 : 0;
+        }
+    },
+
+    GRASS_CAN_GROW {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            return SpreadingSnowyBlock.canPropagate(data.state, data.level, data.pos) ? 1 : 0;
         }
     },
 
@@ -335,6 +350,12 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             }
             case "is_sand_below" -> {
                 return Optional.of(IS_SAND_BELOW);
+            }
+            case "grass_can_stay_alive" -> {
+                return Optional.of(GRASS_CAN_STAY_ALIVE);
+            }
+            case "grass_can_grow" -> {
+                return Optional.of(GRASS_CAN_GROW);
             }
             case "should_snow" -> {
                 return Optional.of(SHOULD_SNOW);
