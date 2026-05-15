@@ -49,8 +49,7 @@ public abstract class BlockMixin implements SimulateChunkBlocks {
             }
 
             try {
-                SimulationData simulationData = new SimulationData(finalSimulationData);
-                return simulationData;
+                return new SimulationData(finalSimulationData);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to create SimulationData for " + blockId + ".\n" + e.getMessage());
             }

@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -85,9 +84,13 @@ public class ActiveGroupSimulateData {
 
             SimulateProperty simulateProperty = this.simulateProperty.get();
 
-            this.nextOddsSwitchDuration = simulateProperty.advanceProbability.getNextValueSwitchDuration(calculationData);
+            if (simulateProperty.canBeAffectedByTime) {
+                this.nextOddsSwitchDuration = simulateProperty.advanceProbability.getNextValueSwitchDuration(calculationData);
+            } else {
+                this.nextOddsSwitchDuration = Long.MAX_VALUE;
+            }
 
-            if (simulateProperty.advanceProbability.isAffectedByWeather(calculationData)) {
+            if (simulateProperty.canBeAffectedByWeather && simulateProperty.advanceProbability.isAffectedByWeather(calculationData)) {
                 this.nextOddsSwitchDuration = Math.min(this.nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }
 
@@ -100,7 +103,7 @@ public class ActiveGroupSimulateData {
         this.nextOddsSwitchDuration -= duration;
     }
 
-    public void invalidateCaches() {
+    public void invalidateOddsCaches() {
         this.nextOddsSwitchDuration = 0;
         this.currentOdds = 0;
     }
@@ -139,14 +142,14 @@ public class ActiveGroupSimulateData {
             this.isActive = false;
         }
 
-        this.invalidateCaches();
+        this.invalidateOddsCaches();
 
         if (invalidateOtherCaches) {
             for (var data : this.surroundingData) {
-                data.invalidateCaches();
+                data.invalidateOddsCaches();
             }
             for (var data : this.extendingData) {
-                data.invalidateCaches();
+                data.invalidateOddsCaches();
             }
         }
     }

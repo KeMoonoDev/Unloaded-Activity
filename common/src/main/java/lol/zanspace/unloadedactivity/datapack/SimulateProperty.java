@@ -31,26 +31,28 @@ import static lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks.getPr
 
 
 public class SimulateProperty {
-    public String target;
-    public SimulationType simulationType;
-    public boolean isPrecipitation;
-    public boolean requiresRain;
-    public CalculateValue<Number> advanceProbability;
+    public final String target;
+    public final SimulationType simulationType;
+    public final boolean isPrecipitation;
+    public final boolean requiresRain;
+    public final boolean canBeAffectedByWeather;
+    public final boolean canBeAffectedByTime;
+    public final CalculateValue<Number> advanceProbability;
 
-    public List<String> dependencies;
-    public List<Condition> conditions;
-    public List<String> transferProperties;
-    public Optional<CalculateValue<Number>> maxValue;
-    public Optional<Integer> maxHeight;
-    public Optional<String> waterloggedProperty;
-    public List<Direction> ignoreBuddingDirections;
-    public List<RandomProperty> randomProperties;
-    public Optional<String> buddingDirectionProperty;
-    public Optional<Integer> startingAge;
-    public Optional<CalculateValue<Number>> hatchCount;
+    public final List<String> dependencies;
+    public final List<Condition> conditions;
+    public final List<String> transferProperties;
+    public final Optional<CalculateValue<Number>> maxValue;
+    public final Optional<Integer> maxHeight;
+    public final Optional<String> waterloggedProperty;
+    public final List<Direction> ignoreBuddingDirections;
+    public final List<RandomProperty> randomProperties;
+    public final Optional<String> buddingDirectionProperty;
+    public final Optional<Integer> startingAge;
+    public final Optional<CalculateValue<Number>> hatchCount;
 
-    public Optional<CalculateValue<Block>> blockReplacement;
-    public Optional<EntityType<?>> hatchEntity;
+    public final Optional<CalculateValue<Block>> blockReplacement;
+    public final Optional<EntityType<?>> hatchEntity;
 
     public int updateType;
     public boolean updateNeighbors;
@@ -79,6 +81,8 @@ public class SimulateProperty {
             throw new RuntimeException("advance_probability has not been set.");
 
         this.advanceProbability = incomplete.advanceProbability.get();
+        this.canBeAffectedByWeather = this.advanceProbability.canBeAffectedByWeather();
+        this.canBeAffectedByTime = this.advanceProbability.canBeAffectedByTime();
 
         // Simple transfer
         this.dependencies = incomplete.dependencies.stream().toList();
