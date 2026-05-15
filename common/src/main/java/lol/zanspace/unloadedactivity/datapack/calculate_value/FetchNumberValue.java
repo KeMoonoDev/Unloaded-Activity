@@ -85,6 +85,13 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         }
     },
 
+    IS_SNOW_ABOVE {
+        @Override
+        public Number calculateValue(CalculationData data) {
+            return data.level.getBlockState(data.pos.above()).is(BlockTags.SNOW) ? 1 : 0;
+        }
+    },
+
     GRASS_CAN_STAY_ALIVE {
         @Override
         public Number calculateValue(CalculationData data) {
@@ -417,6 +424,9 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             }
             case "is_sand_below" -> {
                 return Optional.of(IS_SAND_BELOW);
+            }
+            case "is_snow_above" -> {
+                return Optional.of(IS_SNOW_ABOVE);
             }
             case "grass_can_stay_alive" -> {
                 return Optional.of(GRASS_CAN_STAY_ALIVE);
