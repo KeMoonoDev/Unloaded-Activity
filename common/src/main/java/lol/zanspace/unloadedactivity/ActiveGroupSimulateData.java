@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -114,7 +115,22 @@ public class ActiveGroupSimulateData {
         if (this.simulateProperty.isPresent()) {
             SimulateProperty someSimulateProperty = this.simulateProperty.get();
             Block block = this.blockState.getBlock();
-            this.isActive = block.canSimulateProperty(this.blockState, this.level, this.position, someSimulateProperty);
+
+            this.isActive = true;
+
+            if (someSimulateProperty.isPrecipitation) {
+                BlockPos airPos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(this.position.getX(),0,this.position.getZ()));
+                if (!airPos.equals(this.position)) {
+                    BlockPos groundPos = airPos.below();
+                    if (!groundPos.equals(this.position)) {
+                        this.isActive = false;
+                    }
+                }
+            }
+
+            if (this.isActive)
+                this.isActive = block.canSimulateProperty(this.blockState, this.level, this.position, someSimulateProperty);
+
             if (this.isActive) {
                 this.maxUpdateCount = block.getMaxUpdateCount(this.blockState, this.level, this.position, someSimulateProperty);
                 this.currentUpdateCount = 0;
