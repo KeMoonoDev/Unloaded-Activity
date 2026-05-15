@@ -330,7 +330,7 @@ public interface SimulateChunkBlocks {
         throw new RuntimeException("Simulation type " + simulateProperty.simulationType + " is not able to be separated.");
     }
 
-    default List<Pair<BlockPos, BlockState>> getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, int occurrences, long simulationDuration, long timePassed) {
+    default List<Pair<BlockPos, BlockState>> getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
         ArrayList<Pair<BlockPos, BlockState>> updateList = new ArrayList<>();
         switch (simulateProperty.simulationType) {
             case PROPERTY -> {
@@ -573,7 +573,7 @@ public interface SimulateChunkBlocks {
                 BlockState oldState = state;
 
                 if (simulateProperty.blockReplacement.isPresent()) {
-                    Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                    Block blockReplacement = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos, -1, false, false, groupSimulateData));
                     BlockState newState = blockReplacement.defaultBlockState();
                     for (String propertyName : simulateProperty.transferProperties) {
                         Optional<Property<?>> maybeNewProperty = getProperty(newState, propertyName);
@@ -747,7 +747,7 @@ public interface SimulateChunkBlocks {
             return Triple.of(state, result, pos);
 
 
-        List<Pair<BlockPos, BlockState>> newBlockStates = getNewBlockStates(state, level, pos, simulateProperty, result.occurrences(), result.duration(), timePassed);
+        List<Pair<BlockPos, BlockState>> newBlockStates = getNewBlockStates(state, level, pos, simulateProperty, result.occurrences(), result.duration(), timePassed, groupSimulateData);
 
         Block thisBlock = state.getBlock();
 

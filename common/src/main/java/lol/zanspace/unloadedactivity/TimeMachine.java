@@ -360,7 +360,7 @@ public class TimeMachine {
 
                         int updateCount = simulationData.getCurrentUpdateCount();
 
-                        List<Pair<BlockPos, BlockState>> newBlockStates = block.getNewBlockStates(state, level, simulationData.position, simulateProperty, updateCount, simulationStepDuration, simulationStepDuration);
+                        List<Pair<BlockPos, BlockState>> newBlockStates = block.getNewBlockStates(state, level, simulationData.position, simulateProperty, updateCount, simulationStepDuration, simulationStepDuration, simulationData);
 
                         if (newBlockStates.size() > 1) {
                             throw new RuntimeException("Group simulation type must only return 1 or 0 new blockstates.");
