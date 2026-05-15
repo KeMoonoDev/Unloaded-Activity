@@ -266,7 +266,6 @@ public class TimeMachine {
             for (List<ActiveGroupSimulateData> group : isolatedGroups) {
                 int totalIterations = 0;
                 long remainingCycles = groupTimeDifference;
-                long simulationCurrentTime = currentTime - remainingCycles;
 
                 WorldWeatherForecast weatherData = level.getWeatherForecast();
 
@@ -274,6 +273,8 @@ public class TimeMachine {
                     UnloadedActivity.LOGGER.info("Simulating isolated group of " + group.size() + " members");
 
                 while (remainingCycles > 0 && totalIterations < UnloadedActivity.config.maxGroupTickIterations) {
+                    long simulationCurrentTime = currentTime - remainingCycles;
+
                     long minProbabilityStepDuration = remainingCycles / (UnloadedActivity.config.maxGroupTickIterations - totalIterations);
                     long maxProbabilityStepDuration = remainingCycles / Math.max(1, UnloadedActivity.config.minGroupTickIterations - totalIterations);
                     totalIterations++;
@@ -313,8 +314,19 @@ public class TimeMachine {
                         maxProbability = Math.max(probability, maxProbability);
                     }
 
-                    if (maxProbability <= 0.0)
-                        break;
+                    if (maxProbability <= 0.0) {
+                        if (minNextOddsSwitchDuration >= remainingCycles) {
+                            break;
+                        } else {
+                            remainingCycles -= minNextOddsSwitchDuration;
+                            for (ActiveGroupSimulateData simulationData : group) {
+                                if (!simulationData.isActive)
+                                    continue;
+                                simulationData.passTime(minNextOddsSwitchDuration);
+                            }
+                            continue;
+                        }
+                    }
 
                     long probabilityDuration = (long)Math.ceil((1.0 / maxProbability) * UnloadedActivity.config.groupTickUpdateStrength);
                     probabilityDuration = Math.min(maxProbabilityStepDuration, probabilityDuration);
