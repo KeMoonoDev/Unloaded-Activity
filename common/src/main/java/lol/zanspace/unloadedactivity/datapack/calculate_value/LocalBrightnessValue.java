@@ -174,7 +174,14 @@ public class LocalBrightnessValue implements CalculateValue<Number> {
     @Override
     public void replaceSuper(CalculateValue superValue) {}
 
-    public long getNextConditionSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering, float target, Comparison comparison) {
+    @Override
+    public long getNextConditionSwitchDuration(CalculationData data, float target, Comparison comparison) {
+        ServerLevel level = data.level;
+        BlockPos pos = data.pos;
+        long currentTime = data.currentTime;
+        boolean isRaining = data.isRaining;
+        boolean isThundering = data.isThundering;
+
         int blockLight = level.getBrightness(LightLayer.BLOCK, pos.offset(offset));
         int skyLight = level.getBrightness(LightLayer.SKY, pos.offset(offset));
 

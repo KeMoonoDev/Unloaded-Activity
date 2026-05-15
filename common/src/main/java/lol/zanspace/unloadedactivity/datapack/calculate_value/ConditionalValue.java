@@ -46,7 +46,9 @@ public class ConditionalValue<T> implements CalculateValue<T> {
 
     @Override
     public boolean canBeAffectedByTime() {
-        return false;
+        return condition.canBeAffectedByTime()
+                || trueValue.canBeAffectedByTime()
+                || falseValue.canBeAffectedByTime();
     }
 
     @Override
@@ -59,6 +61,7 @@ public class ConditionalValue<T> implements CalculateValue<T> {
     @Override
     public long getNextValueSwitchDuration(CalculationData data) {
         boolean isValid = condition.isValid(data);
+
         long conditionSwitch = condition.getNextConditionSwitchDuration(data);
 
         return Math.min(

@@ -29,6 +29,10 @@ public interface CalculateValue<T> {
 
     long getNextValueSwitchDuration(CalculationData data);
 
+    default long getNextConditionSwitchDuration(CalculationData data, float target, Comparison comparison) {
+        return getNextValueSwitchDuration(data);
+    };
+
     /// Doesn't guarantee a clone. If a type doesn't get mutated, it's able to return itself.
     CalculateValue<T> replicate();
 

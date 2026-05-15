@@ -41,7 +41,12 @@ public record Condition (CalculateValue<Number> value1, CalculateValue<Number> v
     };
 
     public long getNextConditionSwitchDuration(CalculationData data) {
-        return Math.min(value1.getNextValueSwitchDuration(data), value2.getNextValueSwitchDuration(data));
+        float value2Float = value2.calculateValue(data).floatValue();
+
+        return Math.min(
+            value1.getNextConditionSwitchDuration(data, value2Float, comparison),
+            value2.getNextValueSwitchDuration(data)
+        );
     };
 
     public static <T> DataResult<Condition> parse(DynamicOps<T> ops, T input) {
