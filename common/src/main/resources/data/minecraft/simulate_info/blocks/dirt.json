@@ -1,0 +1,51 @@
+{
+  "grow_grass": {
+    "simulation_type": "decay",
+    "simulate_with_group": "unloadedactivity:grow_grass",
+    "drops_resources": false,
+    "block_replacement": {
+      "predicate": {
+        "value": "group_random_higher_value",
+        "comparison": "equal",
+        "check": 2
+      },
+      "success": "minecraft:mycelium",
+      "fail": "minecraft:grass_block"
+    },
+    "set_properties":{
+      "snowy": "is_snow_above"
+    },
+    "conditions": [
+      {
+        "check": "grass_can_grow",
+        "comparison": "equal",
+        "value": true
+      }
+    ],
+    "advance_probability": {
+      "predicate": {
+        "check": "local_brightness_above",
+        "comparison": "greater_or_equal",
+        "value": 9
+      },
+      "fail": 0,
+      "success": {
+        "value1": 1,
+        "operator": "-",
+        "value2": {
+          "value1": {
+            "value1": 44,
+            "operator": "/",
+            "value2": 45
+          },
+          "operator": "^",
+          "value2": {
+            "value1": 4,
+            "operator": "*",
+            "value2": "group_higher_value_count"
+          }
+        }
+      }
+    }
+  }
+}

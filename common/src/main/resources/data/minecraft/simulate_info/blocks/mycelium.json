@@ -1,0 +1,15 @@
+{
+  "grass_decay": {
+    "simulation_type": "decay",
+    "conditions": [
+      {
+        "check": "grass_can_stay_alive",
+        "comparison": "equal",
+        "value": false
+      }
+    ],
+    "drops_resources": false,
+    "block_replacement": "minecraft:dirt",
+    "advance_probability": 1
+  }
+}
