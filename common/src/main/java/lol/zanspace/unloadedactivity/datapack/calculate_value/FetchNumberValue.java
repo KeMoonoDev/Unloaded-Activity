@@ -1,5 +1,11 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
+#if MC_VER >= MC_26_1_2
+import net.minecraft.world.level.block.SpreadingSnowyBlock;
+#else
+import net.minecraft.world.level.block.SpreadingSnowyDirtBlock;
+#endif
+
 #if MC_VER >= MC_1_21_11
 import net.minecraft.world.level.gamerules.GameRules;
 #else
@@ -15,7 +21,6 @@ import lol.zanspace.unloadedactivity.mixin.CropBlockInvoker;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.SpreadingSnowyBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -95,23 +100,37 @@ public enum FetchNumberValue implements CalculateValue<Number> {
     GRASS_CAN_STAY_ALIVE {
         @Override
         public Number calculateValue(CalculationData data) {
+            #if MC_VER >= MC_26_1_2
             return SpreadingSnowyBlock.canStayAlive(data.state, data.level, data.pos) ? 1 : 0;
+            #else
+            return SpreadingSnowyDirtBlock.canBeGrass(data.state, data.level, data.pos) ? 1 : 0;
+            #endif
         }
     },
 
     GRASS_CAN_GROW {
         @Override
         public Number calculateValue(CalculationData data) {
+            #if MC_VER >= MC_26_1_2
             return SpreadingSnowyBlock.canPropagate(data.state, data.level, data.pos) ? 1 : 0;
+            #else
+            return SpreadingSnowyDirtBlock.canPropagate(data.state, data.level, data.pos) ? 1 : 0;
+            #endif
         }
     },
 
     SHOULD_SNOW {
         @Override
         public Number calculateValue(CalculationData data) {
+            #if MC_VER >= MC_1_21_3
             if (!data.level.isInsideBuildHeight(data.pos.getY())) {
                 return 0;
             }
+            #else
+            if (data.level.isOutsideBuildHeight(data.pos.getY())) {
+                return 0;
+            }
+            #endif
 
             if (!Blocks.SNOW.defaultBlockState().canSurvive(data.level, data.pos)) {
                 return 0;
@@ -136,7 +155,6 @@ public enum FetchNumberValue implements CalculateValue<Number> {
             }
 
             return 1;
-            //return biome.shouldSnow(data.level, data.pos) ? 1 : 0;
         }
     },
 

@@ -1,8 +1,6 @@
 package lol.zanspace.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -14,6 +12,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -383,7 +383,7 @@ public class TimeMachine {
                             continue;
                         }
 
-                        Pair<BlockPos, BlockState> newBlockData = newBlockStates.getFirst();
+                        Pair<BlockPos, BlockState> newBlockData = newBlockStates.get(0);
 
                         if (!newBlockData.getFirst().equals(simulationData.position)) {
                             throw new RuntimeException("Group simulation type must not change its position.");
@@ -471,7 +471,7 @@ public class TimeMachine {
         int forceLoadedChunks = 0;
         // Might be able to replace this with a list and call .contains() considering it's not going to be that big.
         LongOpenHashSet checkedChunks = new LongOpenHashSet();
-        checkedChunks.add(chunk.getPos().pack());
+        checkedChunks.add(GameUtils.toLong(chunk.getPos()));
 
         boolean chunksAreIndexed = true;
 
@@ -510,9 +510,9 @@ public class TimeMachine {
                     for (var offset : groupInfo.finalOffsetsWithoutZero) {
                         BlockPos checkPos = groupSimulateData.position.offset(offset);
                         ChunkPos chunkPos = GameUtils.chunkPosFromWorldPos(checkPos);
-                        boolean isNewChunk = !checkedChunks.contains(chunkPos.pack());
+                        boolean isNewChunk = !checkedChunks.contains(GameUtils.toLong(chunkPos));
                         if (isNewChunk) {
-                            newChunks.add(chunkPos.pack());
+                            newChunks.add(GameUtils.toLong(chunkPos));
                             intersectsNewChunks = true;
                         }
                     }
@@ -548,7 +548,7 @@ public class TimeMachine {
             for (long newChunkPosLong : newChunks) {
                 checkedChunks.add(newChunkPosLong);
 
-                ChunkPos newChunkPos = ChunkPos.unpack(newChunkPosLong);
+                ChunkPos newChunkPos = GameUtils.chunkPosFromLong(newChunkPosLong);
                 if (!GameUtils.isChunkLoaded(level, newChunkPos)) {
                     if (forceLoadedChunks >= UnloadedActivity.config.maxForcedChunkLoads)
                         continue;

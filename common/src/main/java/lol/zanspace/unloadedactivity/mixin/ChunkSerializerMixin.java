@@ -62,9 +62,8 @@ public abstract class ChunkSerializerMixin {
         chunkData.putLongArray("sim_blocks", chunk.getSimulationBlocks());
 
         CompoundTag groupsData = new CompoundTag();
-        for (var entry : chunk.getGroupIndexes().entrySet()) {
-            var groupId = entry.getKey();
-            GroupChunkIndex groupChunkIndex = entry.getValue();
+        for (GroupChunkIndex groupChunkIndex : chunk.getGroupIndexes()) {
+            var groupId = groupChunkIndex.groupId;
             CompoundTag groupData = new CompoundTag();
 
             groupData.putLongArray("positions", groupChunkIndex.getPositions());
@@ -102,7 +101,7 @@ public abstract class ChunkSerializerMixin {
             protoChunk.setSimulationVersion(chunkData.getLong("ver"));
             protoChunk.setSimulationBlocks(chunkData.getLongArray("sim_blocks"));
 
-            HashMap<ResourceLocation, GroupChunkIndex> groupIndexes = new HashMap<>();
+            ArrayList<GroupChunkIndex> groupIndexes = new ArrayList<>();
 
             CompoundTag groupsData = chunkData.getCompound("groups");
             for (String groupKey : groupsData.getAllKeys()) {
@@ -114,9 +113,12 @@ public abstract class ChunkSerializerMixin {
 
                 CompoundTag groupData = groupsData.getCompound(groupKey);
 
-                GroupChunkIndex groupChunkIndex = groupIndexes.computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), groupData.getLong("last_tick"), id));
-                groupChunkIndex.setLastTick(groupData.getLong("last_tick"));
+                long groupLastTicked = groupData.getLong("last_tick");
+
+                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastTicked, groupId);
                 groupChunkIndex.setPositions(groupData.getLongArray("positions"));
+
+                groupIndexes.add(groupChunkIndex);
             }
 
             protoChunk.setGroupIndexes(groupIndexes);

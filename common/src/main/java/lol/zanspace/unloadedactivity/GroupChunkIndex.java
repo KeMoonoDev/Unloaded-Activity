@@ -1,7 +1,6 @@
 package lol.zanspace.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
-import lol.zanspace.unloadedactivity.datapack.*;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -14,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.apache.commons.lang3.tuple.Triple;
+import lol.zanspace.unloadedactivity.datapack.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

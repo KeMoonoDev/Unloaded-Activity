@@ -1,7 +1,6 @@
 package lol.zanspace.unloadedactivity.config;
 
 #if MC_VER >= MC_1_21_11
-import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -24,6 +23,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import com.mojang.datafixers.util.Either;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.commands.CommandSourceStack;

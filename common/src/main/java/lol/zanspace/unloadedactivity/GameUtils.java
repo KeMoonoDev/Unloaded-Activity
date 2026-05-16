@@ -86,6 +86,22 @@ public class GameUtils {
         #endif
     }
 
+    public static long toLong(ChunkPos chunkPos) {
+        #if MC_VER >= MC_26_1_2
+        return chunkPos.pack();
+        #else
+        return chunkPos.toLong();
+        #endif
+    }
+
+    public static ChunkPos chunkPosFromLong(long longPos) {
+        #if MC_VER >= MC_26_1_2
+        return ChunkPos.unpack(longPos);
+        #else
+        return new ChunkPos(longPos);
+        #endif
+    }
+
     public static boolean isValidGourdPosition(Direction direction, BlockPos pos, BlockState state, ServerLevel level) {
         BlockPos blockPos = pos.relative(direction);
 

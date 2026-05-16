@@ -1,7 +1,6 @@
 package lol.zanspace.unloadedactivity.interfaces;
 
 #if MC_VER >= MC_1_21_11
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.animal.turtle.Turtle;
 #else
@@ -36,6 +35,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.levelgen.Heightmap;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.level.material.Fluids;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;

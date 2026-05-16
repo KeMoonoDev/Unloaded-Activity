@@ -1,7 +1,6 @@
 package lol.zanspace.unloadedactivity.datapack;
 
 #if MC_VER >= MC_1_21_11
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -20,6 +19,7 @@ import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.*;
 
