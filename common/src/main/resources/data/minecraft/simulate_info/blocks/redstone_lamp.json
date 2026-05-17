@@ -1,9 +1,0 @@
-{
-  "lit": {
-    "simulation_type": "property",
-    "max_height": 5,
-    "reverse_height_growth_direction": true,
-    "block_replacement": "minecraft:stone",
-    "advance_probability": 1
-  }
-}
