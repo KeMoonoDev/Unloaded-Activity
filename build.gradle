@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'xyz.wagyourtail.unimined' version '1.4.2-SNAPSHOT'
 	id 'com.gradleup.shadow' version '8.3.6' apply false
-	id "io.github.pacifistmc.forgix" version "1.2.9"
+	id "io.github.pacifistmc.forgix" version "2.0.0-SNAPSHOT.5.1"
 }
 
 minecraft_version_string = project.minecraft_version.replace(".", "_")
@@ -86,8 +86,15 @@ if (version_range.length == 1) {
 }
 
 
+
 forgix {
+	destinationDirectory = layout.projectDirectory.dir("Merged")
+	archiveClassifier = ""
 	group = rootProject.maven_group
+
+	fabric()
+	neoforge()
+	/*
 	mergedJarName = "$archives_name-$mod_version+mc${compatible_versions}.jar"
 
 	fabric {
@@ -102,9 +109,8 @@ forgix {
 		forge {
 			jarLocation = "build/libs/$archives_name-forge-$mod_version+mc${compatible_versions}.jar"
 		}
-	}
+	}*/
 }
-
 
 allprojects { p ->
 	group = rootProject.maven_group

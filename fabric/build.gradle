@@ -10,7 +10,7 @@ unimined.minecraft {
 
     fabric {
         loader fabric_loader_version
-        if (minecraft_version.startsWith("1.")) {
+        if (rootProject.minecraft_version.startsWith("1.")) {
             accessWidener = project(":common").sourceSets.main.resources.matching{
                 include "unloadedactivitynamed.accesswidener"
             }.singleFile
