@@ -29,14 +29,16 @@ public class UnloadedActivity {
 
     public static final long chunkSimVer = 2;
     public static UnloadedActivityConfig config;
+    public static IPlatformHelper platform;
 
-    public static void init() {
+    public static void init(IPlatformHelper platformHelper) {
+        platform = platformHelper;
         loadConfig();
         LOGGER.info("Bleeghhh...");
     }
     public static void loadConfig() {
         LOGGER.info("Loading config.");
-        File configFile = new File(IPlatformHelper.INSTANCE.getConfigDirectory().toFile(), MOD_ID+".json");
+        File configFile = new File(platform.getConfigDirectory().toFile(), MOD_ID+".json");
         Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(BlockOrTag.class, new BlockOrTag.StringAdapter())
@@ -58,7 +60,7 @@ public class UnloadedActivity {
     }
 
     public static void saveConfig() {
-        File configFile = new File(IPlatformHelper.INSTANCE.getConfigDirectory().toFile(), MOD_ID+".json");
+        File configFile = new File(platform.getConfigDirectory().toFile(), MOD_ID+".json");
         Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(BlockOrTag.class, new BlockOrTag.StringAdapter())

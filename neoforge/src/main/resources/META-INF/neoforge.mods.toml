@@ -19,6 +19,11 @@ versionRange = "[1,)"
 ordering = "NONE"
 side = "SERVER"
 
+[[mixins]]
+config = "unloadedactivity.mixins.json"
+[[mixins]]
+config = "unloadedactivityneoforge.mixins.json"
+
 [[dependencies.unloadedactivity]]
 modId = "minecraft"
 type = "required"

@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 #if MC_VER >= MC_26_1_2
+import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.world.level.block.SpreadingSnowyBlock;
 #else
 import net.minecraft.world.level.block.SpreadingSnowyDirtBlock;
@@ -37,7 +38,7 @@ public enum FetchNumberValue implements CalculateValue<Number> {
         @Override
         public Number calculateValue(CalculationData data) {
             #if MC_VER >= MC_1_21_1
-            return IPlatformHelper.INSTANCE.getGrowthSpeed(data.state, data.level, data.pos);
+            return UnloadedActivity.platform.getGrowthSpeed(data.state, data.level, data.pos);
             #else
             return CropBlockInvoker.invokeGetGrowthSpeed(data.state.getBlock(), data.level, data.pos);
             #endif

@@ -237,14 +237,14 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                     for (int i = 0; i < itemsCrafted; i++) {
                         #if MC_VER >= MC_26_1_2
                         ItemStack burnResult = recipe.value().assemble(singleRecipeInput);
-                        IPlatformHelper.INSTANCE.burn(
+                        UnloadedActivity.platform.burn(
                             this.items,
                             ingredient,
                             burnResult,
                             furnace
                         );
                         #else
-                        IPlatformHelper.INSTANCE.burn(
+                        UnloadedActivity.platform.burn(
                             #if MC_VER >= MC_1_19_4 level.registryAccess(), #endif recipe,
                             #if MC_VER >= MC_1_21_3 singleRecipeInput, #endif this.items,
                             getMaxStackSize(),

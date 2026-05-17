@@ -23,7 +23,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public class UnloadedActivityFabric implements ModInitializer {
 	@Override
 	public void onInitialize() {
-		UnloadedActivity.init();
+		UnloadedActivity.init(new FabricPlatformHelper());
 
 		CommandRegistrationCallback.EVENT.register((dispatcher,context,environment) -> UnloadedActivityCommand.register(dispatcher));
 		#if MC_VER >= MC_26_1_2
