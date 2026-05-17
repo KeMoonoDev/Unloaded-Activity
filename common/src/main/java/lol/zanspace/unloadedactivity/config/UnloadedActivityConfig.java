@@ -440,7 +440,7 @@ public class UnloadedActivityConfig {
     public int maxGroupTickIterations = 128;
     public int minGroupTickIterations = 8;
     public float groupTickUpdateStrength = 1F;
-    public int maxGroupTickSize = 10000;
+    public int maxGroupTickSize = 5000;
 
     //Chunk
     public int maxChunksIndexedPerTick = 8;
