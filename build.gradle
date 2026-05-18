@@ -20,6 +20,7 @@ using_neo = false
 using_legacy_folders = true
 lightning_rod_is_oxidizable = false
 cactus_flowers_are_added = false
+aw_namespace = "named"
 
 supported_versions.eachWithIndex { version, index ->
 	def version_string = version.replace(".", "_")
@@ -38,6 +39,10 @@ supported_versions.eachWithIndex { version, index ->
 		if (version == java_25_switch_version) {
 			java_version = JavaVersion.VERSION_25
 			java_version_int = 25
+		}
+
+		if (version == deobfuscated_version) {
+			aw_namespace = "official"
 		}
 
 		if (version == rename_legacy_folders_version) {
@@ -85,31 +90,32 @@ if (version_range.length == 1) {
 	throw new GradleException("Wrong version format: $project.compatible_versions")
 }
 
+println("waw")
 
+println(tasks.build.getOutputs().files)
+
+tasks.build.getOutputs().files.each {
+	println(it.name)
+}
 
 forgix {
 	destinationDirectory = layout.projectDirectory.dir("Merged")
 	archiveClassifier = ""
 	group = rootProject.maven_group
 
-	fabric()
-	neoforge()
-	/*
-	mergedJarName = "$archives_name-$mod_version+mc${compatible_versions}.jar"
-
 	fabric {
-		jarLocation = "build/libs/$archives_name-fabric-$mod_version+mc${compatible_versions}.jar"
+		inputJar = project(":fabric").tasks.jar.archiveFile
 	}
 
 	if (using_neo) {
 		neoforge {
-			jarLocation = "build/libs/$archives_name-neoforge-$mod_version+mc${compatible_versions}.jar"
+			inputJar = project(":neoforge").tasks.jar.archiveFile
 		}
 	} else {
 		forge {
-			jarLocation = "build/libs/$archives_name-forge-$mod_version+mc${compatible_versions}.jar"
+			inputJar = project(":forge").tasks.jar.archiveFile
 		}
-	}*/
+	}
 }
 
 allprojects { p ->
@@ -187,6 +193,16 @@ subprojects {
 				"compatible_versions_fabric": rootProject.compatible_versions_fabric_format,
 				"compatible_versions_neo_or_forge": rootProject.compatible_versions_neo_or_forge_format
 			)
+		}
+
+		exclude { file ->
+			if (file.name.contains(".accesswidener") && file.name != "unloadedactivity${rootProject.aw_namespace}.accesswidener") {
+				return true
+			}
+			if (file.name.contains(".classtweaker") && file.name != "unloadedactivity${rootProject.aw_namespace}.classtweaker") {
+				return true
+			}
+			return false
 		}
 	}
 

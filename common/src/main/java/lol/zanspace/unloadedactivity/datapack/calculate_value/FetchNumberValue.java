@@ -1,7 +1,6 @@
 package lol.zanspace.unloadedactivity.datapack.calculate_value;
 
 #if MC_VER >= MC_26_1_2
-import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.world.level.block.SpreadingSnowyBlock;
 #else
 import net.minecraft.world.level.block.SpreadingSnowyDirtBlock;
@@ -15,6 +14,7 @@ import net.minecraft.world.level.GameRules;
 
 import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.MathUtils;
+import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import lol.zanspace.unloadedactivity.datapack.CalculateValue;
 import lol.zanspace.unloadedactivity.datapack.CalculationData;

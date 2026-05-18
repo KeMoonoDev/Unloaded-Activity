@@ -2,16 +2,7 @@
 unimined.minecraft {
     fabric {
         loader fabric_loader_version
-        if (rootProject.minecraft_version.startsWith("1.")) {
-            accessWidener = file("src/main/resources/unloadedactivitynamed.classtweaker")
-            // Not included because you cant have several accesswideners,
-            // so everything is included in the classtweaker instead.
-            // Fabric and (Neo)Forge uses the accesswideners only though.
-            //accessWidener = file("src/main/resources/unloadedactivitynamed.accesswidener")
-        } else {
-            accessWidener = file("src/main/resources/unloadedactivityofficial.classtweaker")
-            //accessWidener = file("src/main/resources/unloadedactivityofficial.accesswidener")
-        }
+        accessWidener = file("src/main/resources/unloadedactivity${rootProject.aw_namespace}.classtweaker")
     }
 
     defaultRemapJar = false
