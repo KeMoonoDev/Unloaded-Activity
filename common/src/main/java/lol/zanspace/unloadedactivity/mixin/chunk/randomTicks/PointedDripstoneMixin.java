@@ -5,7 +5,6 @@ import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.MathUtils;
 import lol.zanspace.unloadedactivity.OccurrencesAndDuration;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
-import lol.zanspace.unloadedactivity.mixin.AbstractCauldronBlockInvoker;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
@@ -221,9 +220,7 @@ public abstract class PointedDripstoneMixin extends Block {
             BlockState cauldronState = level.getBlockState(cauldronPos);
             if (cauldronState.getBlock() instanceof AbstractCauldronBlock cauldronBlock) {
 
-                AbstractCauldronBlockInvoker abstractCauldronBlockInvoker = (AbstractCauldronBlockInvoker)cauldronBlock;
-
-                if (!cauldronBlock.isFull(cauldronState) && abstractCauldronBlockInvoker.canReceiveStalactiteDrip(dripstoneFluid)) {
+                if (!cauldronBlock.isFull(cauldronState) && cauldronBlock.canReceiveStalactiteDrip(dripstoneFluid)) {
                     float totalDripOdds = getCauldronDripOdds(dripstoneFluid) * randomPickOdds;
 
                     long leftover = timePassed;
@@ -236,11 +233,11 @@ public abstract class PointedDripstoneMixin extends Block {
                     int dripOccurrences = MathUtils.getOccurrencesBinomial(leftover, totalDripOdds, LayeredCauldronBlock.MAX_FILL_LEVEL, random);
                     while (dripOccurrences > 0) {
                         --dripOccurrences;
-                        abstractCauldronBlockInvoker.receiveStalactiteDrip(cauldronState, level, cauldronPos, dripstoneFluid);
+                        cauldronBlock.receiveStalactiteDrip(cauldronState, level, cauldronPos, dripstoneFluid);
 
                         //The block has changed and so the state and invoker needs updating.
                         cauldronState = level.getBlockState(cauldronPos);
-                        abstractCauldronBlockInvoker = (AbstractCauldronBlockInvoker)cauldronState.getBlock();
+                        cauldronBlock = (AbstractCauldronBlock) cauldronState.getBlock();
                     }
                 }
             }

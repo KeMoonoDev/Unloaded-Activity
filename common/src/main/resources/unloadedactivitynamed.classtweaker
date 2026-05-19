@@ -11,7 +11,10 @@ inject-interface net/minecraft/server/MinecraftServer lol/zanspace/unloadedactiv
 
 # Needed to check for valid gourd positions. Only for 26.1.2+
 #accessible field net/minecraft/world/level/block/StemBlock fruitSupportBlocks Lnet/minecraft/tags/TagKey;
+
 accessible method net/minecraft/world/level/block/SpreadingSnowyBlock canStayAlive (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z
 accessible method net/minecraft/world/level/block/SpreadingSnowyBlock canPropagate (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z
 accessible method net/minecraft/world/level/block/SpreadingSnowyDirtBlock canBeGrass (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z
 accessible method net/minecraft/world/level/block/SpreadingSnowyDirtBlock canPropagate (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z
+accessible method net/minecraft/world/level/block/AbstractCauldronBlock canReceiveStalactiteDrip (Lnet/minecraft/world/level/material/Fluid;)Z
+accessible method net/minecraft/world/level/block/AbstractCauldronBlock receiveStalactiteDrip (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;)V
