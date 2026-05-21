@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -38,21 +37,21 @@ public class SimulateProperty {
     public final boolean requiresRain;
     public final boolean canBeAffectedByWeather;
     public final boolean canBeAffectedByTime;
-    public final CalculateValue<Number> advanceProbability;
+    public final ValueExpression<Number> advanceProbability;
 
     public final List<String> dependencies;
     public final List<Condition> conditions;
     public final List<String> transferProperties;
-    public final Optional<CalculateValue<Number>> maxValue;
+    public final Optional<ValueExpression<Number>> maxValue;
     public final Optional<Integer> maxHeight;
     public final Optional<String> waterloggedProperty;
     public final List<Direction> ignoreBuddingDirections;
-    public final List<Pair<String, CalculateValue<Number>>> setProperties;
+    public final List<Pair<String, ValueExpression<Number>>> setProperties;
     public final Optional<String> buddingDirectionProperty;
     public final Optional<Integer> startingAge;
-    public final Optional<CalculateValue<Number>> hatchCount;
+    public final Optional<ValueExpression<Number>> hatchCount;
 
-    public final Optional<CalculateValue<Block>> blockReplacement;
+    public final Optional<ValueExpression<Block>> blockReplacement;
     public final Optional<EntityType<?>> hatchEntity;
 
     public int updateType;
@@ -126,7 +125,7 @@ public class SimulateProperty {
             return maybeEntity.get();
         });
 
-        ArrayList<Pair<String, CalculateValue<Number>>> setPropertiesList = new ArrayList<>();
+        ArrayList<Pair<String, ValueExpression<Number>>> setPropertiesList = new ArrayList<>();
         for (var entry : incomplete.setProperties.entrySet()) {
             setPropertiesList.add(Pair.of(entry.getKey(), entry.getValue()));
         }

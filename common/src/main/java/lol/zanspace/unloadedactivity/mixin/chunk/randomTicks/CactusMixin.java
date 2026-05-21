@@ -74,7 +74,7 @@ public abstract class CactusMixin extends Block {
             if (simulateProperty.maxHeight.isPresent()) {
                 int maxHeight = simulateProperty.maxHeight.get();
 
-                Block lowerBlock = simulateProperty.blockReplacement.map((blockCalculateValue -> blockCalculateValue.calculateValue(new CalculationData(level, state, pos)))).orElse(thisBlock);
+                Block lowerBlock = simulateProperty.blockReplacement.map((blockValueExpression -> blockValueExpression.evaluate(new ValueContext(level, state, pos)))).orElse(thisBlock);
 
                 int height;
                 if (simulateProperty.reverseHeightGrowthDirection) {
@@ -99,8 +99,8 @@ public abstract class CactusMixin extends Block {
 
 
         if (simulateProperty.maxValue.isPresent()) {
-            CalculateValue<Number> maxValue = simulateProperty.maxValue.get();
-            Number calculated = maxValue.calculateValue(new CalculationData(level, state, pos));
+            ValueExpression<Number> maxValue = simulateProperty.maxValue.get();
+            Number calculated = maxValue.evaluate(new ValueContext(level, state, pos));
             max = Math.min(propertyMax, calculated.intValue());
         }
 
@@ -122,8 +122,8 @@ public abstract class CactusMixin extends Block {
 
 
         if (simulateProperty.maxValue.isPresent()) {
-            CalculateValue<Number> maxValue = simulateProperty.maxValue.get();
-            Number calculated = maxValue.calculateValue(new CalculationData(level, state, pos));
+            ValueExpression<Number> maxValue = simulateProperty.maxValue.get();
+            Number calculated = maxValue.evaluate(new ValueContext(level, state, pos));
             max = Math.min(propertyMax, calculated.intValue());
         }
 
@@ -131,7 +131,7 @@ public abstract class CactusMixin extends Block {
         if (simulateProperty.maxHeight.isPresent() || simulateProperty.increasePerHeight) {
             Block lowerBlock;
             if (simulateProperty.blockReplacement.isPresent()) {
-                lowerBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                lowerBlock = simulateProperty.blockReplacement.get().evaluate(new ValueContext(level, state, pos));
             } else {
                 lowerBlock = this;
             }
@@ -209,7 +209,7 @@ public abstract class CactusMixin extends Block {
 
                 Block lowerBlock;
                 if (simulateProperty.blockReplacement.isPresent()) {
-                    lowerBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                    lowerBlock = simulateProperty.blockReplacement.get().evaluate(new ValueContext(level, state, pos));
                 } else {
                     lowerBlock = this;
                 }
@@ -261,7 +261,7 @@ public abstract class CactusMixin extends Block {
 
         if (simulateProperty.increasePerHeight) {
             if (simulateProperty.blockReplacement.isPresent()) {
-                Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                Block newBlock = simulateProperty.blockReplacement.get().evaluate(new ValueContext(level, state, pos));
                 BlockState newState = newBlock.defaultBlockState();
 
                 for (String propertyName : simulateProperty.transferProperties) {
@@ -301,7 +301,7 @@ public abstract class CactusMixin extends Block {
                 boolean isFinal = i+1 == result.occurrences();
 
                 if (simulateProperty.blockReplacement.isPresent() && !isFinal) {
-                    Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                    Block newBlock = simulateProperty.blockReplacement.get().evaluate(new ValueContext(level, state, pos));
                     state = newBlock.defaultBlockState();
                 } else {
                     int newValue = current + (i + 1);
@@ -310,16 +310,16 @@ public abstract class CactusMixin extends Block {
 
                 for (var setProperty : simulateProperty.setProperties) {
                     String propertyName = setProperty.getFirst();
-                    CalculateValue<Number> propertyValue = setProperty.getSecond();
+                    ValueExpression<Number> propertyValue = setProperty.getSecond();
                     Optional<Property<?>> maybeProperty = SimulateChunkBlocks.getProperty(state, propertyName);
                     if (maybeProperty.isPresent()) {
                         Property<?> property = maybeProperty.get();
                         if (property instanceof BooleanProperty booleanProperty) {
-                            float value = propertyValue.calculateValue(new CalculationData(level, state, pos)).floatValue();
+                            float value = propertyValue.evaluate(new ValueContext(level, state, pos)).floatValue();
                             state = state.setValue(booleanProperty, value != 0);
                         }
                         if (property instanceof IntegerProperty integerProperty) {
-                            int value = propertyValue.calculateValue(new CalculationData(level, state, pos)).intValue();
+                            int value = propertyValue.evaluate(new ValueContext(level, state, pos)).intValue();
                             state = state.setValue(integerProperty, value);
                         }
                     }
@@ -347,7 +347,7 @@ public abstract class CactusMixin extends Block {
             if (growBlocks == 0) {
                 state = state.setValue(CactusBlock.AGE, valueRemainer);
             } else if (simulateProperty.blockReplacement.isPresent()) {
-                Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                Block newBlock = simulateProperty.blockReplacement.get().evaluate(new ValueContext(level, state, pos));
                 BlockState newState = newBlock.defaultBlockState();
 
                 for (String propertyName : simulateProperty.transferProperties) {
@@ -388,7 +388,7 @@ public abstract class CactusMixin extends Block {
                 if (i+1==growBlocks) {
                     state = this.defaultBlockState().setValue(CactusBlock.AGE, valueRemainer);
                 } else if (simulateProperty.blockReplacement.isPresent()) {
-                    Block newBlock = simulateProperty.blockReplacement.get().calculateValue(new CalculationData(level, state, pos));
+                    Block newBlock = simulateProperty.blockReplacement.get().evaluate(new ValueContext(level, state, pos));
                     BlockState newState = newBlock.defaultBlockState();
 
                     for (String propertyName : simulateProperty.transferProperties) {
@@ -419,16 +419,16 @@ public abstract class CactusMixin extends Block {
 
                 for (var setProperty : simulateProperty.setProperties) {
                     String propertyName = setProperty.getFirst();
-                    CalculateValue<Number> propertyValue = setProperty.getSecond();
+                    ValueExpression<Number> propertyValue = setProperty.getSecond();
                     Optional<Property<?>> maybeProperty = SimulateChunkBlocks.getProperty(state, propertyName);
                     if (maybeProperty.isPresent()) {
                         Property<?> property = maybeProperty.get();
                         if (property instanceof BooleanProperty booleanProperty) {
-                            float value = propertyValue.calculateValue(new CalculationData(level, state, pos)).floatValue();
+                            float value = propertyValue.evaluate(new ValueContext(level, state, pos)).floatValue();
                             state = state.setValue(booleanProperty, value != 0);
                         }
                         if (property instanceof IntegerProperty integerProperty) {
-                            int value = propertyValue.calculateValue(new CalculationData(level, state, pos)).intValue();
+                            int value = propertyValue.evaluate(new ValueContext(level, state, pos)).intValue();
                             state = state.setValue(integerProperty, value);
                         }
                     }

@@ -1,40 +1,37 @@
-package lol.zanspace.unloadedactivity.datapack.calculate_value;
+package lol.zanspace.unloadedactivity.datapack.value_expression;
 
-import lol.zanspace.unloadedactivity.datapack.CalculateValue;
-import lol.zanspace.unloadedactivity.datapack.CalculationData;
+import lol.zanspace.unloadedactivity.datapack.ValueExpression;
+import lol.zanspace.unloadedactivity.datapack.ValueContext;
 import lol.zanspace.unloadedactivity.datapack.Condition;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.function.Function;
 
-public class ConditionalValue<T> implements CalculateValue<T> {
+public class ConditionalValue<T> implements ValueExpression<T> {
 
     Condition condition;
-    CalculateValue<T> trueValue;
-    CalculateValue<T> falseValue;
+    ValueExpression<T> trueValue;
+    ValueExpression<T> falseValue;
 
-    public ConditionalValue(Condition condition, CalculateValue<T> trueValue, CalculateValue<T> falseValue) {
+    public ConditionalValue(Condition condition, ValueExpression<T> trueValue, ValueExpression<T> falseValue) {
         this.condition = condition;
         this.trueValue = trueValue;
         this.falseValue = falseValue;
     }
 
     @Override
-    public T calculateValue(CalculationData data) {
-        if (condition.isValid(data)) {
-            return trueValue.calculateValue(data);
+    public T evaluate(ValueContext context) {
+        if (condition.isValid(context)) {
+            return trueValue.evaluate(context);
         } else {
-            return falseValue.calculateValue(data);
+            return falseValue.evaluate(context);
         }
     }
 
     @Override
-    public boolean isAffectedByWeather(CalculationData data) {
-        return condition.isAffectedByWeather(data)
-                || trueValue.isAffectedByWeather(data)
-                || falseValue.isAffectedByWeather(data);
+    public boolean isAffectedByWeather(ValueContext context) {
+        return condition.isAffectedByWeather(context)
+                || trueValue.isAffectedByWeather(context)
+                || falseValue.isAffectedByWeather(context);
     }
 
     @Override
@@ -59,27 +56,27 @@ public class ConditionalValue<T> implements CalculateValue<T> {
     }
 
     @Override
-    public long getNextValueSwitchDuration(CalculationData data) {
-        boolean isValid = condition.isValid(data);
+    public long getNextValueSwitchDuration(ValueContext context) {
+        boolean isValid = condition.isValid(context);
 
-        long conditionSwitch = condition.getNextConditionSwitchDuration(data);
+        long conditionSwitch = condition.getNextConditionSwitchDuration(context);
 
         return Math.min(
                 isValid ?
-                        trueValue.getNextValueSwitchDuration(data) :
-                        falseValue.getNextValueSwitchDuration(data)
+                        trueValue.getNextValueSwitchDuration(context) :
+                        falseValue.getNextValueSwitchDuration(context)
                 ,
                 conditionSwitch
         );
     }
 
     @Override
-    public CalculateValue<T> replicate() {
+    public ValueExpression<T> replicate() {
         return new ConditionalValue<>(condition, trueValue.replicate(), falseValue.replicate());
     }
 
     @Override
-    public void replaceSuper(CalculateValue<T> superValue) {
+    public void replaceSuper(ValueExpression<T> superValue) {
         if (trueValue.isSuper()) {
             trueValue = superValue;
         } else {
@@ -94,7 +91,7 @@ public class ConditionalValue<T> implements CalculateValue<T> {
     }
 
     @Override
-    public <U> CalculateValue<U> map(Function<T, U> mapFunction) {
+    public <U> ValueExpression<U> map(Function<T, U> mapFunction) {
         return new ConditionalValue<>(this.condition, trueValue.map(mapFunction), falseValue.map(mapFunction));
     }
 }

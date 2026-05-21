@@ -34,14 +34,15 @@
     "dependencies": [
       "stage"
     ],
-    "advance_probability": {
-      "predicate": {
-        "check": "local_brightness_above",
-        "comparison": "greater_or_equal",
-        "value": 9
-      },
-      "success": 0.14285714285,
-      "fail": 0
-    }
+    "advance_probability":
+{
+  "predicate": {
+    "check": "local_brightness_above",
+    "comparison": "greater_or_equal",
+    "value": 9
+  },
+  "success": 0.14285714285,
+  "fail": 0
+}
   }
 }

@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
-import lol.zanspace.unloadedactivity.UnloadedActivity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 
@@ -33,20 +32,20 @@ public class IncompleteSimulateProperty {
     public Optional<Boolean> increasePerHeight = Optional.empty();
     public Optional<Boolean> onlyInWater = Optional.empty();
     public Optional<Integer> updateType = Optional.empty();
-    public Optional<CalculateValue<Number>> advanceProbability = Optional.empty();
-    public Optional<CalculateValue<Number>> maxValue = Optional.empty();
+    public Optional<ValueExpression<Number>> advanceProbability = Optional.empty();
+    public Optional<ValueExpression<Number>> maxValue = Optional.empty();
     public ArrayList<Condition> conditions = new ArrayList<>();
     public ArrayList<String> transferProperties = new ArrayList<>();
     public Optional<String> buddingDirectionProperty = Optional.empty();
     public Optional<Integer> minWaterValue = Optional.empty();
     public Optional<String> waterloggedProperty = Optional.empty();
     public ArrayList<Direction> ignoreBuddingDirections = new ArrayList<>();
-    public HashMap<String, CalculateValue<Number>> setProperties = new HashMap<>();
-    public Optional<CalculateValue<Number>> hatchCount = Optional.empty();
+    public HashMap<String, ValueExpression<Number>> setProperties = new HashMap<>();
+    public Optional<ValueExpression<Number>> hatchCount = Optional.empty();
     public Optional<Integer> startingAge = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > simulateWithGroup = Optional.empty();
     public Optional< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif > hatchEntity = Optional.empty();
-    public Optional<CalculateValue< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif >> blockReplacement = Optional.empty();
+    public Optional<ValueExpression< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif >> blockReplacement = Optional.empty();
     public Optional<ArrayList< #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif >> buddingBlocks = Optional.empty();
 
     public void merge(IncompleteSimulateProperty otherSimulateProperty) {
@@ -77,8 +76,8 @@ public class IncompleteSimulateProperty {
         this.simulateWithGroup = otherSimulateProperty.simulateWithGroup.or(() -> this.simulateWithGroup);
 
         for (var entry : otherSimulateProperty.setProperties.entrySet()) {
-            CalculateValue<Number> oldProperty = this.setProperties.get(entry.getKey());
-            CalculateValue<Number> newProperty = entry.getValue().replicate();
+            ValueExpression<Number> oldProperty = this.setProperties.get(entry.getKey());
+            ValueExpression<Number> newProperty = entry.getValue().replicate();
             if (oldProperty != null) {
                 newProperty.replaceSuper(oldProperty);
             }
@@ -93,7 +92,7 @@ public class IncompleteSimulateProperty {
 
             this.advanceProbability = Optional.of(newProbability);
         } else {
-            this.advanceProbability = otherSimulateProperty.advanceProbability.map(CalculateValue::replicate).or(() -> this.advanceProbability);
+            this.advanceProbability = otherSimulateProperty.advanceProbability.map(ValueExpression::replicate).or(() -> this.advanceProbability);
         }
 
         if (otherSimulateProperty.maxValue.isPresent() && this.maxValue.isPresent()) {
@@ -104,7 +103,7 @@ public class IncompleteSimulateProperty {
 
             this.maxValue = Optional.of(newValue);
         } else {
-            this.maxValue = otherSimulateProperty.maxValue.map(CalculateValue::replicate).or(() -> this.maxValue);
+            this.maxValue = otherSimulateProperty.maxValue.map(ValueExpression::replicate).or(() -> this.maxValue);
         }
 
         if (otherSimulateProperty.hatchCount.isPresent() && this.hatchCount.isPresent()) {
@@ -115,7 +114,7 @@ public class IncompleteSimulateProperty {
 
             this.hatchCount = Optional.of(newValue);
         } else {
-            this.hatchCount = otherSimulateProperty.hatchCount.map(CalculateValue::replicate).or(() -> this.hatchCount);
+            this.hatchCount = otherSimulateProperty.hatchCount.map(ValueExpression::replicate).or(() -> this.hatchCount);
         }
 
         if (otherSimulateProperty.blockReplacement.isPresent() && this.blockReplacement.isPresent()) {
@@ -126,12 +125,12 @@ public class IncompleteSimulateProperty {
 
             this.blockReplacement = Optional.of(newProbability);
         } else {
-            this.blockReplacement = otherSimulateProperty.blockReplacement.map(CalculateValue::replicate).or(() -> this.blockReplacement);
+            this.blockReplacement = otherSimulateProperty.blockReplacement.map(ValueExpression::replicate).or(() -> this.blockReplacement);
         }
     }
 
     public <T> void parseAndApplyProbability(DynamicOps<T> ops, T input) {
-        CalculateValue calculateValue = CalculateValue.parseNumber(ops, input);
+        ValueExpression calculateValue = ValueExpression.parseNumber(ops, input);
         this.advanceProbability = Optional.of(calculateValue);
     }
 
@@ -245,7 +244,7 @@ public class IncompleteSimulateProperty {
         {
             T mapValue = propertyInfo.get("max_value");
             if (mapValue != null) {
-                CalculateValue<Number> calculateValue = CalculateValue.parseNumber(ops, mapValue);
+                ValueExpression<Number> calculateValue = ValueExpression.parseNumber(ops, mapValue);
                 simulateProperty.maxValue = Optional.of(calculateValue);
             }
         }
@@ -319,7 +318,7 @@ public class IncompleteSimulateProperty {
         {
             T mapValue = propertyInfo.get("block_replacement");
             if (mapValue != null) {
-                CalculateValue<String> result = CalculateValue.parseString(ops, mapValue);
+                ValueExpression<String> result = ValueExpression.parseString(ops, mapValue);
                 simulateProperty.blockReplacement = Optional.of(result.map(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif::tryParse));
             }
         }
@@ -391,7 +390,7 @@ public class IncompleteSimulateProperty {
         {
             T mapValue = propertyInfo.get("hatch_count");
             if (mapValue != null) {
-                CalculateValue<Number> result = CalculateValue.parseNumber(ops, mapValue);
+                ValueExpression<Number> result = ValueExpression.parseNumber(ops, mapValue);
                 simulateProperty.hatchCount = Optional.of(result);
             }
         }
@@ -518,7 +517,7 @@ public class IncompleteSimulateProperty {
                         return returnError(keyResult);
                     }
 
-                    var calculateValue = CalculateValue.parseNumber(ops, pair.getSecond());
+                    var calculateValue = ValueExpression.parseNumber(ops, pair.getSecond());
 
                     simulateProperty.setProperties.put(keyResult.result().get(), calculateValue);
                 }

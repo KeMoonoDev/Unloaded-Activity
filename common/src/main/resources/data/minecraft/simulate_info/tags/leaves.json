@@ -3,12 +3,12 @@
     "simulation_type": "decay",
     "conditions": [
       {
-        "check": "property:persistent",
+        "check": "property/persistent",
         "comparison": "not_equal",
         "value": true
       },
       {
-        "check": "property:distance",
+        "check": "property/distance",
         "comparison": "equal",
         "value": 7
       }

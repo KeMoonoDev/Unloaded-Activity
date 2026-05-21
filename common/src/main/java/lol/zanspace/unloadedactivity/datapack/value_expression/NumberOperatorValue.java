@@ -1,39 +1,39 @@
-package lol.zanspace.unloadedactivity.datapack.calculate_value;
+package lol.zanspace.unloadedactivity.datapack.value_expression;
 
-import lol.zanspace.unloadedactivity.datapack.CalculateValue;
-import lol.zanspace.unloadedactivity.datapack.CalculationData;
+import lol.zanspace.unloadedactivity.datapack.ValueExpression;
+import lol.zanspace.unloadedactivity.datapack.ValueContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public class NumberOperatorValue implements CalculateValue<Number> {
+public class NumberOperatorValue implements ValueExpression<Number> {
     public final Operator operator;
-    public CalculateValue<Number> value;
+    public ValueExpression<Number> value;
     @Nullable
-    public CalculateValue<Number> secondaryValue;
+    public ValueExpression<Number> secondaryValue;
 
-    public NumberOperatorValue(Operator operator, CalculateValue<Number> value) {
+    public NumberOperatorValue(Operator operator, ValueExpression<Number> value) {
         this(operator, value, null);
     };
 
-    public NumberOperatorValue(Operator operator, CalculateValue<Number> value, @Nullable CalculateValue<Number> secondaryValue) {
+    public NumberOperatorValue(Operator operator, ValueExpression<Number> value, @Nullable ValueExpression<Number> secondaryValue) {
         this.operator = operator;
         this.value = value;
         this.secondaryValue = secondaryValue;
     };
 
     @Override
-    public <U> CalculateValue<U> map(Function<Number, U> mapFunction) {
+    public <U> ValueExpression<U> map(Function<Number, U> mapFunction) {
         throw new RuntimeException("Map function not supported on this type.");
     }
 
     @Override
-    public Number calculateValue(CalculationData data) {
+    public Number evaluate(ValueContext context) {
 
-        float value1 = value.calculateValue(data).floatValue();
+        float value1 = value.evaluate(context).floatValue();
         float value2;
         if (secondaryValue != null) {
-            value2 = secondaryValue.calculateValue(data).floatValue();
+            value2 = secondaryValue.evaluate(context).floatValue();
         } else {
             value2 = 0F;
         }
@@ -66,12 +66,12 @@ public class NumberOperatorValue implements CalculateValue<Number> {
     }
 
     @Override
-    public boolean isAffectedByWeather(CalculationData data) {
-        if (value.isAffectedByWeather(data))
+    public boolean isAffectedByWeather(ValueContext context) {
+        if (value.isAffectedByWeather(context))
             return true;
 
         if (secondaryValue != null)
-            return secondaryValue.isAffectedByWeather(data);
+            return secondaryValue.isAffectedByWeather(context);
 
         return false;
     }
@@ -110,11 +110,11 @@ public class NumberOperatorValue implements CalculateValue<Number> {
     }
 
     @Override
-    public long getNextValueSwitchDuration(CalculationData data) {
-        long firstLong = value.getNextValueSwitchDuration(data);
+    public long getNextValueSwitchDuration(ValueContext context) {
+        long firstLong = value.getNextValueSwitchDuration(context);
 
         if (secondaryValue != null) {
-            long secondaryLong = secondaryValue.getNextValueSwitchDuration(data);
+            long secondaryLong = secondaryValue.getNextValueSwitchDuration(context);
             return Math.min(firstLong, secondaryLong);
         }
 
@@ -122,12 +122,12 @@ public class NumberOperatorValue implements CalculateValue<Number> {
     }
 
     @Override
-    public CalculateValue replicate() {
+    public ValueExpression replicate() {
         return new NumberOperatorValue(operator, value.replicate(), secondaryValue == null ? null : secondaryValue.replicate());
     }
 
     @Override
-    public void replaceSuper(CalculateValue superValue) {
+    public void replaceSuper(ValueExpression superValue) {
         if (value.isSuper()) {
             value = superValue;
         } else {

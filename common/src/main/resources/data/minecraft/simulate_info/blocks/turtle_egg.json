@@ -24,7 +24,7 @@
       "hatch"
     ],
     "hatch_entity": "minecraft:turtle",
-    "hatch_count": "property:eggs",
+    "hatch_count": "property/eggs",
     "starting_age": -24000,
     "update_type":"update_all",
     "conditions": [

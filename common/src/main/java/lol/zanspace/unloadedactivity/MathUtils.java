@@ -1,8 +1,8 @@
 package lol.zanspace.unloadedactivity;
 
 
-import lol.zanspace.unloadedactivity.datapack.CalculateValue;
-import lol.zanspace.unloadedactivity.datapack.CalculationData;
+import lol.zanspace.unloadedactivity.datapack.ValueExpression;
+import lol.zanspace.unloadedactivity.datapack.ValueContext;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -45,7 +45,7 @@ public class MathUtils {
 
         float averageProbability = 0;
 
-        CalculateValue<Number> probability = property.advanceProbability;
+        ValueExpression<Number> probability = property.advanceProbability;
 
         WorldWeatherForecast weatherData = level.getWeatherForecast();
 
@@ -59,7 +59,7 @@ public class MathUtils {
                 continue;
             }
 
-            CalculationData calculationData = new CalculationData(level, state, pos, currentTime, isRaining, false, groupSimulateData);
+            ValueContext calculationData = new ValueContext(level, state, pos, currentTime, isRaining, false, groupSimulateData);
 
             long nextOddsSwitchDuration = probability.getNextValueSwitchDuration(calculationData);
             if (probability.isAffectedByWeather(calculationData) || property.requiresRain) {
@@ -69,7 +69,7 @@ public class MathUtils {
 
             long simulateForCycles = Math.min(nextOddsSwitchDuration, remainingCycles);
 
-            float odds = probability.calculateValue(calculationData).floatValue();
+            float odds = probability.evaluate(calculationData).floatValue();
             float totalOdds = odds * randomPickOdds;
 
             if (UnloadedActivity.config.debugLogs)

@@ -1,7 +1,7 @@
 package lol.zanspace.unloadedactivity;
 
 import com.mojang.datafixers.util.Pair;
-import lol.zanspace.unloadedactivity.datapack.CalculationData;
+import lol.zanspace.unloadedactivity.datapack.ValueContext;
 import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import net.minecraft.core.BlockPos;
@@ -76,7 +76,7 @@ public class ActiveGroupSimulateData {
         return blockState;
     }
 
-    public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, CalculationData calculationData) {
+    public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, ValueContext context) {
         if (this.nextOddsSwitchDuration <= 0) {
             if (this.simulateProperty.isEmpty()) {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
@@ -87,16 +87,16 @@ public class ActiveGroupSimulateData {
             SimulateProperty simulateProperty = this.simulateProperty.get();
 
             if (simulateProperty.canBeAffectedByTime) {
-                this.nextOddsSwitchDuration = simulateProperty.advanceProbability.getNextValueSwitchDuration(calculationData);
+                this.nextOddsSwitchDuration = simulateProperty.advanceProbability.getNextValueSwitchDuration(context);
             } else {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
             }
 
-            if (simulateProperty.canBeAffectedByWeather && simulateProperty.advanceProbability.isAffectedByWeather(calculationData)) {
+            if (simulateProperty.canBeAffectedByWeather && simulateProperty.advanceProbability.isAffectedByWeather(context)) {
                 this.nextOddsSwitchDuration = Math.min(this.nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }
 
-            this.currentOdds = simulateProperty.advanceProbability.calculateValue(calculationData).floatValue();
+            this.currentOdds = simulateProperty.advanceProbability.evaluate(context).floatValue();
         }
         return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
     }

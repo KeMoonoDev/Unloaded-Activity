@@ -4,8 +4,10 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
-import lol.zanspace.unloadedactivity.datapack.calculate_value.*;
-import net.minecraft.core.Vec3i;
+import lol.zanspace.unloadedactivity.UnloadedActivity;
+import lol.zanspace.unloadedactivity.api.NumberFetcher;
+import lol.zanspace.unloadedactivity.datapack.value_expression.*;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,10 +16,10 @@ import java.util.function.Function;
 
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
-public interface CalculateValue<T> {
-    T calculateValue(CalculationData data);
+public interface ValueExpression<T> {
+    T evaluate(ValueContext context);
 
-    default boolean isAffectedByWeather(CalculationData data) {
+    default boolean isAffectedByWeather(ValueContext context) {
         return this.canBeAffectedByWeather();
     };
 
@@ -27,24 +29,24 @@ public interface CalculateValue<T> {
 
     boolean isRandom();
 
-    long getNextValueSwitchDuration(CalculationData data);
+    long getNextValueSwitchDuration(ValueContext context);
 
-    default long getNextConditionSwitchDuration(CalculationData data, float target, Comparison comparison) {
-        return getNextValueSwitchDuration(data);
+    default long getNextConditionSwitchDuration(ValueContext context, float target, Comparison comparison) {
+        return getNextValueSwitchDuration(context);
     };
 
     /// Doesn't guarantee a clone. If a type doesn't get mutated, it's able to return itself.
-    CalculateValue<T> replicate();
+    ValueExpression<T> replicate();
 
-    void replaceSuper(CalculateValue<T> superValue);
+    void replaceSuper(ValueExpression<T> superValue);
 
     default boolean isSuper() {
         return false;
     };
 
-    <U> CalculateValue<U> map(Function<T, U> mapFunction);
+    <U> ValueExpression<U> map(Function<T, U> mapFunction);
 
-    static <T> CalculateValue<Number> parseNumber(DynamicOps<T> ops, T input) {
+    static <T> ValueExpression<Number> parseNumber(DynamicOps<T> ops, T input) {
 
         var numberValue = ops.getNumberValue(input);
         if (numberValue.result().isPresent()) {
@@ -58,33 +60,26 @@ public interface CalculateValue<T> {
 
         var stringValue = ops.getStringValue(input);
         if (stringValue.result().isPresent()) {
-            String variableName = stringValue.result().get();
+            String fetcherIdUnparsed = stringValue.result().get();
 
-            Optional<FetchNumberValue> maybeFetchValue = FetchNumberValue.fromString(variableName);
-            if (maybeFetchValue.isPresent()) {
-                return maybeFetchValue.get();
+            if (fetcherIdUnparsed.equals("super")) {
+                return new SuperValue<>();
             }
 
-            switch (variableName.toLowerCase()) {
-                case "local_brightness" -> {
-                    return new LocalBrightnessValue();
-                }
-                case "local_brightness_above" -> {
-                    return new LocalBrightnessValue(new Vec3i(0, 1, 0));
-                }
+            Identifier fetcherId;
+            if (fetcherIdUnparsed.indexOf(':') >= 0) {
+                fetcherId = Identifier.parse(fetcherIdUnparsed);
+            } else {
+                fetcherId = Identifier.parse(UnloadedActivity.MOD_ID+":"+fetcherIdUnparsed);
             }
 
-            if (variableName.toLowerCase().startsWith("local_brightness:")) {
-                String propertyName = variableName.substring("property:".length());
-                return new PropertyValue(propertyName);
+            Optional<NumberFetcher> resolvedFetcher = UnloadedActivity.numberFetcherRegistry.resolve(fetcherId);
+
+            if (resolvedFetcher.isPresent()) {
+                return resolvedFetcher.get();
             }
 
-            if (variableName.toLowerCase().startsWith("property:")) {
-                String propertyName = variableName.substring("property:".length());
-                return new PropertyValue(propertyName);
-            }
-
-            throw new RuntimeException(variableName + " is not a valid value.");
+            throw new RuntimeException(fetcherId + " is not a valid number fetcher.");
         }
 
         var mapValue = ops.getMap(input);
@@ -145,7 +140,7 @@ public interface CalculateValue<T> {
             }
 
 
-            ArrayList<Pair<Long, CalculateValue<Number>>> list = new ArrayList<>();
+            ArrayList<Pair<Long, ValueExpression<Number>>> list = new ArrayList<>();
             for (Iterator<Pair<T, T>> it = map.entries().iterator(); it.hasNext(); ) {
                 var pair = it.next();
                 var stringKeyResult = ops.getStringValue(pair.getFirst());
@@ -171,7 +166,7 @@ public interface CalculateValue<T> {
         throw new RuntimeException("Invalid value");
     }
 
-    static <T> CalculateValue<String> parseString(DynamicOps<T> ops, T input) {
+    static <T> ValueExpression<String> parseString(DynamicOps<T> ops, T input) {
 
         var stringValue = ops.getStringValue(input);
         if (stringValue.result().isPresent()) {
@@ -201,7 +196,7 @@ public interface CalculateValue<T> {
             }
 
 
-            ArrayList<Pair<Long, CalculateValue<String>>> list = new ArrayList<>();
+            ArrayList<Pair<Long, ValueExpression<String>>> list = new ArrayList<>();
             for (Iterator<Pair<T, T>> it = map.entries().iterator(); it.hasNext(); ) {
                 var pair = it.next();
                 var stringKeyResult = ops.getStringValue(pair.getFirst());

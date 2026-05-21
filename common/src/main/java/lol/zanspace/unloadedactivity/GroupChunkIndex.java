@@ -12,11 +12,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import org.apache.commons.lang3.tuple.Triple;
 import lol.zanspace.unloadedactivity.datapack.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -90,9 +88,9 @@ public class GroupChunkIndex {
             GroupMemberInfo groupMemberInfo = maybeGroupMemberInfo.get();
 
             if (!groupMemberInfo.conditions.isEmpty()) {
-                CalculationData data = new CalculationData(serverLevel, state, pos);
+                ValueContext context = new ValueContext(serverLevel, state, pos);
                 for (var condition : groupMemberInfo.conditions) {
-                    if (!condition.isValid(data)) {
+                    if (!condition.isValid(context)) {
                         return false;
                     }
                 }

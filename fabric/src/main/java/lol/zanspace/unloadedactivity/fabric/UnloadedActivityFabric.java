@@ -15,6 +15,7 @@ import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -24,6 +25,8 @@ public class UnloadedActivityFabric implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		UnloadedActivity.init(new FabricPlatformHelper());
+
+		//FabricLoader.getInstance().getEntrypoints()
 
 		CommandRegistrationCallback.EVENT.register((dispatcher,context,environment) -> UnloadedActivityCommand.register(dispatcher));
 		#if MC_VER >= MC_26_1_2

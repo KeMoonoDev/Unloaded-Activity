@@ -1,28 +1,28 @@
-package lol.zanspace.unloadedactivity.datapack.calculate_value;
+package lol.zanspace.unloadedactivity.datapack.value_expression;
 
 import com.mojang.datafixers.util.Pair;
-import lol.zanspace.unloadedactivity.datapack.CalculateValue;
-import lol.zanspace.unloadedactivity.datapack.CalculationData;
+import lol.zanspace.unloadedactivity.datapack.ValueExpression;
+import lol.zanspace.unloadedactivity.datapack.ValueContext;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
-public class TimeValue<T> implements CalculateValue<T> {
-    private final List<Pair<Long, CalculateValue<T>>> list;
-    public TimeValue(List<Pair<Long, CalculateValue<T>>> list) {
+public class TimeValue<T> implements ValueExpression<T> {
+    private final List<Pair<Long, ValueExpression<T>>> list;
+    public TimeValue(List<Pair<Long, ValueExpression<T>>> list) {
         list.sort(Comparator.comparing(Pair::getFirst));
         this.list = list;
     }
 
     @Override
-    public T calculateValue(CalculationData data) {
+    public T evaluate(ValueContext context) {
         if (this.list.isEmpty())
             return null;
 
         long length = 24000;
-        long modCurrentTime = Math.floorMod(data.currentTime, length);
+        long modCurrentTime = Math.floorMod(context.currentTime, length);
 
         var currentPair = this.list.get(this.list.size() - 1);
 
@@ -34,7 +34,7 @@ public class TimeValue<T> implements CalculateValue<T> {
             }
         }
 
-        return currentPair.getSecond().calculateValue(data);
+        return currentPair.getSecond().evaluate(context);
     }
 
     @Override
@@ -64,8 +64,8 @@ public class TimeValue<T> implements CalculateValue<T> {
     }
 
     @Override
-    public <U> CalculateValue<U> map(Function<T, U> mapFunction) {
-        ArrayList<Pair<Long, CalculateValue<U>>> newList = new ArrayList<>();
+    public <U> ValueExpression<U> map(Function<T, U> mapFunction) {
+        ArrayList<Pair<Long, ValueExpression<U>>> newList = new ArrayList<>();
         for (var pair : list) {
             newList.add(pair.mapSecond((tCalculateValue -> tCalculateValue.map(mapFunction))));
         }
@@ -73,15 +73,15 @@ public class TimeValue<T> implements CalculateValue<T> {
     }
 
     @Override
-    public long getNextValueSwitchDuration(CalculationData data) {
+    public long getNextValueSwitchDuration(ValueContext context) {
         if (this.list.isEmpty())
             return Long.MAX_VALUE;
 
         long length = 24000;
-        long modCurrentTime = Math.floorMod(data.currentTime, length);
+        long modCurrentTime = Math.floorMod(context.currentTime, length);
 
         var currentPair = this.list.get(this.list.size() - 1);
-        Pair<Long, CalculateValue<T>> nextPair = null;
+        Pair<Long, ValueExpression<T>> nextPair = null;
 
         for (var pair : this.list) {
             if (pair.getFirst() <= modCurrentTime) {
@@ -96,7 +96,7 @@ public class TimeValue<T> implements CalculateValue<T> {
             nextPair = this.list.get(0);
         }
 
-        long currentNextOddsSwitch = currentPair.getSecond().getNextValueSwitchDuration(data);
+        long currentNextOddsSwitch = currentPair.getSecond().getNextValueSwitchDuration(context);
         long nextOddsSwitch;
 
         if (nextPair.getFirst() == currentPair.getFirst()) {
@@ -113,8 +113,8 @@ public class TimeValue<T> implements CalculateValue<T> {
     }
 
     @Override
-    public CalculateValue<T> replicate() {
-        List<Pair<Long, CalculateValue<T>>> newList = new ArrayList<>();
+    public ValueExpression<T> replicate() {
+        List<Pair<Long, ValueExpression<T>>> newList = new ArrayList<>();
         for (var pair : this.list) {
             newList.add(Pair.of(pair.getFirst(), pair.getSecond().replicate()));
         }
@@ -122,10 +122,10 @@ public class TimeValue<T> implements CalculateValue<T> {
     }
 
     @Override
-    public void replaceSuper(CalculateValue<T> superValue) {
+    public void replaceSuper(ValueExpression<T> superValue) {
         for (int i=0; i < this.list.size(); i++) {
-            Pair<Long, CalculateValue<T>> pair = this.list.get(i);
-            CalculateValue<T> value = pair.getSecond();
+            Pair<Long, ValueExpression<T>> pair = this.list.get(i);
+            ValueExpression<T> value = pair.getSecond();
 
             if (value.isSuper()) {
                 this.list.set(i, new Pair<>(pair.getFirst(), superValue));

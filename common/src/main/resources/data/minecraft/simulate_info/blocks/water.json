@@ -10,7 +10,7 @@
         "value": true
       },
       {
-        "check": "property:level",
+        "check": "property/level",
         "comparison": "equal",
         "value": 0
       }

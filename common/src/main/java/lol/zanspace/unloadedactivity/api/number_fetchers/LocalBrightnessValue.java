@@ -1,18 +1,14 @@
-package lol.zanspace.unloadedactivity.datapack.calculate_value;
+package lol.zanspace.unloadedactivity.api.number_fetchers;
 
-import lol.zanspace.unloadedactivity.UnloadedActivity;
-import lol.zanspace.unloadedactivity.datapack.CalculateValue;
-import lol.zanspace.unloadedactivity.datapack.CalculationData;
+import lol.zanspace.unloadedactivity.api.NumberFetcher;
+import lol.zanspace.unloadedactivity.datapack.ValueContext;
 import lol.zanspace.unloadedactivity.datapack.Comparison;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.block.state.BlockState;
 
-import java.util.function.Function;
-
-public class LocalBrightnessValue implements CalculateValue<Number> {
+public class LocalBrightnessValue implements NumberFetcher {
 
     Vec3i offset;
 
@@ -109,16 +105,11 @@ public class LocalBrightnessValue implements CalculateValue<Number> {
     public final static int MAX_DARKNESS = 11;
 
     @Override
-    public <U> CalculateValue<U> map(Function<Number, U> mapFunction) {
-        throw new RuntimeException("Map function not supported on this type.");
-    }
+    public Number evaluate(ValueContext context) {
+        int blockLight = context.level.getBrightness(LightLayer.BLOCK, context.pos.offset(offset));
+        int skyLight = context.level.getBrightness(LightLayer.SKY, context.pos.offset(offset));
 
-    @Override
-    public Number calculateValue(CalculationData data) {
-        int blockLight = data.level.getBrightness(LightLayer.BLOCK, data.pos.offset(offset));
-        int skyLight = data.level.getBrightness(LightLayer.SKY, data.pos.offset(offset));
-
-        int currentDarken = getCurrentSkyDarken(data.currentTime, data.isRaining, data.isThundering);
+        int currentDarken = getCurrentSkyDarken(context.currentTime, context.isRaining, context.isThundering);
 
         return Math.max(blockLight, skyLight - currentDarken);
     }
@@ -139,11 +130,11 @@ public class LocalBrightnessValue implements CalculateValue<Number> {
     }
 
     @Override
-    public long getNextValueSwitchDuration(CalculationData data) {
-        int blockLight = data.level.getBrightness(LightLayer.BLOCK, data.pos.offset(offset));
-        int skyLight = data.level.getBrightness(LightLayer.SKY, data.pos.offset(offset));
+    public long getNextValueSwitchDuration(ValueContext context) {
+        int blockLight = context.level.getBrightness(LightLayer.BLOCK, context.pos.offset(offset));
+        int skyLight = context.level.getBrightness(LightLayer.SKY, context.pos.offset(offset));
 
-        return getNextValueSwitchDurationFromLights(blockLight, skyLight, data.currentTime, data.isRaining, data.isThundering);
+        return getNextValueSwitchDurationFromLights(blockLight, skyLight, context.currentTime, context.isRaining, context.isThundering);
     }
 
     public long getNextValueSwitchDurationFromLights(int blockLight, int skyLight, long currentTime, boolean isRaining, boolean isThundering) {
@@ -167,20 +158,12 @@ public class LocalBrightnessValue implements CalculateValue<Number> {
     }
 
     @Override
-    public CalculateValue replicate() {
-        return this;
-    }
-
-    @Override
-    public void replaceSuper(CalculateValue superValue) {}
-
-    @Override
-    public long getNextConditionSwitchDuration(CalculationData data, float target, Comparison comparison) {
-        ServerLevel level = data.level;
-        BlockPos pos = data.pos;
-        long currentTime = data.currentTime;
-        boolean isRaining = data.isRaining;
-        boolean isThundering = data.isThundering;
+    public long getNextConditionSwitchDuration(ValueContext context, float target, Comparison comparison) {
+        ServerLevel level = context.level;
+        BlockPos pos = context.pos;
+        long currentTime = context.currentTime;
+        boolean isRaining = context.isRaining;
+        boolean isThundering = context.isThundering;
 
         int blockLight = level.getBrightness(LightLayer.BLOCK, pos.offset(offset));
         int skyLight = level.getBrightness(LightLayer.SKY, pos.offset(offset));

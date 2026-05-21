@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import lol.zanspace.unloadedactivity.api.UnloadedActivityApi;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -8,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import lol.zanspace.unloadedactivity.config.BlockOrTag;
 import lol.zanspace.unloadedactivity.config.UnloadedActivityConfig;
+import lol.zanspace.unloadedactivity.api.NumberFetcherRegistry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lol.zanspace.unloadedactivity.platform.IPlatformHelper;
@@ -20,6 +22,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ServiceLoader;
 
 public class UnloadedActivity {
     public static final String MOD_ID = "unloadedactivity";
@@ -31,11 +34,25 @@ public class UnloadedActivity {
     public static UnloadedActivityConfig config;
     public static IPlatformHelper platform;
 
+    public static NumberFetcherRegistry numberFetcherRegistry = new NumberFetcherRegistry();
+
     public static void init(IPlatformHelper platformHelper) {
         platform = platformHelper;
         loadConfig();
+        loadRegistries();
         LOGGER.info("Bleeghhh...");
     }
+
+    public static void loadRegistries() {
+        ServiceLoader<UnloadedActivityApi> loader =
+                ServiceLoader.load(UnloadedActivityApi.class);
+
+        for (UnloadedActivityApi entrypoint : loader) {
+            entrypoint.registerNumberFetchers(numberFetcherRegistry);
+        }
+
+    }
+
     public static void loadConfig() {
         LOGGER.info("Loading config.");
         File configFile = new File(platform.getConfigDirectory().toFile(), MOD_ID+".json");

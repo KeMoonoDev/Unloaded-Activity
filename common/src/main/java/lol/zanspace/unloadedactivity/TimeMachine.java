@@ -10,7 +10,6 @@ import com.mojang.datafixers.util.Pair;
 import lol.zanspace.unloadedactivity.datapack.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -303,7 +302,7 @@ public class TimeMachine {
                         BlockState state = simulationData.getState();
                         BlockPos pos = simulationData.position;
 
-                        CalculationData calculationData = new CalculationData(level, state, pos, simulationCurrentTime, isRaining, false, simulationData);
+                        ValueContext calculationData = new ValueContext(level, state, pos, simulationCurrentTime, isRaining, false, simulationData);
 
                         Pair<Float, Long> oddsAndDuration = simulationData.updateAndGetOdds(nextWeatherSwitchDuration, calculationData);
 

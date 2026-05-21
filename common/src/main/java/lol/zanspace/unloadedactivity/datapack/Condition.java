@@ -4,18 +4,15 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Optional;
 
 import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
 
-public record Condition (CalculateValue<Number> value1, CalculateValue<Number> value2, Comparison comparison) {
-    public boolean isValid(CalculationData data) {
-        Number calculatedValue1 = value1.calculateValue(data);
-        Number calculatedValue2 = value2.calculateValue(data);
+public record Condition (ValueExpression<Number> value1, ValueExpression<Number> value2, Comparison comparison) {
+    public boolean isValid(ValueContext context) {
+        Number calculatedValue1 = value1.evaluate(context);
+        Number calculatedValue2 = value2.evaluate(context);
         boolean result = comparison.compare(calculatedValue1.floatValue(), calculatedValue2.floatValue());
 
         if (UnloadedActivity.config.debugLogs)
@@ -36,16 +33,16 @@ public record Condition (CalculateValue<Number> value1, CalculateValue<Number> v
     public boolean canBeAffectedByTime() {
         return value1.canBeAffectedByTime() || value2.canBeAffectedByTime();
     };
-    public boolean isAffectedByWeather(CalculationData data) {
-        return value1.isAffectedByWeather(data) || value2.isAffectedByWeather(data);
+    public boolean isAffectedByWeather(ValueContext context) {
+        return value1.isAffectedByWeather(context) || value2.isAffectedByWeather(context);
     };
 
-    public long getNextConditionSwitchDuration(CalculationData data) {
-        float value2Float = value2.calculateValue(data).floatValue();
+    public long getNextConditionSwitchDuration(ValueContext context) {
+        float value2Float = value2.evaluate(context).floatValue();
 
         return Math.min(
-            value1.getNextConditionSwitchDuration(data, value2Float, comparison),
-            value2.getNextValueSwitchDuration(data)
+            value1.getNextConditionSwitchDuration(context, value2Float, comparison),
+            value2.getNextValueSwitchDuration(context)
         );
     };
 
@@ -68,10 +65,10 @@ public record Condition (CalculateValue<Number> value1, CalculateValue<Number> v
             Comparison comparison = maybeComparison.get();
 
             T checkValue = map.get("check");
-            CalculateValue<Number> checkCalculateValue = CalculateValue.parseNumber(ops, checkValue);
+            ValueExpression<Number> checkCalculateValue = ValueExpression.parseNumber(ops, checkValue);
 
             T valueValue = map.get("value");
-            CalculateValue<Number> valueCalculateValue = CalculateValue.parseNumber(ops, valueValue);
+            ValueExpression<Number> valueCalculateValue = ValueExpression.parseNumber(ops, valueValue);
 
             return DataResult.success(new Condition(checkCalculateValue, valueCalculateValue, comparison));
         }

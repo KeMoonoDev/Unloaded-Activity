@@ -1,4 +1,4 @@
-package lol.zanspace.unloadedactivity.datapack.calculate_value;
+package lol.zanspace.unloadedactivity.datapack.value_expression;
 
 public enum Operator {
     ADD,

@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class CalculationData {
+public class ValueContext {
     public ServerLevel level;
     public BlockState state;
     public BlockPos pos;
@@ -17,23 +17,23 @@ public class CalculationData {
     public ActiveGroupSimulateData activeGroupSimulateData;
 
 
-    public CalculationData(ServerLevel level, BlockState state, BlockPos pos) {
+    public ValueContext(ServerLevel level, BlockState state, BlockPos pos) {
         this(level, state, pos, -1, false, false, null);
     }
 
-    public CalculationData(ServerLevel level, BlockState state, BlockPos pos, long currentTime) {
+    public ValueContext(ServerLevel level, BlockState state, BlockPos pos, long currentTime) {
         this(level, state, pos, currentTime, false, false, null);
     }
 
-    public CalculationData(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining) {
+    public ValueContext(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining) {
         this(level, state, pos, currentTime, isRaining, false, null);
     }
 
-    public CalculationData(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
+    public ValueContext(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering) {
         this(level, state, pos, currentTime, isRaining, isThundering, null);
     }
 
-    public CalculationData(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering, ActiveGroupSimulateData activeGroupSimulateData) {
+    public ValueContext(ServerLevel level, BlockState state, BlockPos pos, long currentTime, boolean isRaining, boolean isThundering, ActiveGroupSimulateData activeGroupSimulateData) {
         this.level = level;
         this.state = state;
         this.pos = pos;
