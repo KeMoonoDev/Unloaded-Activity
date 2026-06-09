@@ -2,9 +2,11 @@ package lol.zanspace.unloadedactivity.api;
 
 import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.api.number_fetchers.*;
+import lol.zanspace.unloadedactivity.api.simulation_methods.*;
 import net.minecraft.core.Vec3i;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 public class DefaultRegistrations implements UnloadedActivityApi {
@@ -129,6 +131,32 @@ public class DefaultRegistrations implements UnloadedActivityApi {
             }
         );
 
+        registry.registerNumber(UnloadedActivity.id("update_clients"), Block.UPDATE_CLIENTS);
+        registry.registerNumber(UnloadedActivity.id("update_invisible"), Block.UPDATE_INVISIBLE);
+        registry.registerNumber(UnloadedActivity.id("update_all"), Block.UPDATE_ALL);
+        registry.registerNumber(UnloadedActivity.id("update_none"), Block.UPDATE_NONE);
+
         GroupFetchValue.register(registry);
+    }
+
+    @Override
+    public void registerSimulationMethods(SimulationMethodRegistry registry) {
+        registry.register(UnloadedActivity.id("property"), PropertyMethod::new);
+        registry.register(UnloadedActivity.id("max_property_growth"), MaxPropertyGrowthMethod::new);
+        registry.register(UnloadedActivity.id("increment_property_growth"), IncrementPropertyGrowthMethod::new);
+
+        registry.register(UnloadedActivity.id("decay"), DecayMethod::new);
+        registry.register(UnloadedActivity.id("replace"), ReplaceMethod::new);
+        registry.register(UnloadedActivity.id("hatch"), HatchMethod::new);
+
+        registry.register(UnloadedActivity.id("budding"), BuddingMethod::new);
+
+        registry.register(UnloadedActivity.id("grow_tree"), GrowTreeMethod::new);
+
+        registry.register(UnloadedActivity.id("grow_dripstone"), DripstoneMethod::new);
+
+        registry.register(UnloadedActivity.id("grow_fruit"), GrowFruitMethod::new);
+
+        registry.register(UnloadedActivity.id("grow_bamboo"), GrowBambooMethod::new);
     }
 }

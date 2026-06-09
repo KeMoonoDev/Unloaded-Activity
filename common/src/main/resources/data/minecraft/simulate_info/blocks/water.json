@@ -2,7 +2,7 @@
   "freezing": {
     "is_precipitation": true,
     "requires_rain": false,
-    "simulation_type": "decay",
+    "simulation_method": "replace",
     "conditions": [
       {
         "check": "should_freeze",

@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack;
 
 #if MC_VER >= MC_1_21_11
+import com.google.common.collect.ImmutableList;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -23,10 +24,10 @@ public class GroupInfo {
     // It's incomplete because it will be combined later because blocks may have multiple tags and multiple member infos assigned.
     // This should only be used for constructing GroupMemberInfos for blocks.
     public HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values;
-    public final LookupShape shape;
-    public final int width;
-    public final int height;
-    public final List<Vec3i> finalOffsetsWithoutZero;
+    private LookupShape shape;
+    private int width;
+    private int height;
+    private List<Vec3i> offsetsWithoutZero;
 
     public GroupInfo(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, IncompleteGroupInfo incomplete) {
         this.id = id;
@@ -61,13 +62,20 @@ public class GroupInfo {
             this.values.put(key, incompleteGroupMemberInfo);
         }
 
-        ArrayList<Vec3i> finalOffsetsWithoutZero = new ArrayList<>();
-        for (Vec3i offset : this.iterateOffsets()) {
-            if (offset.equals(Vec3i.ZERO))
-                continue;
-            finalOffsetsWithoutZero.add(new Vec3i(offset.getX(), offset.getY(), offset.getZ()));
+
+    }
+
+    public List<Vec3i> getOffsetsWithoutZero() {
+        if (this.offsetsWithoutZero == null) {
+            ArrayList<Vec3i> offsetsWithoutZero = new ArrayList<>();
+            for (Vec3i offset : this.iterateOffsets()) {
+                if (offset.equals(Vec3i.ZERO))
+                    continue;
+                offsetsWithoutZero.add(new Vec3i(offset.getX(), offset.getY(), offset.getZ()));
+            }
+            this.offsetsWithoutZero = ImmutableList.copyOf(offsetsWithoutZero);
         }
-        this.finalOffsetsWithoutZero = finalOffsetsWithoutZero;
+        return this.offsetsWithoutZero;
     }
 
     private Iterable<Vec3i> iterateOffsets() {

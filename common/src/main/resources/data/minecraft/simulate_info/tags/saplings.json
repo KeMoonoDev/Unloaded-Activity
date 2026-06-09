@@ -1,6 +1,6 @@
 {
   "stage": {
-    "simulation_type": "property",
+    "simulation_method": "property",
     "update_type": "update_none",
 
     "conditions": [
@@ -23,7 +23,7 @@
   },
 
   "grow_tree": {
-    "simulation_type": "action",
+    "simulation_method": "grow_tree",
     "conditions": [
       {
         "check": "raw_brightness_above",

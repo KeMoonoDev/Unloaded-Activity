@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
+import static lol.zanspace.unloadedactivity.GameUtils.returnError;
 
 public class IncompleteGroupMemberInfo {
     public Optional<Float> value = Optional.empty();

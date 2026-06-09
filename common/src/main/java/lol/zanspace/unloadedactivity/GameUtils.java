@@ -12,6 +12,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Registry;
 #endif
 
+import com.mojang.serialization.DataResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -23,7 +24,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.StemBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.LevelChunk;
+
+import java.util.Optional;
 
 /// A bunch of functions that are used frequently with version specific logic.
 /// Separated into here to reduce clutter elsewhere.
@@ -118,7 +122,7 @@ public class GameUtils {
             BlockState growOnState = level.getBlockState(blockPos.below());
             isGrowableOn = growOnState.is(stemBlock.fruitSupportBlocks);
         } else {
-            isGrowableOn = false;
+            isGrowableOn = true;
         }
         #else
         BlockState belowBlockState = level.getBlockState(blockPos.below());
@@ -126,5 +130,39 @@ public class GameUtils {
         #endif
 
         return isGrowableOn;
+    }
+
+    public static Optional<Property<?>> getProperty(BlockState state, String propertyName) {
+        for (var property : state.getProperties()) {
+            if (property.getName().equals(propertyName)) {
+                return Optional.of(property);
+            }
+        }
+        return Optional.empty();
+    }
+
+
+    public static <R> DataResult<R> returnError(DataResult<?> dataResult) {
+        #if MC_VER >= MC_1_19_4
+        return DataResult.error(() -> dataResult.error().get().message());
+        #else
+        return DataResult.error(dataResult.error().get().message());
+        #endif
+    }
+
+    public static <R> DataResult<R> returnError(String info, DataResult<?> dataResult) {
+        #if MC_VER >= MC_1_19_4
+        return DataResult.error(() -> info + dataResult.error().get().message());
+        #else
+        return DataResult.error(info + "\n" + dataResult.error().get().message());
+        #endif
+    }
+
+    public static <R> DataResult<R> returnError(String info) {
+        #if MC_VER >= MC_1_19_4
+        return DataResult.error(() -> info);
+        #else
+        return DataResult.error(info);
+        #endif
     }
 }

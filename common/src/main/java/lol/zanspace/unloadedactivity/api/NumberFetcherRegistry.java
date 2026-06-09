@@ -1,5 +1,6 @@
 package lol.zanspace.unloadedactivity.api;
 
+import lol.zanspace.unloadedactivity.datapack.ValueExpression;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,11 +9,16 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class NumberFetcherRegistry {
-    private HashMap<Identifier, NumberFetcher> numberFetchers = new HashMap<>();
+    private HashMap<Identifier, ValueExpression<Number>> numberFetchers = new HashMap<>();
+    private HashMap<Identifier, Number> numbers = new HashMap<>();
     private ArrayList<NumberFetcherFactory> dynamicNumberFetchers = new ArrayList<>();
 
-    public void register(Identifier id, NumberFetcher value) {
+    public void register(Identifier id, ValueExpression<Number> value) {
         numberFetchers.put(id, value);
+    };
+
+    public void registerNumber(Identifier id, Number number) {
+        numbers.put(id, number);
     };
 
     public void registerDynamic(String namespace, Predicate<String> matches, Function<String, NumberFetcher> factory) {
@@ -38,8 +44,12 @@ public class NumberFetcherRegistry {
         dynamicNumberFetchers.add(factory);
     };
 
-    public Optional<NumberFetcher> resolve(Identifier id) {
-        NumberFetcher fetcher = numberFetchers.get(id);
+    public Optional<Number> getNumber(Identifier id) {
+        return Optional.ofNullable(numbers.get(id));
+    };
+
+    public Optional<ValueExpression<Number>> resolve(Identifier id) {
+        ValueExpression<Number> fetcher = numberFetchers.get(id);
         if (fetcher != null) return Optional.of(fetcher);
 
         return Optional.ofNullable(resolveDynamicFetcher(id));

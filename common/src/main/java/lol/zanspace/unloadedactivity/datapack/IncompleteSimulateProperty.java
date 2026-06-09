@@ -15,9 +15,8 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 
-import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
-
 public class IncompleteSimulateProperty {
+    /*
     public Set<String> dependencies = new HashSet<>();
     public Optional<SimulationType> simulationType = Optional.empty();
     public Optional<Boolean> isPrecipitation = Optional.empty();
@@ -156,7 +155,7 @@ public class IncompleteSimulateProperty {
         MapLike<T> propertyInfo = propertyInfoResult.result().get();
 
         {
-            T mapValue = propertyInfo.get("simulation_type");
+            T mapValue = propertyInfo.get("simulation_method");
             if (mapValue != null) {
                 DataResult<String> valueResult = ops.getStringValue(mapValue);
                 if (valueResult.error().isPresent()) {
@@ -538,4 +537,6 @@ public class IncompleteSimulateProperty {
 
         return DataResult.success(simulateProperty);
     }
+
+     */
 }

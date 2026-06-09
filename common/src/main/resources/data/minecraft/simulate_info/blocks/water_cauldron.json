@@ -1,7 +1,7 @@
 {
   "level": {
     "is_precipitation": true,
-    "simulation_type": "property",
+    "simulation_method": "property",
     "conditions": [
       {
         "check": "is_rain_precipitation",

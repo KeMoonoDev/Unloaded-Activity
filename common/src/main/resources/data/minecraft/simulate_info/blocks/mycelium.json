@@ -1,6 +1,6 @@
 {
   "grass_decay": {
-    "simulation_type": "decay",
+    "simulation_method": "replace",
     "conditions": [
       {
         "check": "grass_can_stay_alive",

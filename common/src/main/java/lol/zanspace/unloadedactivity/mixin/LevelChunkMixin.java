@@ -6,8 +6,10 @@ import lol.zanspace.unloadedactivity.UnloadedActivity;
 import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
 import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
 import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
+import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
 import net.minecraft.core.Registry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -59,8 +61,11 @@ public abstract class LevelChunkMixin extends ChunkAccess {
     #else
     public void blockChanged(BlockPos blockPos, BlockState blockState, boolean bl, CallbackInfoReturnable<BlockState> cir) {
     #endif
-        if (level.isClientSide())
+        MinecraftServer server = level.getServer();
+
+        if (server == null || level.isClientSide())
             return;
+
 
         Block block = blockState.getBlock();
 
@@ -84,7 +89,7 @@ public abstract class LevelChunkMixin extends ChunkAccess {
             }
         }
 
-        if (block.getSimulationData().hasRandTicksWithoutGroup) {
+        if (SimulationDataResource.getSimulationData(block).map(data -> data.hasRandTicksWithoutGroup).orElse(false)) {
             if (UnloadedActivity.config.debugLogs)
                 UnloadedActivity.LOGGER.info("Adding position to chunk list "+blockPos.asLong());
 

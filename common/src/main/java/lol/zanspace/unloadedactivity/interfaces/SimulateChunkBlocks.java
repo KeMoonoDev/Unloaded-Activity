@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SimulateChunkBlocks {
+    /*
 
     SimulationData getSimulationData();
 
@@ -56,25 +57,6 @@ public interface SimulateChunkBlocks {
         }
         return Optional.empty();
     }
-
-    default int getCurrentAgeUA(BlockState state) {
-        return 0;
-    }
-
-    default int getMaxAgeUA() {
-        return 0;
-    }
-
-    default List<SimulateProperty> getGroupSimulationProperties() {
-        return getSimulationData().propertyMap.values().stream().filter(property -> property.simulateWithGroup.isPresent()).toList();
-    };
-
-    default Optional<SimulateProperty> getGroupSimulationProperty(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
-        return getSimulationData().propertyMap.values()
-            .stream()
-            .filter(property -> property.simulateWithGroup.equals(Optional.of(groupId)))
-            .findFirst();
-    };
 
     default boolean canSimulateProperty(BlockState state, ServerLevel level, BlockPos pos, SimulateProperty simulateProperty) {
         boolean isFinished = isPropertyFinished(state, level, pos, simulateProperty);
@@ -801,4 +783,6 @@ public interface SimulateChunkBlocks {
         return this.implementsSimulatePrecTicks();
     }
     default void simulatePrecTicks(BlockState state, ServerLevel level, BlockPos pos, long timeInWeather, long timePassed, Biome.Precipitation precipitation, float precipitationPickChance) {}
+     */
+
 }

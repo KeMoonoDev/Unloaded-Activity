@@ -27,10 +27,11 @@ import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.*;
 
-import static lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks.getProperty;
+//import static lol.zanspace.unloadedactivity.interfaces.SimulateChunkBlocks.getProperty;
 
 
 public class SimulateProperty {
+    /*
     public final String target;
     public final SimulationType simulationType;
     public final boolean isPrecipitation;
@@ -73,7 +74,7 @@ public class SimulateProperty {
         this.target = incomplete.target.orElse(targetFallback);
 
         if (incomplete.simulationType.isEmpty())
-            throw new RuntimeException("simulation_type has not been set.");
+            throw new RuntimeException("simulation_method has not been set.");
 
         this.simulationType = incomplete.simulationType.get();
 
@@ -248,4 +249,5 @@ public class SimulateProperty {
     public boolean isAction(String target) {
         return this.simulationType == SimulationType.ACTION && this.target.equals(target);
     }
+     */
 }

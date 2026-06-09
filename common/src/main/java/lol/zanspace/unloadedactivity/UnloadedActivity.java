@@ -1,7 +1,9 @@
 package lol.zanspace.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import lol.zanspace.unloadedactivity.api.SimulationMethodRegistry;
 import lol.zanspace.unloadedactivity.api.UnloadedActivityApi;
+import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -22,6 +24,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 public class UnloadedActivity {
@@ -35,6 +38,7 @@ public class UnloadedActivity {
     public static IPlatformHelper platform;
 
     public static NumberFetcherRegistry numberFetcherRegistry = new NumberFetcherRegistry();
+    public static SimulationMethodRegistry simulationMethodRegistry = new SimulationMethodRegistry();
 
     public static void init(IPlatformHelper platformHelper) {
         platform = platformHelper;
@@ -49,6 +53,7 @@ public class UnloadedActivity {
 
         for (UnloadedActivityApi entrypoint : loader) {
             entrypoint.registerNumberFetchers(numberFetcherRegistry);
+            entrypoint.registerSimulationMethods(simulationMethodRegistry);
         }
 
     }
@@ -107,5 +112,10 @@ public class UnloadedActivity {
 
     public static void addChunkToQueue(MinecraftServer server, LevelChunk chunk) {
         server.addChunkToQueue(chunk);
+    }
+
+    public static void dataPackReloaded(boolean success) {
+        if (success) SimulationDataResource.buildSimulationDatas();
+        SimulationDataResource.clearRawSimulationDatas();
     }
 }

@@ -1,9 +1,10 @@
 package lol.zanspace.unloadedactivity;
 
 import com.mojang.datafixers.util.Pair;
+import lol.zanspace.unloadedactivity.api.SimulationMethod;
+import lol.zanspace.unloadedactivity.api.simulation_methods.GroupableSimulationMethod;
 import lol.zanspace.unloadedactivity.datapack.ValueContext;
 import lol.zanspace.unloadedactivity.datapack.GroupMemberInfo;
-import lol.zanspace.unloadedactivity.datapack.SimulateProperty;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
@@ -33,10 +34,10 @@ public class ActiveGroupSimulateData {
     public long nextOddsSwitchDuration;
     public float currentOdds;
 
-    private Optional<SimulateProperty> simulateProperty;
+    private Optional<GroupableSimulationMethod> simulationMethod;
     private GroupMemberInfo groupMemberInfo;
 
-    public ActiveGroupSimulateData(BlockPos position, BlockState blockState, Optional<SimulateProperty> simulateProperty, GroupMemberInfo groupMemberInfo, ServerLevel level) {
+    public ActiveGroupSimulateData(BlockPos position, BlockState blockState, Optional<GroupableSimulationMethod> simulationMethod, GroupMemberInfo groupMemberInfo, ServerLevel level) {
         this.surroundingData = new ArrayList<>();
         this.extendingData = new ArrayList<>();
         this.position = position;
@@ -49,15 +50,15 @@ public class ActiveGroupSimulateData {
         this.nextOddsSwitchDuration = 0;
         this.currentOdds = 0;
 
-        this.updateBlockInfo(blockState, simulateProperty, groupMemberInfo);
+        this.updateBlockInfo(blockState, simulationMethod, groupMemberInfo);
     }
 
     public GroupMemberInfo getGroupMemberInfo() {
         return groupMemberInfo;
     }
 
-    public Optional<SimulateProperty> getSimulateProperty() {
-        return simulateProperty;
+    public Optional<GroupableSimulationMethod> getSimulationMethod() {
+        return simulationMethod;
     }
 
     public int getRemainingUpdates() {
@@ -78,25 +79,25 @@ public class ActiveGroupSimulateData {
 
     public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, ValueContext context) {
         if (this.nextOddsSwitchDuration <= 0) {
-            if (this.simulateProperty.isEmpty()) {
+            if (this.simulationMethod.isEmpty()) {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
                 this.currentOdds = 0;
                 return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
             }
 
-            SimulateProperty simulateProperty = this.simulateProperty.get();
+            SimulationMethod simulationMethod = this.simulationMethod.get();
 
-            if (simulateProperty.canBeAffectedByTime) {
-                this.nextOddsSwitchDuration = simulateProperty.advanceProbability.getNextValueSwitchDuration(context);
+            if (simulationMethod.canBeAffectedByTime) {
+                this.nextOddsSwitchDuration = simulationMethod.advanceProbability.getNextValueSwitchDuration(context);
             } else {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
             }
 
-            if (simulateProperty.canBeAffectedByWeather && simulateProperty.advanceProbability.isAffectedByWeather(context)) {
+            if (simulationMethod.canBeAffectedByWeather && simulationMethod.advanceProbability.isAffectedByWeather(context)) {
                 this.nextOddsSwitchDuration = Math.min(this.nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }
 
-            this.currentOdds = simulateProperty.advanceProbability.evaluate(context).floatValue();
+            this.currentOdds = simulationMethod.advanceProbability.evaluate(context).floatValue();
         }
         return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
     }
@@ -106,18 +107,17 @@ public class ActiveGroupSimulateData {
     }
 
 
-    public void updateBlockInfo(BlockState state, Optional<SimulateProperty> simulateProperty, @Nullable GroupMemberInfo groupMemberInfo) {
-        this.simulateProperty = simulateProperty;
+    public void updateBlockInfo(BlockState state, Optional<GroupableSimulationMethod> simulationMethod, @Nullable GroupMemberInfo groupMemberInfo) {
+        this.simulationMethod = simulationMethod;
         this.blockState = state;
         this.maxUpdateCount = 0;
         this.currentUpdateCount = 0;
-        if (this.simulateProperty.isPresent()) {
-            SimulateProperty someSimulateProperty = this.simulateProperty.get();
-            Block block = this.blockState.getBlock();
+        if (this.simulationMethod.isPresent()) {
+            GroupableSimulationMethod someSimulationMethod = this.simulationMethod.get();
 
             this.isActive = true;
 
-            if (someSimulateProperty.isPrecipitation) {
+            if (someSimulationMethod.isPrecipitation) {
                 BlockPos airPos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(this.position.getX(),0,this.position.getZ()));
                 if (!airPos.equals(this.position)) {
                     BlockPos groundPos = airPos.below();
@@ -128,10 +128,10 @@ public class ActiveGroupSimulateData {
             }
 
             if (this.isActive)
-                this.isActive = block.canSimulateProperty(this.blockState, this.level, this.position, someSimulateProperty);
+                this.isActive = someSimulationMethod.canSimulate(this.blockState, this.level, this.position);
 
             if (this.isActive) {
-                this.maxUpdateCount = block.getMaxUpdateCount(this.blockState, this.level, this.position, someSimulateProperty);
+                this.maxUpdateCount = someSimulationMethod.getMaxUpdateCount(this.blockState, this.level, this.position);
                 this.currentUpdateCount = 0;
             }
         } else {
@@ -185,7 +185,7 @@ public class ActiveGroupSimulateData {
     }
 
     public boolean isIgnored(ActiveGroupSimulateData groupSimulateData) {
-        if (this.groupMemberInfo.ignoredOffsets.isEmpty()) {
+        if (this.groupMemberInfo == null || this.groupMemberInfo.ignoredOffsets.isEmpty()) {
             return false;
         }
 

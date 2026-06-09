@@ -22,37 +22,4 @@ import java.util.Iterator;
 
 @Mixin(Block.class)
 public abstract class BlockMixin implements SimulateChunkBlocks {
-
-    @Shadow @Final private Holder.Reference<Block> builtInRegistryHolder;
-
-    @Override
-    public SimulationData getSimulationData() {
-        return SimulationDataResource.COMPLETE_BLOCK_MAP.computeIfAbsent(GameUtils.getBlockIntId((Block)(Object)this), (blockIntId) -> {
-            var blockId = GameUtils.getBlockId((Block)(Object)this);
-            IncompleteSimulationData blockSimulationData = SimulationDataResource.BLOCK_MAP.get(blockId);
-
-            IncompleteSimulationData finalSimulationData = new IncompleteSimulationData();
-
-            for (Iterator<TagKey<Block>> it = builtInRegistryHolder.tags().iterator(); it.hasNext(); ) {
-                TagKey<Block> tag = it.next();
-                var tagId = tag.location();
-
-                IncompleteSimulationData tagSimulationData = SimulationDataResource.TAG_MAP.get(tagId);
-
-                if (tagSimulationData != null) {
-                    finalSimulationData.merge(tagSimulationData);
-                }
-            }
-
-            if (blockSimulationData != null) {
-                finalSimulationData.merge(blockSimulationData);
-            }
-
-            try {
-                return new SimulationData(finalSimulationData);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to create SimulationData for " + blockId + ".\n" + e.getMessage());
-            }
-        });
-    }
 }

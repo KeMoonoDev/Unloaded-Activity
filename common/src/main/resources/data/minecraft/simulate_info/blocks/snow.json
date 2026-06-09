@@ -1,7 +1,7 @@
 {
   "layers": {
     "is_precipitation": true,
-    "simulation_type": "property",
+    "simulation_method": "property",
     "conditions": [
       {
         "check": "should_snow",
@@ -13,7 +13,7 @@
     "max_value": "max_snow_height"
   },
   "melt": {
-    "simulation_type": "decay",
+    "simulation_method": "decay",
     "conditions": [
       {
         "check": "block_brightness",

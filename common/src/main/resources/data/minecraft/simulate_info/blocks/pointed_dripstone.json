@@ -1,6 +1,11 @@
 {
   "dripstone": {
-    "simulation_type": "action",
-    "advance_probability": 0.011377778
+    "simulation_method": "grow_dripstone",
+    "advance_probability": 0.011377778,
+    "water_fill_probability": 0.17578125,
+    "lava_fill_probability": 0.05859375,
+    "max_bottom_growth_search_length":  10,
+    "max_growth_length": 7,
+    "max_distance_between_tip_and_cauldron":  11
   }
 }

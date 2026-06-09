@@ -1,6 +1,8 @@
 package lol.zanspace.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import lol.zanspace.unloadedactivity.api.SimulationMethod;
+import lol.zanspace.unloadedactivity.api.simulation_methods.GroupableSimulationMethod;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -10,6 +12,7 @@ import com.mojang.datafixers.util.Pair;
 import lol.zanspace.unloadedactivity.datapack.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -58,6 +61,12 @@ public class TimeMachine {
     }
 
     public static void indexChunk(LevelChunk chunk) {
+        MinecraftServer server = chunk.getLevel().getServer();
+
+        if (server == null) {
+            throw new RuntimeException("The method indexChunk got run on the client side.");
+        }
+
         if (isChunkIndexed(chunk))
             return;
 
@@ -76,8 +85,8 @@ public class TimeMachine {
 
             boolean simulateChunk = section.maybeHas((state) -> {
                 Block block = state.getBlock();
-                SimulationData simulationData = block.getSimulationData();
-                if (simulationData.hasRandTicksWithoutGroup) {
+                Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
+                if (maybeSimulationData.isPresent() && maybeSimulationData.get().hasRandTicksWithoutGroup) {
                     return true;
                 }
 
@@ -97,8 +106,8 @@ public class TimeMachine {
                         BlockPos levelBlockPos = chunkPos.getBlockAt(x, sectionBlockY + y, z);
                         BlockState state = section.getBlockState(x, y, z);
                         Block block = state.getBlock();
-                        SimulationData simulationData = block.getSimulationData();
-                        if (simulationData.hasRandTicksWithoutGroup) {
+                        Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
+                        if (maybeSimulationData.isPresent() && maybeSimulationData.get().hasRandTicksWithoutGroup) {
                             newSimulationBlocks.add(levelBlockPos.asLong());
                         }
 
@@ -134,6 +143,12 @@ public class TimeMachine {
 
     /// Returns positions of blocks that implement random ticks.
     public static ArrayList<BlockPos> getRandomTickableBlocks(LevelChunk chunk) {
+        MinecraftServer server = chunk.getLevel().getServer();
+
+        if (server == null) {
+            throw new RuntimeException("The method getRandomTickableBlocks got run on the client side.");
+        }
+
         ArrayList<Long> currentSimulationBlocks = chunk.getSimulationBlocks();
 
         ArrayList<BlockPos> blockPosArray = new ArrayList<>(currentSimulationBlocks.size());
@@ -147,12 +162,18 @@ public class TimeMachine {
             BlockPos pos = BlockPos.of(longPos);
             BlockState state = chunk.getBlockState(pos);
             Block block = state.getBlock();
-            SimulationData simulationData = block.getSimulationData();
+            Optional<SimulationData> simulationData = SimulationDataResource.getSimulationData(block);
 
-            if (simulationData.hasRandTicksWithoutGroup)
+            if (simulationData.isEmpty()) {
+                return true;
+            }
+
+            if (simulationData.get().hasRandTicksWithoutGroup) {
                 blockPosArray.add(pos);
-
-            return !simulationData.hasRandTicksWithoutGroup;
+                return false;
+            } else {
+                return true;
+            }
         });
 
         int removedCount = prevSize - currentSimulationBlocks.size();
@@ -168,6 +189,11 @@ public class TimeMachine {
     /// Returns positions of blocks that implement precipitation ticks.
     public static List<BlockPos> getPrecipitationTickableBlocks(LevelChunk chunk) {
         Level level = chunk.getLevel();
+        MinecraftServer server = level.getServer();
+
+        if (server == null) {
+            throw new RuntimeException("The method getPrecipitationTickableBlocks got run on the client side.");
+        }
 
         ArrayList<BlockPos> precipitationBlocks = new ArrayList<>();
 
@@ -181,10 +207,10 @@ public class TimeMachine {
                 Block airPosBlock = airPosState.getBlock();
                 Block groundPosBlock = groundPosState.getBlock();
 
-                if (airPosBlock.getSimulationData().hasPrecTicksWithoutGroup)
+                if (SimulationDataResource.getSimulationData(airPosBlock).map(data -> data.hasPrecTicksWithoutGroup).orElse(false))
                     precipitationBlocks.add(airPos);
 
-                if (groundPosBlock.getSimulationData().hasPrecTicksWithoutGroup)
+                if (SimulationDataResource.getSimulationData(groundPosBlock).map(data -> data.hasPrecTicksWithoutGroup).orElse(false))
                     precipitationBlocks.add(groundPos);
             }
 
@@ -193,6 +219,12 @@ public class TimeMachine {
 
     // This doesn't take a timeDifference parameter because that is supposed to be calculated in the function using the last group tick.
     public static Pair<Integer, Boolean> simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget, long currentTime) {
+        MinecraftServer server = chunk.getLevel().getServer();
+
+        if (server == null) {
+            throw new RuntimeException("The method simulateGroupTicks got run on the client side.");
+        }
+
         ArrayList<GroupChunkIndex> groupIndexes = chunk.getGroupIndexes();
 
         int simulatedGroups = 0;
@@ -288,12 +320,12 @@ public class TimeMachine {
                         if (!simulationData.isActive)
                             continue;
 
-                        // For isActive to return true, there must be a simulateProperty present.
-                        SimulateProperty simulateProperty = simulationData.getSimulateProperty().orElseThrow();
+                        // For isActive to return true, there must be a simulationMethod present.
+                        SimulationMethod simulationMethod = simulationData.getSimulationMethod().orElseThrow();
 
                         float pickOdds;
 
-                        if (simulateProperty.isPrecipitation) {
+                        if (simulationMethod.isPrecipitation) {
                             pickOdds = precipitationPickOdds;
                         } else {
                             pickOdds = randomPickOdds;
@@ -341,15 +373,15 @@ public class TimeMachine {
 
                         simulationData.passTime(simulationStepDuration);
 
-                        // For isActive to return true, there must be a simulateProperty present.
-                        SimulateProperty simulateProperty = simulationData.getSimulateProperty().orElseThrow();
+                        // For isActive to return true, there must be a simulationMethod present.
+                        GroupableSimulationMethod simulationMethod = simulationData.getSimulationMethod().orElseThrow();
 
                         BlockState state = simulationData.getState();
                         Block block = state.getBlock();
 
                         float pickOdds;
 
-                        if (simulateProperty.isPrecipitation) {
+                        if (simulationMethod.isPrecipitation) {
                             pickOdds = precipitationPickOdds;
                         } else {
                             pickOdds = randomPickOdds;
@@ -371,7 +403,7 @@ public class TimeMachine {
 
                         int updateCount = simulationData.getCurrentUpdateCount();
 
-                        List<Pair<BlockPos, BlockState>> newBlockStates = block.getNewBlockStates(state, level, simulationData.position, simulateProperty, updateCount, simulationStepDuration, simulationStepDuration, simulationData);
+                        DeferredBlockPlacer newBlockStates = simulationMethod.getNewBlockStates(state, level, simulationData.position, updateCount, simulationStepDuration, simulationStepDuration, simulationData);
 
                         if (newBlockStates.size() > 1) {
                             throw new RuntimeException("Group simulation type must only return 1 or 0 new blockstates.");
@@ -382,20 +414,20 @@ public class TimeMachine {
                             continue;
                         }
 
-                        Pair<BlockPos, BlockState> newBlockData = newBlockStates.get(0);
+                        DeferredBlockPlacer.BlockPlacementInfo newBlockData = newBlockStates.get(0);
 
-                        if (!newBlockData.getFirst().equals(simulationData.position)) {
+                        if (!newBlockData.blockPos().equals(simulationData.position)) {
                             throw new RuntimeException("Group simulation type must not change its position.");
                         }
 
                         simulationData.placeBlock = true;
 
-                        BlockState newBlockState = newBlockData.getSecond();
+                        BlockState newBlockState = newBlockData.blockState();
                         Block newBlock = newBlockState.getBlock();
                         if (newBlock == block) {
                             simulationData.isActive = false;
                             pendingUpdateBlockInfo.add(Triple.of(newBlockState, simulationData, Optional.of(simulationData.getGroupMemberInfo())));
-                            simulationData.updateType = simulateProperty.updateType;
+                            simulationData.updateType = newBlockData.updateType();
                             continue;
                         }
 
@@ -426,7 +458,7 @@ public class TimeMachine {
                         if (!updatingData.isActive) {
                             updatingData.updateBlockInfo(state, Optional.empty(), maybeGroupMemberInfo.get());
                         } else {
-                            var newSimulateProperty = state.getBlock().getSimulationData().propertyMap.values().stream().filter(property -> property.simulateWithGroup.equals(Optional.of(groupId))).findFirst();
+                            Optional<GroupableSimulationMethod> newSimulateProperty = SimulationDataResource.getSimulationData(state.getBlock()).flatMap(simulationData -> simulationData.propertyMap.values().stream().filter(method -> method instanceof GroupableSimulationMethod groupableMethod && groupId.equals(groupableMethod.simulateWithGroup)).findFirst()).map(method -> (GroupableSimulationMethod)method);
                             updatingData.updateBlockInfo(state, newSimulateProperty, maybeGroupMemberInfo.get());
                         }
 
@@ -506,7 +538,7 @@ public class TimeMachine {
                 boolean intersectsNewChunks = false;
 
                 if (groupSimulateData.isActive) {
-                    for (var offset : groupInfo.finalOffsetsWithoutZero) {
+                    for (var offset : groupInfo.getOffsetsWithoutZero()) {
                         BlockPos checkPos = groupSimulateData.position.offset(offset);
                         ChunkPos chunkPos = GameUtils.chunkPosFromWorldPos(checkPos);
                         boolean isNewChunk = !checkedChunks.contains(GameUtils.toLong(chunkPos));
@@ -533,7 +565,7 @@ public class TimeMachine {
 
                 BlockPos blockPos = currentActiveGroupSimulateData.position;
 
-                for (var offset : groupInfo.finalOffsetsWithoutZero) {
+                for (var offset : groupInfo.getOffsetsWithoutZero()) {
                     BlockPos affectingBlockPos = blockPos.offset(offset);
 
                     ActiveGroupSimulateData affectingSimulateData = activeGroupDataMap.get(affectingBlockPos.asLong());
@@ -693,6 +725,7 @@ public class TimeMachine {
     }
 
     public static void simulateBlock(BlockPos pos, ServerLevel level, long timeLeft, int randomTickSpeed, boolean allowPrecipitationTicks) {
+        MinecraftServer server = level.getServer();
 
         float randomPickChance = MathUtils.getRandomPickOdds(randomTickSpeed);
         float precipitationPickChance = MathUtils.getPrecipitationPickOdds(randomTickSpeed);
@@ -718,27 +751,29 @@ public class TimeMachine {
             // Even if there's a duplicate, we only check if it contains, so it doesn't matter.
             ArrayList<String> propertiesWithDependents = new ArrayList<>();
 
-            SimulationData simulationData = block.getSimulationData();
+            Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
+            if (maybeSimulationData.isEmpty()) break;
+            SimulationData simulationData = maybeSimulationData.get();
 
             if (UnloadedActivity.config.debugLogs)
                 if (!state.isAir())
                     UnloadedActivity.LOGGER.info("Simulating block " + block + " with " + simulationData.propertyMap.size() + " properties.");
 
 
-            ArrayList<Pair<String, SimulateProperty>> pendingProperties = new ArrayList<>(simulationData.propertyMap.size());
+            ArrayList<Pair<String, SimulationMethod>> pendingProperties = new ArrayList<>(simulationData.propertyMap.size());
 
             for (var entry : simulationData.propertyMap.entrySet()) {
 
                 String propertyName = entry.getKey();
-                var simulateProperty = entry.getValue();
+                var simulationMethod = entry.getValue();
 
-                if (block.isPropertyFinished(state, level, pos, simulateProperty)) {
+                if (simulationMethod.isFinished(state, level, pos)) {
                     finishedProperties.add(Pair.of(propertyName, 0L));
                 } else {
-                    pendingProperties.add(Pair.of(propertyName, simulateProperty));
+                    pendingProperties.add(Pair.of(propertyName, simulationMethod));
                 }
 
-                propertiesWithDependents.addAll(simulateProperty.dependencies);
+                propertiesWithDependents.addAll(simulationMethod.dependencies);
             }
 
             boolean continueCheck = true;
@@ -754,19 +789,19 @@ public class TimeMachine {
                     boolean validDependencies = true;
                     long maxDuration = 0;
 
-                    var simulateProperty = entry.getSecond();
+                    SimulationMethod simulationMethod = entry.getSecond();
 
-                    if (simulateProperty.isPrecipitation && (!allowPrecipitationTicks || !UnloadedActivity.config.enableSimulatingPrecipitationTicks)) {
+                    if (simulationMethod.isPrecipitation && (!allowPrecipitationTicks || !UnloadedActivity.config.enableSimulatingPrecipitationTicks)) {
                         continue;
                     }
-                    if (!simulateProperty.isPrecipitation && !UnloadedActivity.config.enableSimulatingRandomTicks) {
+                    if (!simulationMethod.isPrecipitation && !UnloadedActivity.config.enableSimulatingRandomTicks) {
                         continue;
                     }
-                    if (simulateProperty.simulateWithGroup.isPresent()) {
+                    if (simulationMethod.simulatesWithGroup()) {
                         continue;
                     }
                     var propertyName = entry.getFirst();
-                    for (String dependency : simulateProperty.dependencies) {
+                    for (String dependency : simulationMethod.dependencies) {
                         Long dependencyDuration = null;
 
                         for (var pair : finishedProperties) {
@@ -794,7 +829,7 @@ public class TimeMachine {
 
                     // For the block to get to this point, isPropertyFinished must have returned false.
                     // We can use hasValidConditions instead of canSimulateProperty.
-                    if (!block.hasValidConditions(state, level, pos, simulateProperty)) {
+                    if (!simulationMethod.hasValidConditions(state, level, pos)) {
                         if (UnloadedActivity.config.debugLogs)
                             UnloadedActivity.LOGGER.info("Skipping simulating property " + propertyName + " due to invalid conditions.");
                         continue;
@@ -813,22 +848,39 @@ public class TimeMachine {
                     if (UnloadedActivity.config.debugLogs)
                         UnloadedActivity.LOGGER.info("Simulating property " + propertyName + " on block " + block);
 
-                    float pickChance = simulateProperty.isPrecipitation ? precipitationPickChance : randomPickChance;
+                    float pickChance = simulationMethod.isPrecipitation ? precipitationPickChance : randomPickChance;
 
-                    var result = block.simulateProperty(state, level, pos, simulateProperty, GameUtils.getRand(level), simulateTime, pickChance, propertiesWithDependents.contains(propertyName), null);
-                    if (result == null) {
+                    DeferredBlockPlacer blockPlacer = simulationMethod.simulate(state, level, pos, GameUtils.getRand(level), simulateTime, pickChance, propertiesWithDependents.contains(propertyName), null);
+
+                    if (blockPlacer == null) {
                         continueCheck = false;
                         break;
                     }
 
-                    state = result.getLeft();
-                    pos = result.getRight();
+                    if (blockPlacer.isEmpty()) continue;
 
-                    long duration = result.getMiddle().duration();
+                    blockPlacer.forEach(placeInfo -> {
+                        level.setBlock(placeInfo.blockPos(), placeInfo.blockState(), placeInfo.updateType());
+                        if (placeInfo.updateNeighbors()) {
+                            #if MC_VER >= MC_1_21_3
+                                level.neighborChanged(placeInfo.blockState(), placeInfo.blockPos(), placeInfo.blockState().getBlock(), null, false);
+                            #else
+                                level.neighborChanged(placeInfo.blockState(), placeInfo.blockPos(), placeInfo.blockState().getBlock(), placeInfo.blockPos(), false);
+                            #endif
+                            level.scheduleTick(placeInfo.blockPos(), placeInfo.blockState().getBlock(), 1);
+                        }
+                    });
+
+                    DeferredBlockPlacer.BlockPlacementInfo lastBlockPlacement = blockPlacer.get(blockPlacer.size()-1);
+
+                    state = lastBlockPlacement.blockState();
+                    pos = lastBlockPlacement.blockPos();
+
+                    long duration = lastBlockPlacement.duration();
 
                     assert (duration <= simulateTime);
 
-                    long simulationDuration = result.getMiddle().duration() + maxDuration;
+                    long simulationDuration = duration + maxDuration;
 
                     assert (simulationDuration <= timeLeft);
 
@@ -840,9 +892,9 @@ public class TimeMachine {
                         break;
                     }
 
-                    if (block.isPropertyFinished(state, level, pos, simulateProperty)) {
+                    if (simulationMethod.isFinished(state, level, pos)) {
                         continueCheck = true;
-                        finishedProperties.add(Pair.of(propertyName, simulationDuration));
+                        finishedProperties.add(Pair.of(propertyName, blockPlacer.maxDuration()));
                     }
                 }
             }

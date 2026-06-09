@@ -1,9 +1,6 @@
 {
   "grow_bamboo": {
-    "simulation_type": "action",
-    "update_type": "update_invisible",
-    "reset_on_height_change": true,
-    "keep_updating_after_max_height": false,
+    "simulation_method": "grow_bamboo",
     "max_height": 15,
     "advance_probability": 0.333333333333333333,
     "conditions": [

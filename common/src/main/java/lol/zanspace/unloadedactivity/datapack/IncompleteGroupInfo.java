@@ -1,6 +1,7 @@
 package lol.zanspace.unloadedactivity.datapack;
 
 #if MC_VER >= MC_1_21_11
+import lol.zanspace.unloadedactivity.GameUtils;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -16,7 +17,7 @@ import net.minecraft.core.Vec3i;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
+import static lol.zanspace.unloadedactivity.GameUtils.returnError;
 
 public class IncompleteGroupInfo {
     public static final Codec<IncompleteGroupInfo> CODEC;

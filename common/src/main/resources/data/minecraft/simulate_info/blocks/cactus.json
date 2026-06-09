@@ -1,11 +1,17 @@
 {
-  "grow_cactus": {
-    "simulation_type": "action",
+  "age": {
+    "simulation_method": "max_property_growth",
     "update_neighbors": true,
     "update_type": "update_invisible",
     "reset_on_height_change": true,
-    "keep_updating_after_max_height": true,
+    "stop_updating_after_max_height": false,
+    "stop_updating_after_blockage": true,
     "max_height": 3,
-    "advance_probability": 1
+    "advance_probability": 1,
+    "age_bloom": {
+      "bloom_at_age": 8,
+      "bloom_block": "minecraft:cactus_flower",
+      "height_probabilities": [0.1, 0.1, 0.25]
+    }
   }
 }

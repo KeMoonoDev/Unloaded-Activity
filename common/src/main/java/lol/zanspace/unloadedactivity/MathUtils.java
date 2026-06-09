@@ -35,7 +35,7 @@ public class MathUtils {
         #endif
     }
 
-    public static OccurrencesAndDuration getOccurrences(ServerLevel level, BlockState state, BlockPos pos, long endTime, long cycles, SimulateProperty property, int maxOccurrences, float randomPickOdds, boolean calculateDuration, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public static OccurrencesAndDuration getOccurrences(ServerLevel level, BlockState state, BlockPos pos, long endTime, long cycles, ValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickOdds, boolean calculateDuration, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (maxOccurrences <= 0)
             return OccurrencesAndDuration.empty();
 
@@ -45,15 +45,13 @@ public class MathUtils {
 
         float averageProbability = 0;
 
-        ValueExpression<Number> probability = property.advanceProbability;
-
         WorldWeatherForecast weatherData = level.getWeatherForecast();
 
         while (remainingCycles > 0) {
             long currentTime = endTime - remainingCycles;
             boolean isRaining = weatherData.getWeatherAtTime(currentTime);
 
-            if (property.requiresRain && !isRaining) {
+            if (requiresRain && !isRaining) {
                 long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
                 remainingCycles -= nextWeatherSwitchDuration;
                 continue;
@@ -62,7 +60,7 @@ public class MathUtils {
             ValueContext calculationData = new ValueContext(level, state, pos, currentTime, isRaining, false, groupSimulateData);
 
             long nextOddsSwitchDuration = probability.getNextValueSwitchDuration(calculationData);
-            if (probability.isAffectedByWeather(calculationData) || property.requiresRain) {
+            if (requiresRain || probability.isAffectedByWeather(calculationData)) {
                 long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
                 nextOddsSwitchDuration = Math.min(nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }

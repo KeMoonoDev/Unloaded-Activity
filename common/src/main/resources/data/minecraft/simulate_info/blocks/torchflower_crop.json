@@ -1,6 +1,6 @@
 {
   "final_grow": {
-    "simulation_type": "decay",
+    "simulation_method": "replace",
     "conditions": [
       {
         "check": "raw_brightness",

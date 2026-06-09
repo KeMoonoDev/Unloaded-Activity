@@ -1,9 +1,10 @@
 {
   "age": {
-    "simulation_type": "property",
+    "simulation_method": "max_property_growth",
     "update_type": "update_invisible",
     "reset_on_height_change": true,
-    "keep_updating_after_max_height": false,
+    "stop_updating_after_max_height": true,
+    "stop_updating_after_blockage": true,
     "max_height": 3,
     "advance_probability": 1
   }

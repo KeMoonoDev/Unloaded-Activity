@@ -1,12 +1,15 @@
 package lol.zanspace.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import lol.zanspace.unloadedactivity.api.SimulationMethod;
+import lol.zanspace.unloadedactivity.api.simulation_methods.GroupableSimulationMethod;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -61,6 +64,8 @@ public class GroupChunkIndex {
             throw new RuntimeException("Please run the function getAndFilterBlocks on the server side only pls thx.");
         }
 
+        MinecraftServer server = serverLevel.getServer();
+
         ArrayList<ActiveGroupSimulateData> blockInfoList = new ArrayList<>(this.positions.size());
 
         this.positions.removeIf((longPos) -> {
@@ -96,24 +101,22 @@ public class GroupChunkIndex {
                 }
             }
 
-            Optional<SimulateProperty> property = Optional.empty();
+            Optional<GroupableSimulationMethod> method = Optional.empty();
 
-            SimulationData simulationData = block.getSimulationData();
-            for (SimulateProperty simulateProperty : simulationData.propertyMap.values()) {
-                var maybePropertyGroupId = simulateProperty.simulateWithGroup;
-
-                if (maybePropertyGroupId.isEmpty())
-                    continue;
-
-                var propertyGroupId = maybePropertyGroupId.get();
-
-                if (propertyGroupId.equals(this.groupId)) {
-                    property = Optional.of(simulateProperty);
-                    break;
+            Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
+            if (maybeSimulationData.isPresent()) {
+                SimulationData simulationData = maybeSimulationData.get();
+                for (SimulationMethod simulationMethod : simulationData.propertyMap.values()) {
+                    if (!simulationMethod.simulatesWithGroup()) continue;
+                    GroupableSimulationMethod groupableMethod = (GroupableSimulationMethod)simulationMethod;
+                    if (this.groupId.equals(groupableMethod.simulateWithGroup)) {
+                        method = Optional.of(groupableMethod);
+                        break;
+                    }
                 }
             }
 
-            blockInfoList.add(new ActiveGroupSimulateData(pos, state, property, groupMemberInfo, serverLevel));
+            blockInfoList.add(new ActiveGroupSimulateData(pos, state, method, groupMemberInfo, serverLevel));
 
             return false;
         });

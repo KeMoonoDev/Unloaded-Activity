@@ -1,0 +1,6 @@
+{
+  "grow_fruit": {
+    "stem_block": "minecraft:attached_pumpkin_stem",
+    "fruit_block": "minecraft:pumpkin"
+  }
+}

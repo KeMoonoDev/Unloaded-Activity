@@ -14,8 +14,6 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
-
 public interface ValueExpression<T> {
     T evaluate(ValueContext context);
 
@@ -73,7 +71,7 @@ public interface ValueExpression<T> {
                 fetcherId = Identifier.parse(UnloadedActivity.MOD_ID+":"+fetcherIdUnparsed);
             }
 
-            Optional<NumberFetcher> resolvedFetcher = UnloadedActivity.numberFetcherRegistry.resolve(fetcherId);
+            Optional<ValueExpression<Number>> resolvedFetcher = UnloadedActivity.numberFetcherRegistry.resolve(fetcherId);
 
             if (resolvedFetcher.isPresent()) {
                 return resolvedFetcher.get();

@@ -1,6 +1,6 @@
 {
   "grow_grass": {
-    "simulation_type": "decay",
+    "simulation_method": "replace",
     "simulate_with_group": "unloadedactivity:grow_grass",
     "drops_resources": false,
     "block_replacement": {

@@ -3,6 +3,7 @@ package lol.zanspace.unloadedactivity.fabric;
 #if MC_VER >= MC_1_21_10
 import lol.zanspace.unloadedactivity.datapack.GroupInfoResource;
 import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 #else
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -34,6 +35,18 @@ public class UnloadedActivityFabric implements ModInitializer {
 		#else
 		ServerChunkEvents.CHUNK_LOAD.register((level, chunk) -> UnloadedActivity.addChunkToQueue(level.getServer(), chunk));
 		#endif
+
+		ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
+			UnloadedActivity.dataPackReloaded(true);
+		});
+
+		ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
+			UnloadedActivity.dataPackReloaded(false);
+		});
+
+		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+			UnloadedActivity.dataPackReloaded(success);
+		});
 
 		#if MC_VER >= MC_26_1_2
 		ResourceLoader.get(PackType.SERVER_DATA).registerReloadListener(SimulationDataResource.TAGS_ID, new SimulationDataResource(false));

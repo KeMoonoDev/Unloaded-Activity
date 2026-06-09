@@ -1,7 +1,7 @@
 {
   "snow": {
     "is_precipitation": true,
-    "simulation_type": "decay",
+    "simulation_method": "replace",
     "conditions": [
       {
         "check": "should_snow",

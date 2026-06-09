@@ -1,6 +1,6 @@
 {
   "hatch": {
-    "simulation_type": "property",
+    "simulation_method": "property",
     "advance_probability": {
       "21061": 1,
       "21905": 0.002
@@ -15,7 +15,7 @@
     ]
   },
   "final_hatch": {
-    "simulation_type": "decay",
+    "simulation_method": "hatch",
     "advance_probability": {
       "21061": 1,
       "21905": 0.002
@@ -26,7 +26,6 @@
     "hatch_entity": "minecraft:turtle",
     "hatch_count": "property/eggs",
     "starting_age": -24000,
-    "update_type":"update_all",
     "conditions": [
       {
         "check": "is_sand_below",

@@ -7,7 +7,7 @@ import lol.zanspace.unloadedactivity.UnloadedActivity;
 
 import java.util.Optional;
 
-import static lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData.returnError;
+import static lol.zanspace.unloadedactivity.GameUtils.returnError;
 
 public record Condition (ValueExpression<Number> value1, ValueExpression<Number> value2, Comparison comparison) {
     public boolean isValid(ValueContext context) {

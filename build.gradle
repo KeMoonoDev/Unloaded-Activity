@@ -173,7 +173,7 @@ subprojects {
 		if (!rootProject.cactus_flowers_are_added) {
 			filesMatching("data/minecraft/simulate_info/blocks/cactus.json") {
 				filter { line ->
-					line.replace('"keep_updating_after_max_height": true', '"keep_updating_after_max_height": false')
+					line.replace('"stop_updating_after_max_height": false', '"stop_updating_after_max_height": true')
 				}
 			}
 		}

@@ -17,13 +17,6 @@
     "MinecraftServerMixin",
     "ServerLevelMixin",
     "block_entities.AbstractFurnaceBlockEntityMixin",
-    "chunk.randomTicks.BambooMixin",
-    "chunk.randomTicks.BambooSaplingMixin",
-    "chunk.randomTicks.CactusMixin",
-    "chunk.randomTicks.IceMixin",
-    "chunk.randomTicks.PointedDripstoneMixin",
-    "chunk.randomTicks.SaplingMixin",
-    "chunk.randomTicks.StemMixin",
     "entities.AgeableMobMixin",
     "entities.SheepMixin"
   ],

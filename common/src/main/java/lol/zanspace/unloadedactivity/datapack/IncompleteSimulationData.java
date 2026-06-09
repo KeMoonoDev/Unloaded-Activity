@@ -9,6 +9,7 @@ import com.mojang.serialization.MapLike;
 import java.util.*;
 
 public class IncompleteSimulationData {
+    /*
     public static final Codec<IncompleteSimulationData> CODEC;
 
     public Map<String, IncompleteSimulateProperty> propertyMap;
@@ -73,27 +74,5 @@ public class IncompleteSimulationData {
         };
     }
 
-    static <R> DataResult<R> returnError(DataResult<?> dataResult) {
-        #if MC_VER >= MC_1_19_4
-        return DataResult.error(() -> dataResult.error().get().message());
-        #else
-        return DataResult.error(dataResult.error().get().message());
-        #endif
-    }
-
-    static <R> DataResult<R> returnError(String info, DataResult<?> dataResult) {
-        #if MC_VER >= MC_1_19_4
-        return DataResult.error(() -> info + dataResult.error().get().message());
-        #else
-        return DataResult.error(info + "\n" + dataResult.error().get().message());
-        #endif
-    }
-
-    static <R> DataResult<R> returnError(String info) {
-        #if MC_VER >= MC_1_19_4
-        return DataResult.error(() -> info);
-        #else
-        return DataResult.error(info);
-        #endif
-    }
+     */
 }

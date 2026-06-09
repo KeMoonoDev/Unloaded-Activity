@@ -1,6 +1,20 @@
 package lol.zanspace.unloadedactivity.mixin;
 
+#if MC_VER >= MC_1_21_11
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import lol.zanspace.unloadedactivity.datapack.IncompleteSimulationData;
+import lol.zanspace.unloadedactivity.datapack.SimulationDataResource;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+#else
+import net.minecraft.resources.ResourceLocation;
+#endif
+
 #if MC_VER >= MC_1_21_3
+import com.google.gson.JsonElement;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.profiling.Profiler;
 #endif
 
@@ -9,6 +23,7 @@ import com.mojang.datafixers.util.Pair;
 import lol.zanspace.unloadedactivity.GameUtils;
 import lol.zanspace.unloadedactivity.TimeMachine;
 import lol.zanspace.unloadedactivity.UnloadedActivity;
+import lol.zanspace.unloadedactivity.datapack.SimulationData;
 import lol.zanspace.unloadedactivity.interfaces.ChunkIndexQueue;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -16,6 +31,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,11 +40,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-import java.util.ArrayDeque;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 
 @Mixin(MinecraftServer.class)

@@ -1,6 +1,6 @@
 {
   "decay": {
-    "simulation_type": "decay",
+    "simulation_method": "decay",
     "conditions": [
       {
         "check": "property/persistent",
