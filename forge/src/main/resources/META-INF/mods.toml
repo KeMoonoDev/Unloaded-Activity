@@ -1,13 +1,13 @@
 modLoader = "javafml"
 loaderVersion = "[43,)"
-issueTrackerURL = "https://github.com/InZan17/Unloaded-Activity/issues"
+issueTrackerURL = "https://github.com/KeMoonoDev/Unloaded-Activity/issues"
 license = "GNU LGPLv3"
 
 [[mods]]
 modId = "unloadedactivity"
 version = "${version}"
 displayName = "Unloaded Activity"
-authors = "Zan"
+authors = "Moono"
 description = "Make certain blocks such as crops grow as if they've always grown when put into simulation distance."
 logoFile = "icon.png"
 

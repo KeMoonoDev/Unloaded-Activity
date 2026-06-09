@@ -1,11 +1,11 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "lol.zanspace.unloadedactivity.fabric.mixin",
+  "package": "dev.moono.unloadedactivity.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "AbstractFurnaceBlockEntityInvoker",
-    "CropBlockInvoker"
+    "dev.moono.unloadedactivity.fabric.mixin.AbstractFurnaceBlockEntityInvoker",
+    "dev.moono.unloadedactivity.fabric.mixin.CropBlockInvoker"
   ],
   "injectors": {
     "defaultRequire": 1

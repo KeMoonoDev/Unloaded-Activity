@@ -12,12 +12,12 @@
   "name": "Unloaded Activity",
   "description": "Make certain blocks such as crops grow as if they've always grown when put into simulation distance.",
   "authors": [
-    "Zan"
+    "Moono"
   ],
   "contact": {
-    "homepage": "https://zanspace.lol",
-    "sources": "https://github.com/InZan17/Unloaded-Activity",
-    "issues": "https://github.com/InZan17/Unloaded-Activity/issues"
+    "homepage": "https://unloadedactivity.moono.dev",
+    "sources": "https://github.com/KeMoonoDev/Unloaded-Activity",
+    "issues": "https://github.com/KeMoonoDev/Unloaded-Activity/issues"
   },
 
   "license": "GNU LGPLv3",
@@ -26,7 +26,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "lol.zanspace.unloadedactivity.fabric.UnloadedActivityFabric"
+      "dev.moono.unloadedactivity.fabric.UnloadedActivityFabric"
     ]
   },
   "mixins": [

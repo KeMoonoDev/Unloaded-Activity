@@ -1,13 +1,13 @@
 classTweaker v1 official
 
-inject-interface net/minecraft/world/level/block/state/properties/IntegerProperty lol/zanspace/unloadedactivity/mixin/IntegerPropertyAccessor
-inject-interface net/minecraft/world/level/block/Block lol/zanspace/unloadedactivity/interfaces/SimulateChunkBlocks
-inject-interface net/minecraft/world/level/block/entity/BlockEntity lol/zanspace/unloadedactivity/interfaces/SimulateBlockEntity
-inject-interface net/minecraft/world/level/block/entity/BlockEntity lol/zanspace/unloadedactivity/interfaces/BlockEntityTimeData
-inject-interface net/minecraft/world/entity/Entity lol/zanspace/unloadedactivity/interfaces/SimulateEntity
-inject-interface net/minecraft/world/level/chunk/ChunkAccess lol/zanspace/unloadedactivity/interfaces/ChunkTimeData
-inject-interface net/minecraft/server/level/ServerLevel lol/zanspace/unloadedactivity/interfaces/WorldForecastGetter
-inject-interface net/minecraft/server/MinecraftServer lol/zanspace/unloadedactivity/interfaces/ChunkIndexQueue
+inject-interface net/minecraft/world/level/block/state/properties/IntegerProperty dev/moono/unloadedactivity/mixin/IntegerPropertyAccessor
+inject-interface net/minecraft/world/level/block/Block dev/moono/unloadedactivity/interfaces/SimulateChunkBlocks
+inject-interface net/minecraft/world/level/block/entity/BlockEntity dev/moono/unloadedactivity/interfaces/SimulateBlockEntity
+inject-interface net/minecraft/world/level/block/entity/BlockEntity dev/moono/unloadedactivity/interfaces/BlockEntityTimeData
+inject-interface net/minecraft/world/entity/Entity dev/moono/unloadedactivity/interfaces/SimulateEntity
+inject-interface net/minecraft/world/level/chunk/ChunkAccess dev/moono/unloadedactivity/interfaces/ChunkTimeData
+inject-interface net/minecraft/server/level/ServerLevel dev/moono/unloadedactivity/interfaces/WorldForecastGetter
+inject-interface net/minecraft/server/MinecraftServer dev/moono/unloadedactivity/interfaces/ChunkIndexQueue
 
 # Needed to check for valid gourd positions.
 accessible field net/minecraft/world/level/block/StemBlock fruitSupportBlocks Lnet/minecraft/tags/TagKey;
