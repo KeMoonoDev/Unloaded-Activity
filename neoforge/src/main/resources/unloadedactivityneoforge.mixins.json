@@ -4,8 +4,8 @@
   "package": "dev.moono.unloadedactivity.neoforge.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "dev.moono.unloadedactivity.neoforge.mixin.AbstractFurnaceBlockEntityInvoker",
-    "dev.moono.unloadedactivity.neoforge.mixin.CropBlockInvoker"
+    "AbstractFurnaceBlockEntityInvoker",
+    "CropBlockInvoker"
   ],
   "injectors": {
     "defaultRequire": 1

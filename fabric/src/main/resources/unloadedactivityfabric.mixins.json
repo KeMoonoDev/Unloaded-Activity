@@ -4,8 +4,8 @@
   "package": "dev.moono.unloadedactivity.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "dev.moono.unloadedactivity.fabric.mixin.AbstractFurnaceBlockEntityInvoker",
-    "dev.moono.unloadedactivity.fabric.mixin.CropBlockInvoker"
+    "AbstractFurnaceBlockEntityInvoker",
+    "CropBlockInvoker"
   ],
   "injectors": {
     "defaultRequire": 1
