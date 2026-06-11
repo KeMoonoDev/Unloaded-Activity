@@ -1,0 +1,4 @@
+site_name: Unloaded Activity Docs
+site_url: https://unloadedactivity.moono.dev
+theme:
+  name: material
