@@ -65,6 +65,15 @@ public class BuddingMethod extends SimulationMethod {
             BlockPos dirPos = pos.relative(direction);
             BlockState dirBlockState = level.getBlockState(dirPos);
             if (dirBlockState.is(finalBlock)) continue;
+
+            if (dirBlockState.isAir()) return true; // Empty block can be grown into.
+
+            if (this.supportsWaterlogged) {
+                if (dirBlockState.is(Blocks.WATER)) {
+                    if (dirBlockState.getFluidState().getAmount() >= 8) return true; // Water block can be grown into.
+                }
+            }
+
             for (Block buddingStageBlock : buddingBlocks) {
                 if (!dirBlockState.is(buddingStageBlock)) continue;
 
