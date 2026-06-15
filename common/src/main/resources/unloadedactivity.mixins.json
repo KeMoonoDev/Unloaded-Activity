@@ -5,9 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "BlockEntityMixin",
-    "BlockMixin",
     "BoundTickingBlockEntityMixin",
-    "CauldronBlockInvoker",
     "ChunkAccessMixin",
     "ChunkSerializerMixin",
     "CropBlockInvoker",

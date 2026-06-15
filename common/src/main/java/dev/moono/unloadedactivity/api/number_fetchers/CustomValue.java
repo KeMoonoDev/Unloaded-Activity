@@ -13,7 +13,6 @@ public class CustomValue implements NumberFetcher {
 
     @Override
     public Number evaluate(ExpressionContext context) {
-        UnloadedActivity.LOGGER.info(""+context.numberMap.get(valueKey));
         return context.numberMap.get(valueKey);
     }
 
