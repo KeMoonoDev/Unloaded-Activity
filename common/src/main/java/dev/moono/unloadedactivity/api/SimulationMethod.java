@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class SimulationMethod {
-    public final String target;
     public final boolean isPrecipitation;
     public final boolean requiresRain;
 
@@ -25,7 +24,6 @@ public abstract class SimulationMethod {
     public final List<String> dependencies;
 
     public SimulationMethod(SimulationConfig config) {
-        this.target = config.getString("target");
         this.isPrecipitation = config.getBooleanOrDefault("is_precipitation", false);
         this.requiresRain = config.getBooleanOrDefault("requires_rain", this.isPrecipitation);
         this.advanceProbability = config.getUpdatingNumberExpression("advance_probability");

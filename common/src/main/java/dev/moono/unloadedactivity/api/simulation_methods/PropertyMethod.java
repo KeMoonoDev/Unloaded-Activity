@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class PropertyMethod extends GroupableSimulationMethod {
+    public final String propertyName;
     public int updateType;
     public boolean updateNeighbors;
 
@@ -27,6 +28,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
 
     public PropertyMethod(SimulationConfig config) {
         super(config);
+        this.propertyName = config.getString("property_name");
         this.updateType = config.getNumberOrDefault("update_type", Block.UPDATE_ALL).intValue();
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);
 
@@ -40,7 +42,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
 
     @Override
     public int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos) {
-        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, target);
+        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.propertyName);
 
         if (maybeProperty.isEmpty())
             return 0;
@@ -77,7 +79,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
 
     @Override
     public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
-        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.target);
+        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.propertyName);
 
         if (maybeProperty.isEmpty())
             return DeferredBlockPlacer.SingleBlockPlacement.empty();

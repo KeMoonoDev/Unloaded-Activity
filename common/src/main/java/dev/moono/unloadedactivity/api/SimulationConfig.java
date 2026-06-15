@@ -19,14 +19,6 @@ import java.util.List;
 public class SimulationConfig {
     private final HashMap<String, ArrayList<JsonElement>> fieldValues = new HashMap<>();;
 
-    public SimulationConfig(String target) {
-        ArrayList<JsonElement> targetList = new ArrayList<>();
-        targetList.add(new JsonPrimitive(target));
-        this.fieldValues.put("target", targetList);
-    }
-
-    public SimulationConfig() {}
-
     public void merge(JsonObject jsonObject) {
         for (var entry : jsonObject.entrySet()) {
             ArrayList<JsonElement> list = fieldValues.computeIfAbsent(entry.getKey(), ignored -> new ArrayList<>());

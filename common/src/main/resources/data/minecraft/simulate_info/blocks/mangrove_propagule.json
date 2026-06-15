@@ -1,6 +1,7 @@
 {
   "age": {
     "simulation_method": "property",
+    "property_name": "age",
     "advance_probability": 1,
     "update_type":"update_clients",
     "conditions": [

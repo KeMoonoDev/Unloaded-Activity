@@ -1,6 +1,7 @@
 {
   "hatch": {
     "simulation_method": "property",
+    "property_name": "hatch",
     "advance_probability": {
       "21061": 1,
       "21905": 0.002

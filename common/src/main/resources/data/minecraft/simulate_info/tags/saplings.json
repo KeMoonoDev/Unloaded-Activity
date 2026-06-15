@@ -1,6 +1,7 @@
 {
   "stage": {
     "simulation_method": "property",
+    "property_name": "stage",
     "update_type": "update_none",
 
     "conditions": [

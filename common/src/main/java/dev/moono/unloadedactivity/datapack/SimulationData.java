@@ -96,7 +96,7 @@ public class SimulationData {
 
             Function<SimulationConfig, SimulationMethod> simulationMethodConstructor = maybeSimulationMethodConstructor.get();
 
-            SimulationConfig simulationConfig = new SimulationConfig(key);
+            SimulationConfig simulationConfig = new SimulationConfig();
 
             boolean isFirst = true;
 

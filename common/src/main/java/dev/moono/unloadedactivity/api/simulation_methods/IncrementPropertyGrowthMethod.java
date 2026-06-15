@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
+    public final String propertyName;
     public final boolean updateNeighbors;
     public final boolean reverseHeightGrowthDirection;
     public final boolean onlyInWater;
@@ -39,6 +40,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
 
     public IncrementPropertyGrowthMethod(SimulationConfig config) {
         super(config);
+        this.propertyName = config.getString("property_name");
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);
         this.reverseHeightGrowthDirection = config.getBooleanOrDefault("reverse_height_growth_direction", false);
         this.onlyInWater = config.getBooleanOrDefault("only_in_water", false);
@@ -67,7 +69,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
 
     @Override
     public int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos) {
-        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, target);
+        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.propertyName);
 
         if (maybeProperty.isEmpty())
             return 0;
@@ -159,7 +161,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
 
     @Override
     public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
-        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.target);
+        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.propertyName);
 
         DeferredBlockPlacer blockPlacer = DeferredBlockPlacer.empty();
 
