@@ -36,7 +36,7 @@ public class HatchMethod extends GroupableSimulationMethod {
     }
 
     @Override
-    public boolean isFinished(BlockState state, ServerLevel level, BlockPos pos) {
+    public boolean isDependable() {
         return false;
     }
 

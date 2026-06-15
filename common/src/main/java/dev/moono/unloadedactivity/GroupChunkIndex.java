@@ -107,7 +107,7 @@ public class GroupChunkIndex {
             Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
             if (maybeSimulationData.isPresent()) {
                 SimulationData simulationData = maybeSimulationData.get();
-                for (SimulationMethod simulationMethod : simulationData.propertyMap.values()) {
+                for (SimulationMethod simulationMethod : simulationData.methodMap.values()) {
                     if (!simulationMethod.simulatesWithGroup()) continue;
                     GroupableSimulationMethod groupableMethod = (GroupableSimulationMethod)simulationMethod;
                     if (this.groupId.equals(groupableMethod.simulateWithGroup)) {

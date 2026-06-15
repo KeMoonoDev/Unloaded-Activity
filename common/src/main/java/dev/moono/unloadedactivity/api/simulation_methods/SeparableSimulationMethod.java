@@ -15,6 +15,11 @@ public abstract class SeparableSimulationMethod extends SimulationMethod {
         super(config);
     }
 
+    @Override
+    public boolean canDoMore(BlockState state, ServerLevel level, BlockPos pos) {
+        return this.getMaxUpdateCount(state, level, pos) > 0;
+    }
+
     public abstract int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos);
 
     public abstract DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData);

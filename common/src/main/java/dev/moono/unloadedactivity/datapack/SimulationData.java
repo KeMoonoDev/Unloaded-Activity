@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 public class SimulationData {
 
-    public Map<String, SimulationMethod> propertyMap = new HashMap<>();
+    public Map<String, SimulationMethod> methodMap = new HashMap<>();
 
     public final boolean hasRandTicksWithoutGroup;
     public final boolean hasPrecTicksWithoutGroup;
@@ -32,7 +32,7 @@ public class SimulationData {
 
         List<JsonObject> mergingData = sortedData.subList(startIndex, sortedData.size());
 
-        HashMap<String, ArrayList<JsonObject>> mergingProperties = new HashMap<>();
+        HashMap<String, ArrayList<JsonObject>> mergingMethods = new HashMap<>();
 
         for (JsonObject jsonObject : mergingData) {
             for (var entry : jsonObject.entrySet()) {
@@ -46,29 +46,29 @@ public class SimulationData {
                 if (!element.isJsonObject()) continue;
                 JsonObject propertyObject = element.getAsJsonObject();
 
-                mergingProperties.computeIfAbsent(entry.getKey(), ignored -> new ArrayList<>()).add(propertyObject);
+                mergingMethods.computeIfAbsent(entry.getKey(), ignored -> new ArrayList<>()).add(propertyObject);
             }
         }
 
-        for (var entry : mergingProperties.entrySet()) {
+        for (var entry : mergingMethods.entrySet()) {
             String key = entry.getKey();
             List<JsonObject> jsonObjects = entry.getValue();
 
-            int propertyStartIndex = 0;
+            int methodStartIndex = 0;
 
             for (int i = jsonObjects.size() - 1; i >= 0; i--) {
                 JsonObject object = jsonObjects.get(i);
                 JsonElement jsonReplace = object.get("replace");
 
                 if (jsonReplace != null && jsonReplace.isJsonPrimitive() && jsonReplace.getAsBoolean()) {
-                    propertyStartIndex = i;
+                    methodStartIndex = i;
                     break;
                 }
             }
 
-            List<JsonObject> mergingPropertyData = jsonObjects.subList(propertyStartIndex, jsonObjects.size());
+            List<JsonObject> mergingMethodData = jsonObjects.subList(methodStartIndex, jsonObjects.size());
 
-            JsonObject firstProperty = mergingPropertyData.getFirst();
+            JsonObject firstProperty = mergingMethodData.getFirst();
             JsonElement jsonSimulationMethod = firstProperty.get("simulation_method");
 
             if (jsonSimulationMethod == null) {
@@ -100,31 +100,44 @@ public class SimulationData {
 
             boolean isFirst = true;
 
-            for (JsonObject propertyObject : mergingPropertyData) {
+            for (JsonObject methodObject : mergingMethodData) {
                 if (!isFirst) {
-                    if (propertyObject.get("simulation_method") != null) {
+                    if (methodObject.get("simulation_method") != null) {
                         throw new RuntimeException("The field \"simulation_method\" cannot be defined if it isn't the first entry and \"replace\" is false.");
                     }
                 }
                 isFirst = false;
-                simulationConfig.merge(propertyObject);
+                simulationConfig.merge(methodObject);
             }
 
-            this.propertyMap.put(key, simulationMethodConstructor.apply(simulationConfig));
+            this.methodMap.put(key, simulationMethodConstructor.apply(simulationConfig));
         }
 
-        this.hasRandTicksWithoutGroup = this.propertyMap
+        for (var entry : this.methodMap.entrySet()) {
+            String key = entry.getKey();
+            SimulationMethod method = entry.getValue();
+            for (String dependency : method.dependencies) {
+                if (dependency.equals(key)) throw new RuntimeException("Simulation method with key \""+key+"\" is depending on itself. This is not allowed.");
+                SimulationMethod dependencyMethod = this.methodMap.get(dependency);
+                if (dependencyMethod == null) throw new RuntimeException("Simulation method with key \""+key+"\" is depending on \""+dependency+"\", but there is no simulation method defined for that key.");
+                boolean dependencyIsDependable = dependencyMethod.isDependable();
+                if (!dependencyIsDependable) throw new RuntimeException("Simulation method with key \""+key+"\" is depending on \""+dependency+"\", but the simulation method assigned to that key is not dependable.");
+            }
+            // TODO maybe check for reference loops but I am too lazy to do that rn.
+        }
+
+        this.hasRandTicksWithoutGroup = this.methodMap
             .values()
             .stream()
             .anyMatch(method -> !method.isPrecipitation && !method.simulatesWithGroup());
 
-        this.hasPrecTicksWithoutGroup = this.propertyMap
+        this.hasPrecTicksWithoutGroup = this.methodMap
             .values()
             .stream()
             .anyMatch(method -> method.isPrecipitation && !method.simulatesWithGroup());
     }
 
     public boolean isEmpty() {
-        return this.propertyMap.isEmpty();
+        return this.methodMap.isEmpty();
     }
 }

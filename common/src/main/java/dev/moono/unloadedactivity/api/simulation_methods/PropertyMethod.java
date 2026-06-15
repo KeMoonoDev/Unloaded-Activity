@@ -34,37 +34,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
     }
 
     @Override
-    public boolean isFinished(BlockState state, ServerLevel level, BlockPos pos) {
-        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, target);
-
-        if (maybeProperty.isPresent()) {
-            Property<?> property = maybeProperty.get();
-
-            int propertyMax;
-            int max;
-            int current;
-
-            if (property instanceof IntegerProperty integerProperty) {
-                propertyMax = ((IntegerPropertyAccessor)integerProperty).unloaded_activity$getMax();
-                max = propertyMax;
-                current = state.getValue(integerProperty);
-            } else if (property instanceof BooleanProperty booleanProperty) {
-                propertyMax = 1;
-                max = 1;
-                current = state.getValue(booleanProperty) ? 1 : 0;
-            } else {
-                return true;
-            }
-
-            if (maxValue != null) {
-                Number calculated = maxValue.evaluateFixed(level, state, pos);
-                max = Math.min(propertyMax, calculated.intValue());
-            }
-
-            return current >= max;
-        }
-
-
+    public boolean isDependable() {
         return true;
     }
 

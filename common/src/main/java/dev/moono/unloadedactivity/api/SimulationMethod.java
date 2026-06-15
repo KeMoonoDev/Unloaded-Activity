@@ -33,7 +33,9 @@ public abstract class SimulationMethod {
         this.dependencies = config.getStringList("dependencies");
     }
 
-    public abstract boolean isFinished(BlockState state, ServerLevel level, BlockPos pos);
+    public abstract boolean canDoMore(BlockState state, ServerLevel level, BlockPos pos);
+
+    public abstract boolean isDependable();
 
     @Nullable
     public abstract DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, long timePassed, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData);
@@ -55,7 +57,7 @@ public abstract class SimulationMethod {
     }
 
     public boolean canSimulate(BlockState state, ServerLevel level, BlockPos pos) {
-        if (isFinished(state, level, pos))
+        if (!canDoMore(state, level, pos))
             return false;
 
         return hasValidConditions(state, level, pos);

@@ -56,30 +56,37 @@ public class BuddingMethod extends SimulationMethod {
     }
 
     @Override
-    public boolean isFinished(BlockState state, ServerLevel level, BlockPos pos) {
+    public boolean canDoMore(BlockState state, ServerLevel level, BlockPos pos) {
         Block finalBlock = buddingBlocks.get(buddingBlocks.size()-1);
 
         List<Direction> availableDirections = Arrays.stream(Direction.values()).filter(direction -> !this.ignoreBuddingDirections.contains(direction)).toList();
 
-        // todo check if there's progress to be made. Otherwise return false.
-        // Right now it only returns true if all budding blocks on all directions are the final block.
         for (Direction direction : availableDirections) {
             BlockPos dirPos = pos.relative(direction);
             BlockState dirBlockState = level.getBlockState(dirPos);
-            if (!dirBlockState.is(finalBlock)) {
-                return false;
-            }
-            if (this.buddingDirectionPropertyName != null) {
+            if (dirBlockState.is(finalBlock)) continue;
+            for (Block buddingStageBlock : buddingBlocks) {
+                if (!dirBlockState.is(buddingStageBlock)) continue;
+
+                if (buddingStageBlock == finalBlock) continue;
+
+                if (this.buddingDirectionPropertyName == null) return true; // Block is a budding block but not the final block, and it's not limited by alignment to grow.
+
                 var property = (#if MC_VER >= MC_1_21_3 EnumProperty<?> #else DirectionProperty #endif) GameUtils.getProperty(dirBlockState, this.buddingDirectionPropertyName).get();
 
                 Direction blockDirection = (Direction) dirBlockState.getValue(property);
-                if (blockDirection != direction) {
-                    return false;
-                }
+                if (blockDirection == direction) return true; // Block is a budding block but not the final block, and it's properly aligned to grow.
+
             }
+
         }
 
-        return true;
+        return false;
+    }
+
+    @Override
+    public boolean isDependable() {
+        return false;
     }
 
     @Override

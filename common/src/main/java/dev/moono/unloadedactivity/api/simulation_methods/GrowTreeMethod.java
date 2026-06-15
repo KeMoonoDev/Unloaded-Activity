@@ -18,7 +18,12 @@ public class GrowTreeMethod extends SimulationMethod {
     }
 
     @Override
-    public boolean isFinished(BlockState state, ServerLevel level, BlockPos pos) {
+    public boolean canDoMore(BlockState state, ServerLevel level, BlockPos pos) {
+        return true;
+    }
+
+    @Override
+    public boolean isDependable() {
         return false;
     }
 

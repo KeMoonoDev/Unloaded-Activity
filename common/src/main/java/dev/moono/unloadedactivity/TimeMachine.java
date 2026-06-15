@@ -458,7 +458,7 @@ public class TimeMachine {
                         if (!updatingData.isActive) {
                             updatingData.updateBlockInfo(state, Optional.empty(), maybeGroupMemberInfo.get());
                         } else {
-                            Optional<GroupableSimulationMethod> newSimulateProperty = SimulationDataResource.getSimulationData(state.getBlock()).flatMap(simulationData -> simulationData.propertyMap.values().stream().filter(method -> method instanceof GroupableSimulationMethod groupableMethod && groupId.equals(groupableMethod.simulateWithGroup)).findFirst()).map(method -> (GroupableSimulationMethod)method);
+                            Optional<GroupableSimulationMethod> newSimulateProperty = SimulationDataResource.getSimulationData(state.getBlock()).flatMap(simulationData -> simulationData.methodMap.values().stream().filter(method -> method instanceof GroupableSimulationMethod groupableMethod && groupId.equals(groupableMethod.simulateWithGroup)).findFirst()).map(method -> (GroupableSimulationMethod)method);
                             updatingData.updateBlockInfo(state, newSimulateProperty, maybeGroupMemberInfo.get());
                         }
 
@@ -757,17 +757,17 @@ public class TimeMachine {
 
             if (UnloadedActivity.config.debugLogs)
                 if (!state.isAir())
-                    UnloadedActivity.LOGGER.info("Simulating block " + block + " with " + simulationData.propertyMap.size() + " properties.");
+                    UnloadedActivity.LOGGER.info("Simulating block " + block + " with " + simulationData.methodMap.size() + " properties.");
 
 
-            ArrayList<Pair<String, SimulationMethod>> pendingProperties = new ArrayList<>(simulationData.propertyMap.size());
+            ArrayList<Pair<String, SimulationMethod>> pendingProperties = new ArrayList<>(simulationData.methodMap.size());
 
-            for (var entry : simulationData.propertyMap.entrySet()) {
+            for (var entry : simulationData.methodMap.entrySet()) {
 
                 String propertyName = entry.getKey();
                 var simulationMethod = entry.getValue();
 
-                if (simulationMethod.isFinished(state, level, pos)) {
+                if (!simulationMethod.canDoMore(state, level, pos)) {
                     finishedProperties.add(Pair.of(propertyName, 0L));
                 } else {
                     pendingProperties.add(Pair.of(propertyName, simulationMethod));
@@ -892,7 +892,7 @@ public class TimeMachine {
                         break;
                     }
 
-                    if (simulationMethod.isFinished(state, level, pos)) {
+                    if (!simulationMethod.canDoMore(state, level, pos)) {
                         continueCheck = true;
                         finishedProperties.add(Pair.of(propertyName, blockPlacer.maxDuration()));
                     }

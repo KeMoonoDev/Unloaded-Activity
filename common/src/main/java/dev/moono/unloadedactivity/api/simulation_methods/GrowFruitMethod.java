@@ -25,6 +25,11 @@ public class GrowFruitMethod extends SeparableSimulationMethod{
     }
 
     @Override
+    public boolean isDependable() {
+        return false;
+    }
+
+    @Override
     public int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos) {
         return 1;
     }
@@ -47,10 +52,5 @@ public class GrowFruitMethod extends SeparableSimulationMethod{
             break;
         }
         return blockPlacer;
-    }
-
-    @Override
-    public boolean isFinished(BlockState state, ServerLevel level, BlockPos pos) {
-        return false;
     }
 }

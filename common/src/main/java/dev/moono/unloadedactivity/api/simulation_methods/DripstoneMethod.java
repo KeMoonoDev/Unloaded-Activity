@@ -75,12 +75,12 @@ public class DripstoneMethod extends SimulationMethod {
     }
 
     @Override
-    public boolean canSimulate(BlockState state, ServerLevel level, BlockPos pos) {
+    public boolean canDoMore(BlockState state, ServerLevel level, BlockPos pos) {
         return PointedDripstoneBlock.isStalactiteStartPos(state, level, pos);
     }
 
     @Override
-    public boolean isFinished(BlockState state, ServerLevel level, BlockPos pos) {
+    public boolean isDependable() {
         return false;
     }
 

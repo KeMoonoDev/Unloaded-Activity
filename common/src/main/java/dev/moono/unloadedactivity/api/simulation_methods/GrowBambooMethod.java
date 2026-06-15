@@ -29,7 +29,12 @@ public class GrowBambooMethod extends SimulationMethod {
     }
 
     @Override
-    public boolean isFinished(BlockState state, ServerLevel level, BlockPos pos) {
+    public boolean canDoMore(BlockState state, ServerLevel level, BlockPos pos) {
+        return true;
+    }
+
+    @Override
+    public boolean isDependable() {
         return false;
     }
 
@@ -85,7 +90,7 @@ public class GrowBambooMethod extends SimulationMethod {
                 pos = pos.above(grew);
                 state = level.getBlockState(pos);
 
-                if (this.isFinished(state, level, pos)) {
+                if (!this.canDoMore(state, level, pos)) {
                     return null;
                 }
 
