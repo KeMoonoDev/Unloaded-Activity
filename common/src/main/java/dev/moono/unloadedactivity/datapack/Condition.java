@@ -10,7 +10,7 @@ import java.util.Optional;
 import static dev.moono.unloadedactivity.GameUtils.returnError;
 
 public record Condition (ValueExpression<Number> value1, ValueExpression<Number> value2, Comparison comparison) {
-    public boolean isValid(ValueContext context) {
+    public boolean isValid(ExpressionContext context) {
         Number calculatedValue1 = value1.evaluate(context);
         Number calculatedValue2 = value2.evaluate(context);
         boolean result = comparison.compare(calculatedValue1.floatValue(), calculatedValue2.floatValue());
@@ -33,11 +33,8 @@ public record Condition (ValueExpression<Number> value1, ValueExpression<Number>
     public boolean canBeAffectedByTime() {
         return value1.canBeAffectedByTime() || value2.canBeAffectedByTime();
     };
-    public boolean isAffectedByWeather(ValueContext context) {
-        return value1.isAffectedByWeather(context) || value2.isAffectedByWeather(context);
-    };
 
-    public long getNextConditionSwitchDuration(ValueContext context) {
+    public long getNextConditionSwitchDuration(ExpressionContext context) {
         float value2Float = value2.evaluate(context).floatValue();
 
         return Math.min(

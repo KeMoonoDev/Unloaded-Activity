@@ -3,6 +3,9 @@ package dev.moono.unloadedactivity.api;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import dev.moono.unloadedactivity.api.value_expression_containers.FixedValueExpression;
+import dev.moono.unloadedactivity.api.value_expression_containers.RandomizedValueExpression;
+import dev.moono.unloadedactivity.api.value_expression_containers.UpdatingValueExpression;
 import dev.moono.unloadedactivity.datapack.Condition;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
 import net.minecraft.world.entity.EntityType;
@@ -56,6 +59,12 @@ public class SimulationConfig {
         }
 
          */
+    }
+    public boolean isDefined(String fieldName) {
+        List<JsonElement> elements = this.fieldValues.get(fieldName);
+        if (elements == null) return false;
+        if (elements.isEmpty()) return false;
+        return !elements.get(elements.size() - 1).isJsonNull();
     }
 
     @Nullable
@@ -225,145 +234,145 @@ public class SimulationConfig {
 
 
     @Nullable
-    public ValueExpression<Number> getFixedNumberExpressionNullable(String fieldName) {
+    public FixedValueExpression<Number> getFixedNumberExpressionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.FIXED_NUMBER_EXPRESSION);
     }
 
-    public ValueExpression<Number> getFixedNumberExpression(String fieldName) {
+    public FixedValueExpression<Number> getFixedNumberExpression(String fieldName) {
         var value = getFixedNumberExpressionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public ValueExpression<Number> getFixedNumberExpressionOrDefault(String fieldName, ValueExpression<Number> defaultValue) {
+    public FixedValueExpression<Number> getFixedNumberExpressionOrDefault(String fieldName, FixedValueExpression<Number> defaultValue) {
         var value = getFixedNumberExpressionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<ValueExpression<Number>> getFixedNumberExpressionList(String fieldName) {
+    public ArrayList<FixedValueExpression<Number>> getFixedNumberExpressionList(String fieldName) {
         return this.getList(fieldName, FieldType.FIXED_NUMBER_EXPRESSION);
     }
 
-    public HashMap<String, ValueExpression<Number>> getFixedNumberExpressionMap(String fieldName) {
+    public HashMap<String, FixedValueExpression<Number>> getFixedNumberExpressionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.FIXED_NUMBER_EXPRESSION);
     }
 
 
     @Nullable
-    public ValueExpression<Number> getUpdatingNumberExpressionNullable(String fieldName) {
+    public UpdatingValueExpression<Number> getUpdatingNumberExpressionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.UPDATING_NUMBER_EXPRESSION);
     }
 
-    public ValueExpression<Number> getUpdatingNumberExpression(String fieldName) {
+    public UpdatingValueExpression<Number> getUpdatingNumberExpression(String fieldName) {
         var value = getUpdatingNumberExpressionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public ValueExpression<Number> getUpdatingNumberExpressionOrDefault(String fieldName, ValueExpression<Number> defaultValue) {
+    public UpdatingValueExpression<Number> getUpdatingNumberExpressionOrDefault(String fieldName, UpdatingValueExpression<Number> defaultValue) {
         var value = getUpdatingNumberExpressionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<ValueExpression<Number>> getUpdatingNumberExpressionList(String fieldName) {
+    public ArrayList<UpdatingValueExpression<Number>> getUpdatingNumberExpressionList(String fieldName) {
         return this.getList(fieldName, FieldType.UPDATING_NUMBER_EXPRESSION);
     }
 
-    public HashMap<String, ValueExpression<Number>> getUpdatingNumberExpressionMap(String fieldName) {
+    public HashMap<String, UpdatingValueExpression<Number>> getUpdatingNumberExpressionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.UPDATING_NUMBER_EXPRESSION);
     }
 
 
     @Nullable
-    public ValueExpression<Number> getRandomizedNumberExpressionNullable(String fieldName) {
+    public RandomizedValueExpression<Number> getRandomizedNumberExpressionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.RANDOMIZED_NUMBER_EXPRESSION);
     }
 
-    public ValueExpression<Number> getRandomizedNumberExpression(String fieldName) {
+    public RandomizedValueExpression<Number> getRandomizedNumberExpression(String fieldName) {
         var value = getRandomizedNumberExpressionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public ValueExpression<Number> getRandomizedNumberExpressionOrDefault(String fieldName, ValueExpression<Number> defaultValue) {
+    public RandomizedValueExpression<Number> getRandomizedNumberExpressionOrDefault(String fieldName, RandomizedValueExpression<Number> defaultValue) {
         var value = getRandomizedNumberExpressionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<ValueExpression<Number>> getRandomizedNumberExpressionList(String fieldName) {
+    public ArrayList<RandomizedValueExpression<Number>> getRandomizedNumberExpressionList(String fieldName) {
         return this.getList(fieldName, FieldType.RANDOMIZED_NUMBER_EXPRESSION);
     }
 
-    public HashMap<String, ValueExpression<Number>> getRandomizedNumberExpressionMap(String fieldName) {
+    public HashMap<String, RandomizedValueExpression<Number>> getRandomizedNumberExpressionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.RANDOMIZED_NUMBER_EXPRESSION);
     }
 
 
     @Nullable
-    public ValueExpression<Block> getFixedBlockExpressionNullable(String fieldName) {
+    public FixedValueExpression<Block> getFixedBlockExpressionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.FIXED_BLOCK_EXPRESSION);
     }
 
-    public ValueExpression<Block> getFixedBlockExpression(String fieldName) {
+    public FixedValueExpression<Block> getFixedBlockExpression(String fieldName) {
         var value = getFixedBlockExpressionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public ValueExpression<Block> getFixedBlockExpressionOrDefault(String fieldName, ValueExpression<Block> defaultValue) {
+    public FixedValueExpression<Block> getFixedBlockExpressionOrDefault(String fieldName, FixedValueExpression<Block> defaultValue) {
         var value = getFixedBlockExpressionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<ValueExpression<Block>> getFixedBlockExpressionList(String fieldName) {
+    public ArrayList<FixedValueExpression<Block>> getFixedBlockExpressionList(String fieldName) {
         return this.getList(fieldName, FieldType.FIXED_BLOCK_EXPRESSION);
     }
 
-    public HashMap<String, ValueExpression<Block>> getFixedBlockExpressionMap(String fieldName) {
+    public HashMap<String, FixedValueExpression<Block>> getFixedBlockExpressionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.FIXED_BLOCK_EXPRESSION);
     }
 
 
     @Nullable
-    public ValueExpression<Block> getUpdatingBlockExpressionNullable(String fieldName) {
+    public UpdatingValueExpression<Block> getUpdatingBlockExpressionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.UPDATING_BLOCK_EXPRESSION);
     }
 
-    public ValueExpression<Block> getUpdatingBlockExpression(String fieldName) {
+    public UpdatingValueExpression<Block> getUpdatingBlockExpression(String fieldName) {
         var value = getUpdatingBlockExpressionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public ValueExpression<Block> getUpdatingBlockExpressionOrDefault(String fieldName, ValueExpression<Block> defaultValue) {
+    public UpdatingValueExpression<Block> getUpdatingBlockExpressionOrDefault(String fieldName, UpdatingValueExpression<Block> defaultValue) {
         var value = getUpdatingBlockExpressionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<ValueExpression<Block>> getUpdatingBlockExpressionList(String fieldName) {
+    public ArrayList<UpdatingValueExpression<Block>> getUpdatingBlockExpressionList(String fieldName) {
         return this.getList(fieldName, FieldType.UPDATING_BLOCK_EXPRESSION);
     }
 
-    public HashMap<String, ValueExpression<Block>> getUpdatingBlockExpressionMap(String fieldName) {
+    public HashMap<String, UpdatingValueExpression<Block>> getUpdatingBlockExpressionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.UPDATING_BLOCK_EXPRESSION);
     }
 
 
     @Nullable
-    public ValueExpression<Block> getRandomizedBlockExpressionNullable(String fieldName) {
+    public RandomizedValueExpression<Block> getRandomizedBlockExpressionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.RANDOMIZED_BLOCK_EXPRESSION);
     }
 
-    public ValueExpression<Block> getRandomizedBlockExpression(String fieldName) {
+    public RandomizedValueExpression<Block> getRandomizedBlockExpression(String fieldName) {
         var value = getRandomizedBlockExpressionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public ValueExpression<Block> getRandomizedBlockExpressionOrDefault(String fieldName, ValueExpression<Block> defaultValue) {
+    public RandomizedValueExpression<Block> getRandomizedBlockExpressionOrDefault(String fieldName, RandomizedValueExpression<Block> defaultValue) {
         var value = getRandomizedBlockExpressionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<ValueExpression<Block>> getRandomizedBlockExpressionList(String fieldName) {
+    public ArrayList<RandomizedValueExpression<Block>> getRandomizedBlockExpressionList(String fieldName) {
         return this.getList(fieldName, FieldType.RANDOMIZED_BLOCK_EXPRESSION);
     }
 
-    public HashMap<String, ValueExpression<Block>> getRandomizedBlockExpressionMap(String fieldName) {
+    public HashMap<String, RandomizedValueExpression<Block>> getRandomizedBlockExpressionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.RANDOMIZED_BLOCK_EXPRESSION);
     }
 

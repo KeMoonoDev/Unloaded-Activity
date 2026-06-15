@@ -3,7 +3,7 @@ package dev.moono.unloadedactivity;
 import com.mojang.datafixers.util.Pair;
 import dev.moono.unloadedactivity.api.SimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_methods.GroupableSimulationMethod;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.GroupMemberInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -77,7 +77,7 @@ public class ActiveGroupSimulateData {
         return blockState;
     }
 
-    public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, ValueContext context) {
+    public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, ExpressionContext context) {
         if (this.nextOddsSwitchDuration <= 0) {
             if (this.simulationMethod.isEmpty()) {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
@@ -87,17 +87,17 @@ public class ActiveGroupSimulateData {
 
             SimulationMethod simulationMethod = this.simulationMethod.get();
 
-            if (simulationMethod.canBeAffectedByTime) {
-                this.nextOddsSwitchDuration = simulationMethod.advanceProbability.getNextValueSwitchDuration(context);
+            if (simulationMethod.advanceProbability.canBeAffectedByTime) {
+                this.nextOddsSwitchDuration = simulationMethod.advanceProbability.inner.getNextValueSwitchDuration(context);
             } else {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
             }
 
-            if (simulationMethod.canBeAffectedByWeather && simulationMethod.advanceProbability.isAffectedByWeather(context)) {
+            if (simulationMethod.advanceProbability.canBeAffectedByWeather) {
                 this.nextOddsSwitchDuration = Math.min(this.nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }
 
-            this.currentOdds = simulationMethod.advanceProbability.evaluate(context).floatValue();
+            this.currentOdds = simulationMethod.advanceProbability.inner.evaluate(context).floatValue();
         }
         return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
     }

@@ -1,10 +1,14 @@
 package dev.moono.unloadedactivity.api.number_fetchers;
 
+import dev.moono.unloadedactivity.api.FixedNumberFetcher;
 import dev.moono.unloadedactivity.api.NumberFetcher;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class RawBrightnessValue implements NumberFetcher {
+public class RawBrightnessValue implements FixedNumberFetcher {
     Vec3i offset;
 
     public RawBrightnessValue() {
@@ -16,27 +20,7 @@ public class RawBrightnessValue implements NumberFetcher {
     }
 
     @Override
-    public Number evaluate(ValueContext context) {
-        return context.level.getRawBrightness(context.pos.offset(offset), 0);
-    }
-
-    @Override
-    public boolean canBeAffectedByWeather() {
-        return false;
-    }
-
-    @Override
-    public boolean canBeAffectedByTime() {
-        return false;
-    }
-
-    @Override
-    public boolean isRandom() {
-        return false;
-    }
-
-    @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
-        return Long.MAX_VALUE;
+    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
+        return level.getRawBrightness(pos.offset(offset), 0);
     }
 }

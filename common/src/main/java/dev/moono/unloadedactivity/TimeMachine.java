@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 #endif
 
 import com.mojang.datafixers.util.Pair;
-import dev.moono.unloadedactivity.datapack.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.MinecraftServer;
@@ -335,7 +334,7 @@ public class TimeMachine {
                         BlockState state = simulationData.getState();
                         BlockPos pos = simulationData.position;
 
-                        ValueContext calculationData = new ValueContext(level, state, pos, simulationCurrentTime, isRaining, false, simulationData);
+                        ExpressionContext calculationData = ExpressionContext.updating(level, state, pos, simulationCurrentTime, Map.of(), simulationData);
 
                         Pair<Float, Long> oddsAndDuration = simulationData.updateAndGetOdds(nextWeatherSwitchDuration, calculationData);
 

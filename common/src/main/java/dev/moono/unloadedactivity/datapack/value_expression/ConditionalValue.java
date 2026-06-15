@@ -1,10 +1,12 @@
 package dev.moono.unloadedactivity.datapack.value_expression;
 
 import dev.moono.unloadedactivity.datapack.ValueExpression;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.Condition;
 
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class ConditionalValue<T> implements ValueExpression<T> {
 
@@ -19,7 +21,7 @@ public class ConditionalValue<T> implements ValueExpression<T> {
     }
 
     @Override
-    public T evaluate(ValueContext context) {
+    public T evaluate(ExpressionContext context) {
         if (condition.isValid(context)) {
             return trueValue.evaluate(context);
         } else {
@@ -28,10 +30,8 @@ public class ConditionalValue<T> implements ValueExpression<T> {
     }
 
     @Override
-    public boolean isAffectedByWeather(ValueContext context) {
-        return condition.isAffectedByWeather(context)
-                || trueValue.isAffectedByWeather(context)
-                || falseValue.isAffectedByWeather(context);
+    public Stream<T> getPossibleValues() {
+        return Stream.concat(trueValue.getPossibleValues(), falseValue.getPossibleValues());
     }
 
     @Override
@@ -56,7 +56,7 @@ public class ConditionalValue<T> implements ValueExpression<T> {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
+    public long getNextValueSwitchDuration(ExpressionContext context) {
         boolean isValid = condition.isValid(context);
 
         long conditionSwitch = condition.getNextConditionSwitchDuration(context);

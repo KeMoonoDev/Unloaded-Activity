@@ -6,20 +6,18 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.datapack.value_expression.*;
-import dev.moono.unloadedactivity.datapack.value_expression.*;
 import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public interface ValueExpression<T> {
-    T evaluate(ValueContext context);
+    T evaluate(ExpressionContext context);
 
-    default boolean isAffectedByWeather(ValueContext context) {
-        return this.canBeAffectedByWeather();
-    };
+    Stream<T> getPossibleValues();
 
     boolean canBeAffectedByWeather();
 
@@ -27,9 +25,9 @@ public interface ValueExpression<T> {
 
     boolean isRandom();
 
-    long getNextValueSwitchDuration(ValueContext context);
+    long getNextValueSwitchDuration(ExpressionContext context);
 
-    default long getNextConditionSwitchDuration(ValueContext context, float target, Comparison comparison) {
+    default long getNextConditionSwitchDuration(ExpressionContext context, float target, Comparison comparison) {
         return getNextValueSwitchDuration(context);
     };
 

@@ -2,14 +2,14 @@ package dev.moono.unloadedactivity.api.number_fetchers;
 
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.NumberFetcherRegistry;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import dev.moono.unloadedactivity.api.NumberFetcher;
 
 
 public enum GroupFetchValue implements NumberFetcher {
     GROUP_SUM {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 0;
 
@@ -19,7 +19,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_COUNT {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 1; // We count ourselves
 
@@ -29,7 +29,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_HIGHER_VALUE_COUNT {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 0;
 
@@ -39,7 +39,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_HIGHER_OR_EQUAL_VALUE_COUNT {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 1;
 
@@ -49,7 +49,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_LOWER_VALUE_COUNT {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 0;
 
@@ -59,7 +59,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_LOWER_OR_EQUAL_VALUE_COUNT {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 1;
 
@@ -69,7 +69,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_EQUAL_VALUE_COUNT {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 1;
 
@@ -79,7 +79,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_RANDOM_HIGHER_VALUE {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 0;
 
@@ -94,7 +94,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_RANDOM_HIGHER_OR_EQUAL_VALUE {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 0;
 
@@ -109,7 +109,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_RANDOM_LOWER_VALUE {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 0;
 
@@ -124,7 +124,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_RANDOM_LOWER_OR_EQUAL_VALUE {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 0;
 
@@ -139,7 +139,7 @@ public enum GroupFetchValue implements NumberFetcher {
 
     GROUP_RANDOM_NOT_EQUAL_VALUE {
         @Override
-        public Number evaluate(ValueContext context) {
+        public Number evaluate(ExpressionContext context) {
             if (context.activeGroupSimulateData == null)
                 return 0;
 
@@ -168,7 +168,7 @@ public enum GroupFetchValue implements NumberFetcher {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
+    public long getNextValueSwitchDuration(ExpressionContext context) {
         return Long.MAX_VALUE;
     }
 

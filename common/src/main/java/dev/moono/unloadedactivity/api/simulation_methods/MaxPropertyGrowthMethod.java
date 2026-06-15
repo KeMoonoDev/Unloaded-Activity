@@ -4,7 +4,10 @@ import dev.moono.unloadedactivity.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.SimulationConfig;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.api.value_expression_containers.FixedValueExpression;
+import dev.moono.unloadedactivity.api.value_expression_containers.RandomizedValueExpression;
+import dev.moono.unloadedactivity.datapack.Condition;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
 import dev.moono.unloadedactivity.mixin.IntegerPropertyAccessor;
 import net.minecraft.core.BlockPos;
@@ -22,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
@@ -32,21 +36,24 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
     public boolean stopUpdatingAfterBlockage;
     public boolean resetOnHeightChange;
     public boolean onlyInWater;
-    public Map<String, ValueExpression<Number>> setProperties;
+    public Map<String, RandomizedValueExpression<Number>> setProperties;
     public List<String> transferProperties;
     public Integer maxHeight;
 
-    @Nullable public ValueExpression<Block> bottomBlockReplacement;
-    @Nullable public ValueExpression<Number> maxValue;
+    @Nullable public final List<Block> lowerBlocks;
+
+    @Nullable public RandomizedValueExpression<Block> bottomBlockReplacement;
+    @Nullable public FixedValueExpression<Number> maxValue;
 
     @Nullable public AgeBloomConfig ageBloom;
 
-    public record AgeBloomConfig(int bloomAtAge, Block bloomBlock, List<Number> heightProbabilities) {
+    public record AgeBloomConfig(int bloomAtAge, Block bloomBlock, FixedValueExpression<Number> bloomProbability, List<Condition> condititons) {
         public AgeBloomConfig(SimulationConfig config) {
             int bloomAtAge = config.getNumber("bloom_at_age").intValue();
             Block bloomBlock = config.getBlock("bloom_block");
-            List<Number> heightProbabilities = config.getNumberList("height_probabilities");
-            this(bloomAtAge, bloomBlock, heightProbabilities);
+            FixedValueExpression<Number> bloomProbability = config.getFixedNumberExpression("bloom_probability");
+            List<Condition> condititons = config.getFixedConditionList("conditions");
+            this(bloomAtAge, bloomBlock, bloomProbability, condititons);
         }
     }
 
@@ -68,6 +75,14 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
 
         SimulationConfig bloomConfig = config.getConfigNullable("age_bloom");
         this.ageBloom = bloomConfig != null ? new AgeBloomConfig(bloomConfig) : null;
+
+        if (config.isDefined("lower_blocks")) {
+            this.lowerBlocks = config.getBlockList("lower_blocks");
+        } else if (this.bottomBlockReplacement != null) {
+            this.lowerBlocks = this.bottomBlockReplacement.inner.getPossibleValues().toList();
+        } else {
+            this.lowerBlocks = null;
+        }
     }
 
     @Override
@@ -89,19 +104,13 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
             return true;
         }
 
-        List<Block> lowerBlocks;
-        if (bottomBlockReplacement != null) {
-            // TODO create a "getPossibleValues" method.
-            lowerBlocks = List.of(bottomBlockReplacement.evaluate(new ValueContext(level, state, pos)));
-        } else {
-            lowerBlocks = List.of(thisBlock);
-        }
+        List<Block> currentLowerBlocks = Objects.requireNonNullElseGet(this.lowerBlocks, () -> List.of(thisBlock));
 
         int height;
         if (reverseHeightGrowthDirection) {
             for(height = 1; height <= maxHeight; ++height) {
                 boolean doContinue = false;
-                for (Block lowerBlock : lowerBlocks) {
+                for (Block lowerBlock : currentLowerBlocks) {
                     if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
                         doContinue = true;
                         break;
@@ -113,7 +122,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
         } else {
             for(height = 1; height <= maxHeight; ++height) {
                 boolean doContinue = false;
-                for (Block lowerBlock : lowerBlocks) {
+                for (Block lowerBlock : currentLowerBlocks) {
                     if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
                         doContinue = true;
                         break;
@@ -154,7 +163,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
             }
 
             if (maxValue != null) {
-                Number calculated = maxValue.evaluate(new ValueContext(level, state, pos));
+                Number calculated = maxValue.evaluateFixed(level, state, pos);
                 max = Math.min(propertyMax, calculated.intValue());
             }
 
@@ -193,26 +202,40 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
         int max = propertyMax;
 
         if (this.maxValue != null) {
-            Number calculated = this.maxValue.evaluate(new ValueContext(level, state, pos));
+            Number calculated = this.maxValue.evaluateFixed(level, state, pos);
             max = Math.min(propertyMax, calculated.intValue());
         }
 
         int updateCount = Math.max(0, max - current);
 
 
-        Block lowerBlock;
-        if (this.bottomBlockReplacement != null) {
-            lowerBlock = this.bottomBlockReplacement.evaluate(new ValueContext(level, state, pos));
-        } else {
-            lowerBlock = thisBlock;
-        }
-
+        List<Block> currentLowerBlocks = Objects.requireNonNullElseGet(this.lowerBlocks, () -> List.of(thisBlock));
 
         int height;
-        if (this.reverseHeightGrowthDirection) {
-            for(height = 1; level.getBlockState(pos.above(height)).is(lowerBlock) && height <= this.maxHeight; ++height) {}
+        if (reverseHeightGrowthDirection) {
+            for(height = 1; height <= maxHeight; ++height) {
+                boolean doContinue = false;
+                for (Block lowerBlock : currentLowerBlocks) {
+                    if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
+                        doContinue = true;
+                        break;
+                    };
+                }
+                if (doContinue) continue;
+                break;
+            }
         } else {
-            for(height = 1; level.getBlockState(pos.below(height)).is(lowerBlock) && height <= this.maxHeight; ++height) {}
+            for(height = 1; height <= maxHeight; ++height) {
+                boolean doContinue = false;
+                for (Block lowerBlock : currentLowerBlocks) {
+                    if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
+                        doContinue = true;
+                        break;
+                    };
+                }
+                if (doContinue) continue;
+                break;
+            }
         }
 
         int freeSpaceLimit = this.maxHeight - height;
@@ -276,7 +299,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
         int max;
 
         if (this.maxValue != null) {
-            Number calculated = this.maxValue.evaluate(new ValueContext(level, state, pos));
+            Number calculated = this.maxValue.evaluateFixed(level, state, pos);
             max = Math.min(propertyMax, calculated.intValue());
         } else {
             max = propertyMax;
@@ -289,22 +312,14 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
             int flowerOpportunities = ((current > this.ageBloom.bloomAtAge ? current - (propertyMax + 1) : current) + this.ageBloom.bloomAtAge-1 + occurrences) / (propertyMax + 1);
 
             if (flowerOpportunities > 0) {
-                int growNewBlocks = newPropertyValue/(max + 1);
+                List<Block> currentLowerBlocks = Objects.requireNonNullElseGet(this.lowerBlocks, () -> List.of(thisBlock));
 
-                List<Block> lowerBlocks;
-                if (bottomBlockReplacement != null) {
-                    // TODO create a "getPossibleValues" method.
-                    lowerBlocks = List.of(bottomBlockReplacement.evaluate(new ValueContext(level, state, pos)));
-                } else {
-                    lowerBlocks = List.of(thisBlock);
-                }
-
-                int remainingHeightGrowths;
+                int height;
                 if (reverseHeightGrowthDirection) {
-                    for(remainingHeightGrowths = 1; remainingHeightGrowths <= maxHeight; ++remainingHeightGrowths) {
+                    for(height = 1; height <= maxHeight; ++height) {
                         boolean doContinue = false;
-                        for (Block lowerBlock : lowerBlocks) {
-                            if (level.getBlockState(pos.above(remainingHeightGrowths)).is(lowerBlock)) {
+                        for (Block lowerBlock : currentLowerBlocks) {
+                            if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
                                 doContinue = true;
                                 break;
                             };
@@ -313,10 +328,10 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                         break;
                     }
                 } else {
-                    for(remainingHeightGrowths = 1; remainingHeightGrowths <= maxHeight; ++remainingHeightGrowths) {
+                    for(height = 1; height <= maxHeight; ++height) {
                         boolean doContinue = false;
-                        for (Block lowerBlock : lowerBlocks) {
-                            if (level.getBlockState(pos.below(remainingHeightGrowths)).is(lowerBlock)) {
+                        for (Block lowerBlock : currentLowerBlocks) {
+                            if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
                                 doContinue = true;
                                 break;
                             };
@@ -325,7 +340,6 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                         break;
                     }
                 }
-                remainingHeightGrowths--;
 
                 for (int i = 0; i < flowerOpportunities; i++) {
 
@@ -335,10 +349,9 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
 
                     boolean doContinue = false;
 
-                    // TODO swap this out for conditions controllable by datapack.
-                    for(Direction direction : Direction.Plane.HORIZONTAL) {
-                        BlockState neighbor = level.getBlockState(checkPos.relative(direction));
-                        if (neighbor.isSolid() || level.getFluidState(checkPos.relative(direction)).is(FluidTags.LAVA)) {
+                    ExpressionContext fixedContext = ExpressionContext.fixed(level, state, pos, Map.of("height", height + i), null);
+                    for (Condition condition : this.ageBloom.condititons) {
+                        if (!condition.isValid(fixedContext)) {
                             doContinue = true;
                             break;
                         }
@@ -347,7 +360,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                     if (doContinue) continue;
 
 
-                    double chanceToGrowFlower = this.ageBloom.heightProbabilities.get(Math.min(remainingHeightGrowths + i, this.ageBloom.heightProbabilities.size() - 1)).doubleValue();
+                    double chanceToGrowFlower = this.ageBloom.bloomProbability.inner.evaluate(fixedContext).doubleValue();
 
                     RandomSource random = GameUtils.getRand(level);
 
@@ -371,6 +384,11 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
 
         boolean doUpdateType;
 
+
+        long currentTime = GameUtils.getTime(level);
+
+        long finishTime = currentTime - timePassed + simulationDuration;
+
         if (growBlocks == 0) {
             doUpdateType = true;
             if (property instanceof IntegerProperty integerProperty) {
@@ -380,7 +398,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
             }
         } else if (this.bottomBlockReplacement != null) {
             doUpdateType = false;
-            Block newBlock = this.bottomBlockReplacement.evaluate(new ValueContext(level, state, pos));
+            Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishTime);
             BlockState newState = newBlock.defaultBlockState();
 
             for (String propertyName : this.transferProperties) {
@@ -435,7 +453,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                     state = thisBlock.defaultBlockState().setValue(booleanProperty, valueRemainer > 0);
                 }
             } else if (this.bottomBlockReplacement != null) {
-                Block newBlock = this.bottomBlockReplacement.evaluate(new ValueContext(level, state, pos));
+                Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishTime);
                 BlockState newState = newBlock.defaultBlockState();
 
                 for (String propertyName : this.transferProperties) {
@@ -470,16 +488,16 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
 
             for (var entry : this.setProperties.entrySet()) {
                 String propertyName = entry.getKey();
-                ValueExpression<Number> propertyValue = entry.getValue();
+                RandomizedValueExpression<Number> propertyValue = entry.getValue();
                 Optional<Property<?>> maybeSetProperty = GameUtils.getProperty(state, propertyName);
                 if (maybeSetProperty.isPresent()) {
                     Property<?> newSetProperty = maybeSetProperty.get();
                     if (newSetProperty instanceof BooleanProperty booleanProperty) {
-                        float value = propertyValue.evaluate(new ValueContext(level, state, pos)).floatValue();
+                        float value = propertyValue.evaluateRandomized(level, state, pos, finishTime).floatValue();
                         state = state.setValue(booleanProperty, value != 0);
                     }
                     if (newSetProperty instanceof IntegerProperty integerProperty) {
-                        int value = propertyValue.evaluate(new ValueContext(level, state, pos)).intValue();
+                        int value = propertyValue.evaluateRandomized(level, state, pos, finishTime).intValue();
                         state = state.setValue(integerProperty, value);
                     }
                 }

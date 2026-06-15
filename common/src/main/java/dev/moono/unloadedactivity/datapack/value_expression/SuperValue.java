@@ -1,14 +1,20 @@
 package dev.moono.unloadedactivity.datapack.value_expression;
 
 import dev.moono.unloadedactivity.datapack.ValueExpression;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class SuperValue<T> implements ValueExpression<T> {
     @Override
-    public T evaluate(ValueContext context) {
+    public T evaluate(ExpressionContext context) {
         return null;
+    }
+
+    @Override
+    public Stream<T> getPossibleValues() {
+        return Stream.empty();
     }
 
     @Override
@@ -32,7 +38,7 @@ public class SuperValue<T> implements ValueExpression<T> {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
+    public long getNextValueSwitchDuration(ExpressionContext context) {
         return Long.MAX_VALUE;
     }
 

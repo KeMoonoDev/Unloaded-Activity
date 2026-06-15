@@ -16,10 +16,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import dev.moono.unloadedactivity.datapack.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class GroupChunkIndex {
@@ -94,7 +94,7 @@ public class GroupChunkIndex {
             GroupMemberInfo groupMemberInfo = maybeGroupMemberInfo.get();
 
             if (!groupMemberInfo.conditions.isEmpty()) {
-                ValueContext context = new ValueContext(serverLevel, state, pos);
+                ExpressionContext context = ExpressionContext.fixed(serverLevel, state, pos, Map.of(), null);
                 for (var condition : groupMemberInfo.conditions) {
                     if (!condition.isValid(context)) {
                         return false;

@@ -3,9 +3,9 @@ package dev.moono.unloadedactivity.api.simulation_methods;
 import dev.moono.unloadedactivity.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
-import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.SimulationConfig;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.api.value_expression_containers.FixedValueExpression;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
 import dev.moono.unloadedactivity.mixin.IntegerPropertyAccessor;
 import net.minecraft.core.BlockPos;
@@ -23,7 +23,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
     public int updateType;
     public boolean updateNeighbors;
 
-    @Nullable public ValueExpression<Number> maxValue;
+    @Nullable public FixedValueExpression<Number> maxValue;
 
     public PropertyMethod(SimulationConfig config) {
         super(config);
@@ -57,7 +57,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
             }
 
             if (maxValue != null) {
-                Number calculated = maxValue.evaluate(new ValueContext(level, state, pos));
+                Number calculated = maxValue.evaluateFixed(level, state, pos);
                 max = Math.min(propertyMax, calculated.intValue());
             }
 
@@ -94,7 +94,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
         int max;
 
         if (this.maxValue != null) {
-            Number calculated = this.maxValue.evaluate(new ValueContext(level, state, pos));
+            Number calculated = this.maxValue.evaluateFixed(level, state, pos);
             max = Math.min(propertyMax, calculated.intValue());
         } else {
              max = propertyMax;

@@ -18,6 +18,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -106,7 +107,7 @@ public class GameUtils {
         #endif
     }
 
-    public static boolean isValidGourdPosition(Direction direction, BlockPos pos, BlockState state, ServerLevel level) {
+    public static boolean isValidGourdPosition(Direction direction, BlockPos pos, BlockState state, BlockGetter level) {
         BlockPos blockPos = pos.relative(direction);
 
         BlockState growAtState = level.getBlockState(blockPos);

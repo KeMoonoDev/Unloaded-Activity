@@ -2,12 +2,13 @@ package dev.moono.unloadedactivity.datapack.value_expression;
 
 import com.mojang.datafixers.util.Pair;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class TimeValue<T> implements ValueExpression<T> {
     private final List<Pair<Long, ValueExpression<T>>> list;
@@ -17,7 +18,7 @@ public class TimeValue<T> implements ValueExpression<T> {
     }
 
     @Override
-    public T evaluate(ValueContext context) {
+    public T evaluate(ExpressionContext context) {
         if (this.list.isEmpty())
             return null;
 
@@ -35,6 +36,11 @@ public class TimeValue<T> implements ValueExpression<T> {
         }
 
         return currentPair.getSecond().evaluate(context);
+    }
+
+    @Override
+    public Stream<T> getPossibleValues() {
+        return list.stream().flatMap(pair -> pair.getSecond().getPossibleValues());
     }
 
     @Override
@@ -73,7 +79,7 @@ public class TimeValue<T> implements ValueExpression<T> {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
+    public long getNextValueSwitchDuration(ExpressionContext context) {
         if (this.list.isEmpty())
             return Long.MAX_VALUE;
 

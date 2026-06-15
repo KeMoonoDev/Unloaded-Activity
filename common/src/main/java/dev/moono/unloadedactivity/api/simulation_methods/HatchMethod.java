@@ -4,7 +4,8 @@ import dev.moono.unloadedactivity.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.SimulationConfig;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.api.value_expression_containers.RandomizedValueExpression;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
 import dev.moono.unloadedactivity.datapack.value_expression.SimpleValue;
 import net.minecraft.core.BlockPos;
@@ -21,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 public class HatchMethod extends GroupableSimulationMethod {
     public final boolean dropsResources;
     public final EntityType<?> hatchEntity;
-    public final ValueExpression<Number> hatchCount;
+    public final RandomizedValueExpression<Number> hatchCount;
     @Nullable
     public final Integer startingAge;
 
@@ -29,7 +30,7 @@ public class HatchMethod extends GroupableSimulationMethod {
         super(config);
         this.dropsResources = config.getBooleanOrDefault("drops_resources", true);
         this.hatchEntity = config.getEntityType("hatch_entity");
-        this.hatchCount = config.getRandomizedNumberExpressionOrDefault("hatch_count", new SimpleValue<>(1));
+        this.hatchCount = config.getRandomizedNumberExpression("hatch_count");
         Number startingAgeNumber = config.getNumberNullable("starting_age");
         this.startingAge = startingAgeNumber == null ? null : startingAgeNumber.intValue();
     }
@@ -56,7 +57,7 @@ public class HatchMethod extends GroupableSimulationMethod {
         }
 
         long hatchTime = GameUtils.getTime(level) - timePassed + simulationDuration;
-        int hatchCount = this.hatchCount.evaluate(new ValueContext(level, state, pos, hatchTime)).intValue();
+        int hatchCount = this.hatchCount.evaluateRandomized(level, state, pos, hatchTime).intValue();
 
         if (hatchCount > 0) {
             for(int i = 0; i < hatchCount; i++) {

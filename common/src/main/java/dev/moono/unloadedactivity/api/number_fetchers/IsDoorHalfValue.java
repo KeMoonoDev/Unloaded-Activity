@@ -1,11 +1,15 @@
 package dev.moono.unloadedactivity.api.number_fetchers;
 
+import dev.moono.unloadedactivity.api.FixedNumberFetcher;
 import dev.moono.unloadedactivity.api.NumberFetcher;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
-public class IsDoorHalfValue implements NumberFetcher {
+public class IsDoorHalfValue implements FixedNumberFetcher {
 
     DoubleBlockHalf doorHalf;
 
@@ -14,31 +18,11 @@ public class IsDoorHalfValue implements NumberFetcher {
     }
 
     @Override
-    public Number evaluate(ValueContext context) {
+    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
         boolean result = false;
-        if (context.state.getBlock() instanceof DoorBlock) {
-            result = context.state.getValue(DoorBlock.HALF) == this.doorHalf;
+        if (state.getBlock() instanceof DoorBlock) {
+            result = state.getValue(DoorBlock.HALF) == this.doorHalf;
         }
         return result ? 1 : 0;
-    }
-
-    @Override
-    public boolean canBeAffectedByWeather() {
-        return false;
-    }
-
-    @Override
-    public boolean canBeAffectedByTime() {
-        return false;
-    }
-
-    @Override
-    public boolean isRandom() {
-        return false;
-    }
-
-    @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
-        return Long.MAX_VALUE;
     }
 }

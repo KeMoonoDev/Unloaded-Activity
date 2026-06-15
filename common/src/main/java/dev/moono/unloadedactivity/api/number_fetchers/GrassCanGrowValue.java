@@ -6,36 +6,18 @@ import net.minecraft.world.level.block.SpreadingSnowyBlock;
 import net.minecraft.world.level.block.SpreadingSnowyDirtBlock;
 #endif
 
-import dev.moono.unloadedactivity.api.NumberFetcher;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.api.FixedNumberFetcher;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.LevelReader;
 
-public class GrassCanGrowValue implements NumberFetcher {
+public class GrassCanGrowValue implements FixedNumberFetcher {
     @Override
-    public Number evaluate(ValueContext context) {
+    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
         #if MC_VER >= MC_26_1_2
-        return SpreadingSnowyBlock.canPropagate(context.state, context.level, context.pos) ? 1 : 0;
+        return SpreadingSnowyBlock.canPropagate(state, level, pos) ? 1 : 0;
         #else
-        return SpreadingSnowyDirtBlock.canPropagate(context.state, context.level, context.pos) ? 1 : 0;
+        return SpreadingSnowyDirtBlock.canPropagate(state, level, pos) ? 1 : 0;
         #endif
-    }
-
-    @Override
-    public boolean canBeAffectedByWeather() {
-        return false;
-    }
-
-    @Override
-    public boolean canBeAffectedByTime() {
-        return false;
-    }
-
-    @Override
-    public boolean isRandom() {
-        return false;
-    }
-
-    @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
-        return Long.MAX_VALUE;
     }
 }

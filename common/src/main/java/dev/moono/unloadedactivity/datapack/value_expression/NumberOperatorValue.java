@@ -1,12 +1,14 @@
 package dev.moono.unloadedactivity.datapack.value_expression;
 
+import dev.moono.unloadedactivity.api.NumberFetcher;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
+import java.util.stream.Stream;
 
-public class NumberOperatorValue implements ValueExpression<Number> {
+public class NumberOperatorValue implements NumberFetcher {
     public final Operator operator;
     public ValueExpression<Number> value;
     @Nullable
@@ -23,12 +25,7 @@ public class NumberOperatorValue implements ValueExpression<Number> {
     };
 
     @Override
-    public <U> ValueExpression<U> map(Function<Number, U> mapFunction) {
-        throw new RuntimeException("Map function not supported on this type.");
-    }
-
-    @Override
-    public Number evaluate(ValueContext context) {
+    public Number evaluate(ExpressionContext context) {
 
         float value1 = value.evaluate(context).floatValue();
         float value2;
@@ -66,17 +63,6 @@ public class NumberOperatorValue implements ValueExpression<Number> {
     }
 
     @Override
-    public boolean isAffectedByWeather(ValueContext context) {
-        if (value.isAffectedByWeather(context))
-            return true;
-
-        if (secondaryValue != null)
-            return secondaryValue.isAffectedByWeather(context);
-
-        return false;
-    }
-
-    @Override
     public boolean canBeAffectedByWeather() {
         if (value.canBeAffectedByWeather())
             return true;
@@ -110,7 +96,7 @@ public class NumberOperatorValue implements ValueExpression<Number> {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
+    public long getNextValueSwitchDuration(ExpressionContext context) {
         long firstLong = value.getNextValueSwitchDuration(context);
 
         if (secondaryValue != null) {

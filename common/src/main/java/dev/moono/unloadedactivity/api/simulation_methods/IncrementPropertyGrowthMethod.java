@@ -4,7 +4,9 @@ import dev.moono.unloadedactivity.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.SimulationConfig;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.api.value_expression_containers.FixedValueExpression;
+import dev.moono.unloadedactivity.api.value_expression_containers.RandomizedValueExpression;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
 import dev.moono.unloadedactivity.mixin.IntegerPropertyAccessor;
 import net.minecraft.core.BlockPos;
@@ -19,18 +21,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
-    public boolean updateNeighbors;
-    public boolean reverseHeightGrowthDirection;
-    public boolean onlyInWater;
-    public Map<String, ValueExpression<Number>> setProperties;
-    public List<String> transferProperties;
+    public final boolean updateNeighbors;
+    public final boolean reverseHeightGrowthDirection;
+    public final boolean onlyInWater;
+    public final Map<String, RandomizedValueExpression<Number>> setProperties;
+    public final List<String> transferProperties;
 
-    @Nullable public Integer maxHeight;
-    @Nullable public ValueExpression<Block> bottomBlockReplacement;
-    @Nullable public ValueExpression<Number> maxValue;
+    @Nullable public final List<Block> lowerBlocks;
+
+    @Nullable public final Integer maxHeight;
+    @Nullable public final RandomizedValueExpression<Block> bottomBlockReplacement;
+    @Nullable public final FixedValueExpression<Number> maxValue;
 
     public IncrementPropertyGrowthMethod(SimulationConfig config) {
         super(config);
@@ -44,6 +49,14 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
         this.maxHeight = numberMaxHeight == null ? null : numberMaxHeight.intValue();
         this.bottomBlockReplacement = config.getRandomizedBlockExpressionNullable("bottom_block_replacement");
         this.maxValue = config.getFixedNumberExpressionNullable("max_value");
+
+        if (config.isDefined("lower_blocks")) {
+            this.lowerBlocks = config.getBlockList("lower_blocks");
+        } else if (this.bottomBlockReplacement != null) {
+            this.lowerBlocks = this.bottomBlockReplacement.inner.getPossibleValues().toList();
+        } else {
+            this.lowerBlocks = null;
+        }
 
     }
 
@@ -66,19 +79,13 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
         }
 
         if (maxHeight != null) {
-            List<Block> lowerBlocks;
-            if (bottomBlockReplacement != null) {
-                // TODO create a "getPossibleValues" method.
-                lowerBlocks = List.of(bottomBlockReplacement.evaluate(new ValueContext(level, state, pos)));
-            } else {
-                lowerBlocks = List.of(thisBlock);
-            }
+            List<Block> currentLowerBlocks = Objects.requireNonNullElseGet(this.lowerBlocks, () -> List.of(thisBlock));
 
             int height;
             if (reverseHeightGrowthDirection) {
                 for(height = 1; height <= maxHeight; ++height) {
                     boolean doContinue = false;
-                    for (Block lowerBlock : lowerBlocks) {
+                    for (Block lowerBlock : currentLowerBlocks) {
                         if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
                             doContinue = true;
                             break;
@@ -90,7 +97,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             } else {
                 for(height = 1; height <= maxHeight; ++height) {
                     boolean doContinue = false;
-                    for (Block lowerBlock : lowerBlocks) {
+                    for (Block lowerBlock : currentLowerBlocks) {
                         if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
                             doContinue = true;
                             break;
@@ -128,7 +135,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             }
 
             if (maxValue != null) {
-                Number calculated = maxValue.evaluate(new ValueContext(level, state, pos));
+                Number calculated = maxValue.evaluateFixed(level, state, pos);
                 max = Math.min(propertyMax, calculated.intValue());
             }
 
@@ -167,7 +174,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
         int max;
 
         if (this.maxValue != null) {
-            Number calculated = this.maxValue.evaluate(new ValueContext(level, state, pos));
+            Number calculated = this.maxValue.evaluateFixed(level, state, pos);
             max = Math.min(propertyMax, calculated.intValue());
         } else {
             max = propertyMax;
@@ -175,22 +182,36 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
 
         int updateCount = Math.max(0, max - current);
 
-
-        Block lowerBlock;
-        if (this.bottomBlockReplacement != null) {
-            lowerBlock = this.bottomBlockReplacement.evaluate(new ValueContext(level, state, pos));
-        } else {
-            lowerBlock = thisBlock;
-        }
-
         int freeSpaceLimit = Integer.MAX_VALUE;
 
         if (this.maxHeight != null) {
+            List<Block> currentLowerBlocks = Objects.requireNonNullElseGet(this.lowerBlocks, () -> List.of(thisBlock));
+
             int height;
-            if (this.reverseHeightGrowthDirection) {
-                for(height = 1; level.getBlockState(pos.above(height)).is(lowerBlock) && height <= this.maxHeight; ++height) {}
+            if (reverseHeightGrowthDirection) {
+                for(height = 1; height <= maxHeight; ++height) {
+                    boolean doContinue = false;
+                    for (Block lowerBlock : currentLowerBlocks) {
+                        if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
+                            doContinue = true;
+                            break;
+                        };
+                    }
+                    if (doContinue) continue;
+                    break;
+                }
             } else {
-                for(height = 1; level.getBlockState(pos.below(height)).is(lowerBlock) && height <= this.maxHeight; ++height) {}
+                for(height = 1; height <= maxHeight; ++height) {
+                    boolean doContinue = false;
+                    for (Block lowerBlock : currentLowerBlocks) {
+                        if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
+                            doContinue = true;
+                            break;
+                        };
+                    }
+                    if (doContinue) continue;
+                    break;
+                }
             }
 
             freeSpaceLimit = Math.min(freeSpaceLimit, this.maxHeight - height);
@@ -242,8 +263,12 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             return blockPlacer;
         }
 
+        long currentTime = GameUtils.getTime(level);
+
+        long finishTime = currentTime - timePassed + simulationDuration;
+
         if (this.bottomBlockReplacement != null) {
-            Block newBlock = this.bottomBlockReplacement.evaluate(new ValueContext(level, state, pos));
+            Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishTime);
             BlockState newState = newBlock.defaultBlockState();
 
             for (String propertyName : this.transferProperties) {
@@ -283,7 +308,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             boolean isFinal = i+1 == occurrences;
 
             if (this.bottomBlockReplacement != null && !isFinal) {
-                Block newBlock = this.bottomBlockReplacement.evaluate(new ValueContext(level, state, pos));
+                Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishTime);
                 state = newBlock.defaultBlockState();
             } else {
                 int newValue = current + (i + 1);
@@ -296,16 +321,16 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
 
             for (var entry : this.setProperties.entrySet()) {
                 String propertyName = entry.getKey();
-                ValueExpression<Number> propertyValue = entry.getValue();
+                RandomizedValueExpression<Number> propertyValue = entry.getValue();
                 Optional<Property<?>> maybeSetProperty = GameUtils.getProperty(state, propertyName);
                 if (maybeSetProperty.isPresent()) {
                     Property<?> newSetProperty = maybeSetProperty.get();
                     if (newSetProperty instanceof BooleanProperty booleanProperty) {
-                        float value = propertyValue.evaluate(new ValueContext(level, state, pos)).floatValue();
+                        float value = propertyValue.evaluateRandomized(level, state, pos, finishTime).floatValue();
                         state = state.setValue(booleanProperty, value != 0);
                     }
                     if (newSetProperty instanceof IntegerProperty integerProperty) {
-                        int value = propertyValue.evaluate(new ValueContext(level, state, pos)).intValue();
+                        int value = propertyValue.evaluateRandomized(level, state, pos, finishTime).intValue();
                         state = state.setValue(integerProperty, value);
                     }
                 }

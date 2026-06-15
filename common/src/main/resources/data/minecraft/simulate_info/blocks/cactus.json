@@ -11,7 +11,27 @@
     "age_bloom": {
       "bloom_at_age": 8,
       "bloom_block": "minecraft:cactus_flower",
-      "height_probabilities": [0.1, 0.1, 0.25]
+      "conditions": [
+        {
+          "check": "has_solid_neighbors_above",
+          "comparison": "equal",
+          "value": false
+        },
+        {
+          "check": "has_lava_neighbors_above",
+          "comparison": "equal",
+          "value": false
+        }
+      ],
+      "bloom_probability": {
+        "predicate": {
+          "check": "custom/height",
+          "comparison": "greater_or_equal",
+          "value": 3
+        },
+        "success": 0.25,
+        "fail": 0.1
+      }
     }
   }
 }

@@ -2,31 +2,16 @@ package dev.moono.unloadedactivity.api.number_fetchers;
 
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.NumberFetcher;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.api.RandomizedNumberFetcher;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class RandomValue implements NumberFetcher {
+public class RandomValue implements RandomizedNumberFetcher {
     @Override
-    public Number evaluate(ValueContext context) {
-        return GameUtils.getRand(context.level).nextFloat();
-    }
-
-    @Override
-    public boolean canBeAffectedByWeather() {
-        return false;
-    }
-
-    @Override
-    public boolean canBeAffectedByTime() {
-        return false;
-    }
-
-    @Override
-    public boolean isRandom() {
-        return true;
-    }
-
-    @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
-        return Long.MAX_VALUE;
+    public Number evaluate(LevelReader level, BlockState state, BlockPos pos, long currentSimulatedTime, boolean isRaining, RandomSource random) {
+        return random.nextFloat();
     }
 }

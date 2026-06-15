@@ -1,7 +1,7 @@
 package dev.moono.unloadedactivity.api.number_fetchers;
 
 import dev.moono.unloadedactivity.api.NumberFetcher;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.Comparison;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -105,7 +105,7 @@ public class LocalBrightnessValue implements NumberFetcher {
     public final static int MAX_DARKNESS = 11;
 
     @Override
-    public Number evaluate(ValueContext context) {
+    public Number evaluate(ExpressionContext context) {
         int blockLight = context.level.getBrightness(LightLayer.BLOCK, context.pos.offset(offset));
         int skyLight = context.level.getBrightness(LightLayer.SKY, context.pos.offset(offset));
 
@@ -130,7 +130,7 @@ public class LocalBrightnessValue implements NumberFetcher {
     }
 
     @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
+    public long getNextValueSwitchDuration(ExpressionContext context) {
         int blockLight = context.level.getBrightness(LightLayer.BLOCK, context.pos.offset(offset));
         int skyLight = context.level.getBrightness(LightLayer.SKY, context.pos.offset(offset));
 
@@ -158,7 +158,7 @@ public class LocalBrightnessValue implements NumberFetcher {
     }
 
     @Override
-    public long getNextConditionSwitchDuration(ValueContext context, float target, Comparison comparison) {
+    public long getNextConditionSwitchDuration(ExpressionContext context, float target, Comparison comparison) {
         ServerLevel level = context.level;
         BlockPos pos = context.pos;
         long currentTime = context.currentTime;

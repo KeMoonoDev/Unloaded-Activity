@@ -1,19 +1,22 @@
 package dev.moono.unloadedactivity.api.number_fetchers;
 
+import dev.moono.unloadedactivity.api.FixedNumberFetcher;
 import dev.moono.unloadedactivity.api.NumberFetcher;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class ShouldSnowValue implements NumberFetcher {
+public class ShouldSnowValue implements FixedNumberFetcher {
     @Override
-    public Number evaluate(ValueContext context) {
+    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
         // Do the same checks as Biome.shouldSnow, but do the cheap checks first
         // and skip conditions which are supposed to be handled by the user. (Like checking if the state is air or snow)
         #if MC_VER >= MC_1_21_3
-        if (!context.level.isInsideBuildHeight(context.pos.getY())) {
+        if (!level.isInsideBuildHeight(pos.getY())) {
             return 0;
         }
         #else
@@ -22,22 +25,22 @@ public class ShouldSnowValue implements NumberFetcher {
         }
         #endif
 
-        if (!Blocks.SNOW.defaultBlockState().canSurvive(context.level, context.pos)) {
+        if (!Blocks.SNOW.defaultBlockState().canSurvive(level, pos)) {
             return 0;
         }
 
-        if (context.level.getBrightness(LightLayer.BLOCK, context.pos) >= 10) {
+        if (level.getBrightness(LightLayer.BLOCK, pos) >= 10) {
             return 0;
         }
 
         // We get the biome from above if it's air because when Minecraft handles precipitation
         // it takes the biome from the top block and uses it for the bottom block.
-        BlockPos samplePos = context.state.isAir() ? context.pos : context.pos.above();
-        Biome biome = context.level.getBiome(samplePos).value();
+        BlockPos samplePos = state.isAir() ? pos : pos.above();
+        Biome biome = level.getBiome(samplePos).value();
         #if MC_VER >= MC_1_21_3
-        Biome.Precipitation precipitation = biome.getPrecipitationAt(context.pos, context.level.getSeaLevel());
+        Biome.Precipitation precipitation = biome.getPrecipitationAt(pos, level.getSeaLevel());
         #elif MC_VER >= MC_1_19_4
-        Biome.Precipitation precipitation = biome.getPrecipitationAt(context.pos);
+        Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
         #else
         Biome.Precipitation precipitation = biome.getPrecipitation()
         #endif;
@@ -47,25 +50,5 @@ public class ShouldSnowValue implements NumberFetcher {
         }
 
         return 1;
-    }
-
-    @Override
-    public boolean canBeAffectedByWeather() {
-        return false;
-    }
-
-    @Override
-    public boolean canBeAffectedByTime() {
-        return false;
-    }
-
-    @Override
-    public boolean isRandom() {
-        return false;
-    }
-
-    @Override
-    public long getNextValueSwitchDuration(ValueContext context) {
-        return Long.MAX_VALUE;
     }
 }

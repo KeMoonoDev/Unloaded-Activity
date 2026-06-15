@@ -372,12 +372,12 @@ public interface SimulateChunkBlocks {
                             if (maybeSetProperty.isPresent()) {
                                 Property<?> newSetProperty = maybeSetProperty.get();
                                 if (newSetProperty instanceof BooleanProperty booleanProperty) {
-                                    float value = propertyValue.evaluate(new ValueContext(level, state, pos)).floatValue();
-                                    state = state.setValue(booleanProperty, value != 0);
+                                    float inner = propertyValue.evaluate(new ValueContext(level, state, pos)).floatValue();
+                                    state = state.setValue(booleanProperty, inner != 0);
                                 }
                                 if (newSetProperty instanceof IntegerProperty integerProperty) {
-                                    int value = propertyValue.evaluate(new ValueContext(level, state, pos)).intValue();
-                                    state = state.setValue(integerProperty, value);
+                                    int inner = propertyValue.evaluate(new ValueContext(level, state, pos)).intValue();
+                                    state = state.setValue(integerProperty, inner);
                                 }
                             }
                         }
@@ -488,12 +488,12 @@ public interface SimulateChunkBlocks {
                             if (maybeSetProperty.isPresent()) {
                                 Property<?> newSetProperty = maybeSetProperty.get();
                                 if (newSetProperty instanceof BooleanProperty booleanProperty) {
-                                    float value = propertyValue.evaluate(new ValueContext(level, state, pos)).floatValue();
-                                    state = state.setValue(booleanProperty, value != 0);
+                                    float inner = propertyValue.evaluate(new ValueContext(level, state, pos)).floatValue();
+                                    state = state.setValue(booleanProperty, inner != 0);
                                 }
                                 if (newSetProperty instanceof IntegerProperty integerProperty) {
-                                    int value = propertyValue.evaluate(new ValueContext(level, state, pos)).intValue();
-                                    state = state.setValue(integerProperty, value);
+                                    int inner = propertyValue.evaluate(new ValueContext(level, state, pos)).intValue();
+                                    state = state.setValue(integerProperty, inner);
                                 }
                             }
                         }
@@ -552,12 +552,12 @@ public interface SimulateChunkBlocks {
                         if (maybeSetProperty.isPresent()) {
                             Property<?> newSetProperty = maybeSetProperty.get();
                             if (newSetProperty instanceof BooleanProperty booleanProperty) {
-                                float value = propertyValue.evaluate(new ValueContext(level, newState, pos)).floatValue();
-                                newState = newState.setValue(booleanProperty, value != 0);
+                                float inner = propertyValue.evaluate(new ValueContext(level, newState, pos)).floatValue();
+                                newState = newState.setValue(booleanProperty, inner != 0);
                             }
                             if (newSetProperty instanceof IntegerProperty integerProperty) {
-                                int value = propertyValue.evaluate(new ValueContext(level, newState, pos)).intValue();
-                                newState = newState.setValue(integerProperty, value);
+                                int inner = propertyValue.evaluate(new ValueContext(level, newState, pos)).intValue();
+                                newState = newState.setValue(integerProperty, inner);
                             }
                         }
                     }

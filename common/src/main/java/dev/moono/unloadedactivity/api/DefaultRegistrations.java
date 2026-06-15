@@ -3,10 +3,9 @@ package dev.moono.unloadedactivity.api;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.number_fetchers.*;
 import dev.moono.unloadedactivity.api.simulation_methods.*;
-import dev.moono.unloadedactivity.api.number_fetchers.*;
-import dev.moono.unloadedactivity.api.simulation_methods.*;
 import net.minecraft.core.Vec3i;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -50,23 +49,38 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         );
 
         registry.register(
+                UnloadedActivity.id("has_lava_neighbors_above"),
+                new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA), new Vec3i(0, 1, 0))
+        );
+
+        registry.register(
+                UnloadedActivity.id("has_solid_neighbors_above"),
+                new IsBlockNeighborsMatchValue(b -> b.isSolid(), new Vec3i(0, 1, 0))
+        );
+
+        registry.register(
+                UnloadedActivity.id("has_solid_neighbors_below"),
+                new IsBlockNeighborsMatchValue(b -> b.isSolid(), new Vec3i(0, -1, 0))
+        );
+
+        registry.register(
             UnloadedActivity.id("is_sand_below"),
-            new IsBlockTagValue(BlockTags.SAND, new Vec3i(0, -1, 0))
+            new IsBlockMatchValue(b -> b.is(BlockTags.SAND), new Vec3i(0, -1, 0))
         );
 
         registry.register(
             UnloadedActivity.id("is_sand_above"),
-            new IsBlockTagValue(BlockTags.SAND, new Vec3i(0, 1, 0))
+            new IsBlockMatchValue(b -> b.is(BlockTags.SAND), new Vec3i(0, 1, 0))
         );
 
         registry.register(
             UnloadedActivity.id("is_snow_below"),
-            new IsBlockTagValue(BlockTags.SNOW, new Vec3i(0, -1, 0))
+            new IsBlockMatchValue(b -> b.is(BlockTags.SNOW), new Vec3i(0, -1, 0))
         );
 
         registry.register(
             UnloadedActivity.id("is_snow_above"),
-            new IsBlockTagValue(BlockTags.SNOW, new Vec3i(0, 1, 0))
+            new IsBlockMatchValue(b -> b.is(BlockTags.SNOW), new Vec3i(0, 1, 0))
         );
 
         registry.register(
@@ -125,12 +139,21 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         );
 
         registry.registerDynamic(
-            UnloadedActivity.MOD_ID,
-            s -> s.startsWith("property/"),
-            s -> {
-                String propertyName = s.substring("property/".length());
-                return new PropertyValue(propertyName);
-            }
+                UnloadedActivity.MOD_ID,
+                s -> s.startsWith("property/"),
+                s -> {
+                    String propertyName = s.substring("property/".length());
+                    return new PropertyValue(propertyName);
+                }
+        );
+
+        registry.registerDynamic(
+                UnloadedActivity.MOD_ID,
+                s -> s.startsWith("custom/"),
+                s -> {
+                    String valueKey = s.substring("custom/".length());
+                    return new CustomValue(valueKey);
+                }
         );
 
         registry.registerNumber(UnloadedActivity.id("update_clients"), Block.UPDATE_CLIENTS);

@@ -1,13 +1,16 @@
 package dev.moono.unloadedactivity;
 
 
+import dev.moono.unloadedactivity.api.value_expression_containers.UpdatingValueExpression;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
-import dev.moono.unloadedactivity.datapack.ValueContext;
+import dev.moono.unloadedactivity.datapack.ExpressionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 import static java.lang.Math.*;
 import static net.minecraft.util.Mth.sign;
@@ -34,7 +37,7 @@ public class MathUtils {
         #endif
     }
 
-    public static OccurrencesAndDuration getOccurrences(ServerLevel level, BlockState state, BlockPos pos, long endTime, long cycles, ValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickOdds, boolean calculateDuration, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public static OccurrencesAndDuration getOccurrences(ServerLevel level, BlockState state, BlockPos pos, long endTime, long cycles, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickOdds, boolean calculateDuration, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (maxOccurrences <= 0)
             return OccurrencesAndDuration.empty();
 
@@ -56,17 +59,17 @@ public class MathUtils {
                 continue;
             }
 
-            ValueContext calculationData = new ValueContext(level, state, pos, currentTime, isRaining, false, groupSimulateData);
+            ExpressionContext calculationData = ExpressionContext.updating(level, state, pos, currentTime, Map.of(), groupSimulateData);
 
-            long nextOddsSwitchDuration = probability.getNextValueSwitchDuration(calculationData);
-            if (requiresRain || probability.isAffectedByWeather(calculationData)) {
+            long nextOddsSwitchDuration = probability.inner.getNextValueSwitchDuration(calculationData);
+            if (requiresRain || probability.canBeAffectedByWeather) {
                 long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
                 nextOddsSwitchDuration = Math.min(nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }
 
             long simulateForCycles = Math.min(nextOddsSwitchDuration, remainingCycles);
 
-            float odds = probability.evaluate(calculationData).floatValue();
+            float odds = probability.inner.evaluate(calculationData).floatValue();
             float totalOdds = odds * randomPickOdds;
 
             if (UnloadedActivity.config.debugLogs)
