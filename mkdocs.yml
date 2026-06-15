@@ -24,4 +24,4 @@ nav:
       - Config options: players/config.md
   - For developers:
       - Introduction: developers/index.md
-      - Adding support: developers/add_support.md
+      - Using SimulationMethods: developers/simulation_methods.md

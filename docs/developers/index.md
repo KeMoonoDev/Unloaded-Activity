@@ -14,7 +14,7 @@ Additionally, if a mod wanted to have Unloaded Activity be optional for the user
 
 With datapacks however, you are able to change different values, vanilla block or not, without much trouble, and without having to check if Unloaded Activity is installed or not.
 
-Here's how `minecraft/simulate_info/blocks/beetroots.json` looks like:
+Here's how `data/minecraft/simulate_info/blocks/beetroots.json` looks like:
 
 ```json
 {
