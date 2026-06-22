@@ -37,7 +37,6 @@ public class ReplaceMethod extends GroupableSimulationMethod {
         this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
         this.transferProperties = config.getStringList("transfer_properties");
 
-        // todo check if setProperties uses any time stuff
         boolean replacementCanSimulate = this.blockReplacement.inner.getPossibleValues().anyMatch(block -> {
             Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
             if (maybeSimulationData.isEmpty()) return false;
