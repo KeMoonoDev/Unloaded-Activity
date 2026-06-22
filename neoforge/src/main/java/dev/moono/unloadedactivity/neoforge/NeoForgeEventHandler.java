@@ -15,8 +15,28 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 #endif
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 public class NeoForgeEventHandler {
+    @SubscribeEvent
+    public void onServerStarted(ServerStartedEvent event) {
+        UnloadedActivity.dataPackReloaded(true);
+    }
+
+    @SubscribeEvent
+    public void onServerStopping(ServerStoppingEvent event) {
+        UnloadedActivity.dataPackReloaded(false);
+    }
+
+    /*
+    // There is no good alternative to ServerLifecycleEvents.END_DATA_PACK_RELOAD on NeoForge,
+    // so this is handled over at mixin/EndDataPackReloadMixin
+    @SubscribeEvent
+    public void onDatapackReloadEnd(Void event) {}
+     */
+
     @SubscribeEvent
     public void onChunkLoad(ChunkEvent.Load event) {
         LevelAccessor level = event.getLevel();

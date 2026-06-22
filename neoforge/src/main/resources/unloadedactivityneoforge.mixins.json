@@ -4,6 +4,7 @@
   "package": "dev.moono.unloadedactivity.neoforge.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "EndDataPackReloadMixin",
     "AbstractFurnaceBlockEntityInvoker",
     "CropBlockInvoker"
   ],
