@@ -1,0 +1,6 @@
+{
+  "speleothem": {
+    "simulation_method": "grow_speleothem",
+    "advance_probability": 0.011377778
+  }
+}

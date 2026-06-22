@@ -21,12 +21,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.StemBlock;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.LevelChunk;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -131,6 +131,62 @@ public class GameUtils {
         #endif
 
         return isGrowableOn;
+    }
+
+    public static boolean isFreeHangingStalactite(final BlockState tipState) {
+        #if MC_VER >= MC_26_2
+        return SpeleothemBlock.isFreeHangingStalactite(tipState);
+        #else
+        return !PointedDripstoneBlock.canDrip(tipState);
+        #endif
+    }
+
+    public static boolean blocksStalagmiteScan(final LevelReader level, final BlockPos pos, final BlockState state, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif) {
+        #if MC_VER >= MC_26_2
+        return speleothemBlock.blocksStalagmiteScan(level, pos, state);
+        #else
+        return !PointedDripstoneBlock.canDripThrough(level, pos, state);
+        #endif
+    }
+
+    public static boolean isUnmergedTipWithDirection(BlockState state, Direction direction, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif) {
+        #if MC_VER >= MC_26_2
+        return speleothemBlock.isUnmergedTipWithDirection(state, direction);
+        #else
+        return PointedDripstoneBlock.isUnmergedTipWithDirection(state, direction);
+        #endif
+    }
+
+    public static boolean canTipGrow(final BlockState tipState, final ServerLevel level, final BlockPos tipPos, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif ) {
+        #if MC_VER >= MC_26_2
+        return speleothemBlock.canTipGrow(tipState, level, tipPos);
+        #else
+        return PointedDripstoneBlock.canTipGrow(tipState, level, tipPos);
+        #endif
+    }
+
+    public static boolean isValidSpeleothemPlacement(final ServerLevel level, final BlockPos pos, final Direction tipDirection, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif ) {
+        #if MC_VER >= MC_26_2
+        return speleothemBlock.isValidSpeleothemPlacement(level, pos, tipDirection);
+        #else
+        return PointedDripstoneBlock.isValidDripstonePlacement(level, pos, tipDirection);
+        #endif
+    }
+
+    public static boolean isStalactiteStartPos(BlockState state, ServerLevel level, BlockPos pos) {
+        #if MC_VER >= MC_26_2
+        return SpeleothemBlock.isStalactiteStartPos(state, level, pos);
+        #else
+        return PointedDripstoneBlock.isStalactiteStartPos(state, level, pos);
+        #endif
+    }
+
+    public static @Nullable BlockPos findTip(BlockState state, ServerLevel level, BlockPos pos, int maxSearchLength, boolean includeMergedTip) {
+        #if MC_VER >= MC_26_2
+        return SpeleothemBlock.findTip(state, level, pos, maxSearchLength, includeMergedTip);
+        #else
+        return PointedDripstoneBlock.findTip(state, level, pos, maxSearchLength, includeMergedTip);
+        #endif
     }
 
     public static Optional<Property<?>> getProperty(BlockState state, String propertyName) {

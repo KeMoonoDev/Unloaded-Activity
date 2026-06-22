@@ -178,7 +178,7 @@ public class DefaultRegistrations implements UnloadedActivityApi {
 
         registry.register(UnloadedActivity.id("grow_tree"), GrowTreeMethod::new);
 
-        registry.register(UnloadedActivity.id("grow_dripstone"), DripstoneMethod::new);
+        registry.register(UnloadedActivity.id("grow_speleothem"), SpeleothemMethod::new);
 
         registry.register(UnloadedActivity.id("grow_fruit"), GrowFruitMethod::new);
 

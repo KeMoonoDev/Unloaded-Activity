@@ -25,3 +25,16 @@ accessible method net/minecraft/world/level/block/PointedDripstoneBlock growStal
 accessible method net/minecraft/world/level/block/BambooSaplingBlock growBamboo (Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)V
 accessible method net/minecraft/world/level/block/BambooStalkBlock getHeightBelowUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I
 accessible method net/minecraft/world/level/block/BambooStalkBlock getHeightAboveUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I
+
+accessible field net/minecraft/world/level/block/SpeleothemBlock MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING I
+accessible method net/minecraft/world/level/block/SpeleothemBlock getMaxGrowthLength ()I
+accessible method net/minecraft/world/level/block/SpeleothemBlock canGrow (Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z
+accessible method net/minecraft/world/level/block/SpeleothemBlock canTipGrow (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)Z
+accessible method net/minecraft/world/level/block/SpeleothemBlock growStalagmiteBelow (Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)V
+accessible method net/minecraft/world/level/block/SpeleothemBlock grow (Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)V
+accessible method net/minecraft/world/level/block/SpeleothemBlock blocksStalagmiteScan (Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z
+accessible method net/minecraft/world/level/block/SpeleothemBlock isUnmergedTipWithDirection (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z
+accessible method net/minecraft/world/level/block/SpeleothemBlock isValidSpeleothemPlacement (Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)Z
+accessible method net/minecraft/world/level/block/SpeleothemBlock isStalactiteStartPos (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z
+accessible method net/minecraft/world/level/block/SpeleothemBlock findTip (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;IZ)Lnet/minecraft/core/BlockPos;
+accessible method net/minecraft/world/level/block/SpeleothemBlock isFreeHangingStalactite (Lnet/minecraft/world/level/block/state/BlockState;)Z
