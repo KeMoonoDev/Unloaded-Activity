@@ -9,7 +9,7 @@ version = "${version}"
 displayName = "Unloaded Activity"
 authors = "Moono"
 description = "Make certain blocks such as crops grow as if they've always grown when put into simulation distance."
-logoFile = "icon.png"
+logoFile = "icon256.png"
 
 [[dependencies.unloadedactivity]]
 modId = "forge"
