@@ -90,8 +90,6 @@ if (version_range.length == 1) {
 	throw new GradleException("Wrong version format: $project.compatible_versions")
 }
 
-println("waw")
-
 println(tasks.build.getOutputs().files)
 
 tasks.build.getOutputs().files.each {
@@ -174,6 +172,7 @@ subprojects {
 			filesMatching("data/minecraft/simulate_info/blocks/cactus.json") {
 				filter { line ->
 					line.replace('"stop_updating_after_max_height": false', '"stop_updating_after_max_height": true')
+						.replace('age_bloom', '_age_bloom')
 				}
 			}
 		}
@@ -209,6 +208,7 @@ subprojects {
 	dependencies {
 		annotationProcessor 'systems.manifold:manifold-preprocessor:2025.1.27'
 		testAnnotationProcessor 'systems.manifold:manifold-preprocessor:2025.1.27'
+		compileOnly 'it.unimi.dsi:fastutil:7.1.0'
 	}
 
 	java {

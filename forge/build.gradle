@@ -2,7 +2,7 @@ unimined.minecraft {
     minecraftForge {
         loader rootProject.neo_or_forge_version
         mixinConfig("unloadedactivity.mixins.json", "unloadedactivityforge.mixins.json")
-        accessTransformer = aw2at(project(":common").file("src/main/resources/unloadedactivity${rootProject.aw_namespace}.classtweaker"))
+        accessTransformer = aw2at(project(":common").file("src/main/resources/unloadedactivity${rootProject.aw_namespace}.accesswidener"))
     }
 
     minecraftRemapper.config {

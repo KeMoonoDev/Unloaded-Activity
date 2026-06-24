@@ -1,18 +1,21 @@
 package dev.moono.unloadedactivity;
 
-#if MC_VER > MC_1_20_4
-#endif
-import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.Level;
-
-        import java.util.ArrayList;
-
 #if MC_VER >= MC_1_21_11
 import com.mojang.serialization.Codec;
 import org.apache.commons.lang3.ArrayUtils;
 import java.util.*;
 import java.util.stream.LongStream;
 #endif
+
+#if MC_VER > MC_1_20_4
+import net.minecraft.core.HolderLookup;
+#endif
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.Level;
+import java.util.ArrayList;
+import java.util.Optional;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -105,7 +108,7 @@ public class WorldWeatherForecast extends SavedData {
         long currentTime = GameUtils.getTime(level);
 
         //if player decides to go back in time, this will try to reduce any weird behaviour.
-        while (this.weatherList.size() > 0) {
+        while (!this.weatherList.isEmpty()) {
             if (this.weatherList.get(0) > currentTime) {
                 this.weatherList.remove(0);
                 continue;
@@ -155,7 +158,7 @@ public class WorldWeatherForecast extends SavedData {
     }
 
     public long getTimeInWeather(long timePassed, long currentTime) {
-        int time = 0;
+        long time = 0;
 
         long lastTicked = currentTime-timePassed;
 

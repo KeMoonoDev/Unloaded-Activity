@@ -24,7 +24,7 @@ public class IsPrecipitationValue implements FixedNumberFetcher {
         #if MC_VER >= MC_1_21_3
         Biome.Precipitation precipitation = biome.getPrecipitationAt(pos, level.getSeaLevel());
         #elif MC_VER >= MC_1_19_4
-        Biome.Precipitation precipitation = biome.getPrecipitationAt(context.pos);
+        Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
         #else
         Biome.Precipitation precipitation = biome.getPrecipitation()
         #endif;

@@ -1,5 +1,9 @@
 package dev.moono.unloadedactivity.api.simulation_methods;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.world.attribute.EnvironmentAttributes;
+#endif
+
 import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.SimulationMethod;
@@ -7,7 +11,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,10 +23,11 @@ public class SpeleothemMethod extends SimulationMethod {
 
     public record CauldronFillConfig(int maxDistanceBetweenTipAndCauldron, float waterFillProbability, float lavaFillProbability) {
         public CauldronFillConfig(SimulationConfig config) {
-            int maxDistanceBetweenTipAndCauldron = config.getNumber("max_distance_between_tip_and_cauldron").intValue();
-            float waterFillProbability = config.getNumber("water_fill_probability").floatValue();
-            float lavaFillProbability = config.getNumber("lava_fill_probability").floatValue();
-            this(maxDistanceBetweenTipAndCauldron, waterFillProbability, lavaFillProbability);
+            this(
+                config.getNumber("max_distance_between_tip_and_cauldron").intValue(),
+                config.getNumber("water_fill_probability").floatValue(),
+                config.getNumber("lava_fill_probability").floatValue()
+            );
         }
 
         private float getCauldronDripOdds(Fluid fluid) {
@@ -62,7 +66,7 @@ public class SpeleothemMethod extends SimulationMethod {
         BlockPos.MutableBlockPos mutable = tipPos.mutable();
 
         int potentialGrowth = getMaxGrowthLength(thisBlock)-currentLength;
-        int maxPossibleReach = SpeleothemBlock.MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING+potentialGrowth;
+        int maxPossibleReach = getBottomSearchRange()+potentialGrowth;
 
         for(int i = 0; i < maxPossibleReach; ++i) {
             mutable.move(Direction.DOWN);
@@ -119,7 +123,7 @@ public class SpeleothemMethod extends SimulationMethod {
         PointedDripstoneBlock thisBlock;
         Block gotBlock = state.getBlock();
         if (gotBlock instanceof PointedDripstoneBlock pointedDripstoneBlock) {
-            thisBlock = speleothemBlock;
+            thisBlock = pointedDripstoneBlock;
         } else {
             return DeferredBlockPlacer.empty();
         }
@@ -134,7 +138,6 @@ public class SpeleothemMethod extends SimulationMethod {
 
         BlockState tip = level.getBlockState(tipPos);
 
-        BlockState dripstoneBlockState = level.getBlockState(pos.above(1));
         BlockState liquidState = level.getBlockState(pos.above(2));
 
         int currentLength = pos.getY()-tipPos.getY();
@@ -167,7 +170,7 @@ public class SpeleothemMethod extends SimulationMethod {
         float averageUpperProbability = -1F;
 
         if (currentLength < maxGrowthLength) {
-            if (thisBlock.canGrow(level, pos)) {
+            if (GameUtils.canGrow(level, pos, thisBlock)) {
                 if (GameUtils.isFreeHangingStalactite(tip) && GameUtils.canTipGrow(tip, level, tipPos, thisBlock)) {
 
                     var upperResult = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, this.advanceProbability, this.requiresRain, lengthDifference, randomPickOdds, false, random, groupSimulateData);

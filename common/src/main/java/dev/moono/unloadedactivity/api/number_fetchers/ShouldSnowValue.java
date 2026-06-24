@@ -20,7 +20,7 @@ public class ShouldSnowValue implements FixedNumberFetcher {
             return 0;
         }
         #else
-        if (context.level.isOutsideBuildHeight(context.pos.getY())) {
+        if (level.isOutsideBuildHeight(pos.getY())) {
             return 0;
         }
         #endif

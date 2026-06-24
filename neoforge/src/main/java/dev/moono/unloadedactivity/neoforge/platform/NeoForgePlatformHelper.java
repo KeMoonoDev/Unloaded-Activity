@@ -5,18 +5,13 @@ import dev.moono.unloadedactivity.neoforge.mixin.CropBlockInvoker;
 #endif
 
 #if MC_VER >= MC_1_19_4
-import dev.moono.unloadedactivity.platform.IPlatformHelper;
-#endif
-#if MC_VER >= MC_1_21_3
-#elif MC_VER >= MC_1_20_2
-import net.minecraft.world.item.crafting.RecipeHolder;
-#else
-import net.minecraft.world.item.crafting.Recipe;
-#endif
-#if MC_VER >= MC_1_21_3
+import net.minecraft.core.RegistryAccess;
 #endif
 
+import net.minecraft.world.item.crafting.*;
+
 import net.minecraft.core.NonNullList;
+import dev.moono.unloadedactivity.platform.IPlatformHelper;
 import dev.moono.unloadedactivity.neoforge.mixin.AbstractFurnaceBlockEntityInvoker;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
@@ -24,6 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.neoforged.fml.loading.FMLPaths;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 

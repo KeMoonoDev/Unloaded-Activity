@@ -1,9 +1,14 @@
 package dev.moono.unloadedactivity;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
+#endif
+
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.moono.unloadedactivity.config.ConfigOption;
-import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,11 +28,6 @@ import static com.mojang.brigadier.arguments.StringArgumentType.string;
 import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
-
-#if MC_VER >= MC_1_21_11
-import net.minecraft.server.permissions.Permission;
-import net.minecraft.server.permissions.PermissionLevel;
-#endif
 
 public class UnloadedActivityCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {

@@ -14,10 +14,12 @@ import net.minecraft.core.Registry;
 
 import com.mojang.serialization.DataResult;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -26,29 +28,55 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.chunk.LevelChunk;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
 /// A bunch of functions that are used frequently with version specific logic.
 /// Separated into here to reduce clutter elsewhere.
 public class GameUtils {
-    public static #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif getBlockId(Block block) {
+    public static DefaultedRegistry<EntityType<?>> getEntityTypeRegistry() {
         #if MC_VER >= MC_1_19_4
-        var blockRegistry = BuiltInRegistries.BLOCK;
+        return BuiltInRegistries.ENTITY_TYPE;
         #else
-        var blockRegistry = Registry.BLOCK;
+        return Registry.ENTITY_TYPE;
         #endif
-        return blockRegistry.getKey(block);
+    }
+
+    public static DefaultedRegistry<Block> getBlockRegistry() {
+        #if MC_VER >= MC_1_19_4
+        return BuiltInRegistries.BLOCK;
+        #else
+        return Registry.BLOCK;
+        #endif
+    }
+
+    public static #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif parseId(String unparsedId) {
+        #if MC_VER >= MC_1_21_11
+        return Identifier.parse(unparsedId);
+        #elif MC_VER >= MC_1_21_1
+        return ResourceLocation.parse(unparsedId);
+        #else
+        return new ResourceLocation(unparsedId);
+        #endif
+    }
+
+    @Nullable
+    public static EntityType<?> getEntityType(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif blockId) {
+        return getEntityTypeRegistry().getOptional(blockId).orElse(null);
+    }
+
+    @Nullable
+    public static Block getBlock(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif blockId) {
+        return getBlockRegistry().getOptional(blockId).orElse(null);
+    }
+
+    public static #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif getBlockId(Block block) {
+        return getBlockRegistry().getKey(block);
     }
 
     public static int getBlockIntId(Block block) {
-        #if MC_VER >= MC_1_19_4
-        var blockRegistry = BuiltInRegistries.BLOCK;
-        #else
-        var blockRegistry = Registry.BLOCK;
-        #endif
-        return blockRegistry.getId(block);
+        return getBlockRegistry().getId(block);
     }
 
     public static long getTime(Level level) {
@@ -133,11 +161,21 @@ public class GameUtils {
         return isGrowableOn;
     }
 
+    public static boolean canGrow(ServerLevel level, BlockPos basePos, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif) {
+        #if MC_VER >= MC_26_2
+        return speleothemBlock.canGrow(level, basePos);
+        #else
+        BlockState rootState = level.getBlockState(basePos.above(1));
+        BlockState aboveState = level.getBlockState(basePos.above(2));
+        return PointedDripstoneBlock.canGrow(rootState, aboveState);
+        #endif
+    }
+
     public static boolean isFreeHangingStalactite(final BlockState tipState) {
         #if MC_VER >= MC_26_2
         return SpeleothemBlock.isFreeHangingStalactite(tipState);
         #else
-        return !PointedDripstoneBlock.canDrip(tipState);
+        return PointedDripstoneBlock.canDrip(tipState);
         #endif
     }
 
@@ -169,7 +207,7 @@ public class GameUtils {
         #if MC_VER >= MC_26_2
         return speleothemBlock.isValidSpeleothemPlacement(level, pos, tipDirection);
         #else
-        return PointedDripstoneBlock.isValidDripstonePlacement(level, pos, tipDirection);
+        return PointedDripstoneBlock.isValidPointedDripstonePlacement(level, pos, tipDirection);
         #endif
     }
 

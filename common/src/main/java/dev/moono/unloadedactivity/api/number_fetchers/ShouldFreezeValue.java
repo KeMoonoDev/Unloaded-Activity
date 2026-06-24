@@ -19,7 +19,7 @@ public class ShouldFreezeValue implements FixedNumberFetcher {
             return 0;
         }
         #else
-        if (context.level.isOutsideBuildHeight(context.pos.getY())) {
+        if (level.isOutsideBuildHeight(pos.getY())) {
             return 0;
         }
         #endif
@@ -32,7 +32,7 @@ public class ShouldFreezeValue implements FixedNumberFetcher {
         BlockPos samplePos = state.isAir() ? pos : pos.above();
         Biome biome = level.getBiome(samplePos).value();
 
-        if (biome.warmEnoughToRain(pos, level.getSeaLevel())) {
+        if (biome.warmEnoughToRain(pos #if MC_VER >= MC_1_21_3 , level.getSeaLevel() #endif)) {
             return 0;
         }
 

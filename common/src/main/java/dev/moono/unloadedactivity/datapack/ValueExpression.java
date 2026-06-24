@@ -6,7 +6,6 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.datapack.value_expression.*;
-import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -62,12 +61,7 @@ public interface ValueExpression<T> {
                 return new SuperValue<>();
             }
 
-            Identifier fetcherId;
-            if (fetcherIdUnparsed.indexOf(':') >= 0) {
-                fetcherId = Identifier.parse(fetcherIdUnparsed);
-            } else {
-                fetcherId = Identifier.parse(UnloadedActivity.MOD_ID+":"+fetcherIdUnparsed);
-            }
+            var fetcherId = UnloadedActivity.parseId(fetcherIdUnparsed);
 
             Optional<ValueExpression<Number>> resolvedFetcher = UnloadedActivity.numberFetcherRegistry.resolve(fetcherId);
 

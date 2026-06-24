@@ -1,14 +1,14 @@
 package dev.moono.unloadedactivity;
 
+import com.google.gson.JsonParser;
+import net.minecraft.resources.*;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
-import net.minecraft.util.StrictJsonParser;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 import java.io.IOException;
@@ -18,22 +18,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class JsonResourcesCollector extends SimplePreparableReloadListener<Map<Identifier, List<JsonObject>>> {
+public abstract class JsonResourcesCollector extends SimplePreparableReloadListener<Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>>> {
+    #if MC_VER >= MC_1_21_4
     private final FileToIdConverter lister;
 
     protected JsonResourcesCollector(final FileToIdConverter lister) {
         this.lister = lister;
     }
+    #else
+    private final String directory;
 
-    protected Map<Identifier, List<JsonObject>> prepare(final ResourceManager manager, final ProfilerFiller profiler) {
-        Map<Identifier, List<JsonObject>> result = new HashMap<>();
+    protected JsonResourcesCollector(final String directory) {
+        this.directory = directory;
+    }
+    #endif
 
-        for(Map.Entry<Identifier, Resource> entry : lister.listMatchingResources(manager).entrySet()) {
-            Identifier location = entry.getKey();
-            Identifier id = lister.fileToId(location);
-
+    protected Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>> prepare(final ResourceManager manager, final ProfilerFiller profiler) {
+        Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>> result = new HashMap<>();
+        #if MC_VER >= MC_1_21_4
+        for(var entry : lister.listMatchingResources(manager).entrySet()) {
+            var location = entry.getKey();
+            var id = lister.fileToId(location);
+        #else
+        int pathPrefixLength = this.directory.length() + 1;
+        int pathSuffixLength = ".json".length();
+        for(var entry : manager.listResources(this.directory, location -> location.getPath().endsWith(".json")).entrySet()) {
+            var location = entry.getKey();
+            String path = location.getPath();
+            var id = GameUtils.parseId(location.getNamespace() + ":" + path.substring(pathPrefixLength, path.length() - pathSuffixLength));
+            #endif
             try (Reader reader = entry.getValue().openAsReader()) {
-                JsonElement parsed = StrictJsonParser.parse(reader);
+                JsonElement parsed = JsonParser.parseReader(reader);
                 if (!parsed.isJsonObject()) {
                     UnloadedActivity.LOGGER.error("Data file '{}' from '{}' didn't return a JsonObject. It will be ignored.", id, location);
                 }

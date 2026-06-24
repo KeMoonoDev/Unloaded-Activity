@@ -1,20 +1,20 @@
 package dev.moono.unloadedactivity.fabric;
 
 #if MC_VER >= MC_1_21_10
-import dev.moono.unloadedactivity.datapack.GroupInfoResource;
-import dev.moono.unloadedactivity.datapack.SimulationDataResource;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 #else
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 #endif
 
+import dev.moono.unloadedactivity.datapack.GroupInfoResource;
+import dev.moono.unloadedactivity.datapack.SimulationDataResource;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.UnloadedActivityCommand;
 import dev.moono.unloadedactivity.fabric.platform.FabricPlatformHelper;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.packs.PackType;
 
 

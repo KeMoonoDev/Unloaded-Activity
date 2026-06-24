@@ -1,14 +1,14 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.api.SimulationMethod;
-import dev.moono.unloadedactivity.api.simulation_methods.GroupableSimulationMethod;
-import dev.moono.unloadedactivity.datapack.*;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
 
+import dev.moono.unloadedactivity.api.SimulationMethod;
+import dev.moono.unloadedactivity.api.simulation_methods.GroupableSimulationMethod;
+import dev.moono.unloadedactivity.datapack.*;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;

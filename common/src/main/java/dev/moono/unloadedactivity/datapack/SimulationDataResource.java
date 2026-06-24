@@ -5,6 +5,8 @@ import dev.moono.unloadedactivity.GameUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 #else
+import com.mojang.datafixers.util.Pair;
+import dev.moono.unloadedactivity.GameUtils;
 import net.minecraft.resources.ResourceLocation;
 #endif
 #if MC_VER >= MC_1_21_4
@@ -103,31 +105,36 @@ public class SimulationDataResource extends JsonResourcesCollector {
         HashSet<Block> blocksToBuild = new HashSet<>();
 
         for (var blockId : BLOCK_MAP.keySet()) {
-            var maybeBlockHolder = BuiltInRegistries.BLOCK.get(blockId);
-            if (maybeBlockHolder.isEmpty()) continue;
-            blocksToBuild.add(maybeBlockHolder.get().value());
+            Block block = GameUtils.getBlock(blockId);
+            if (block == null) continue;
+            blocksToBuild.add(block);
         }
 
-        BuiltInRegistries.BLOCK.listTags().forEach(named -> {
-            if (!TAG_MAP.containsKey(named.key().location())) return;
-            named.forEach(blockHolder -> blocksToBuild.add(blockHolder.value()));
-        });
+        GameUtils.getBlockRegistry()
+            #if MC_VER >= MC_1_21_11
+            .listTags()
+            #else
+            .getTags() #if MC_VER < MC_1_21_3 .map(Pair::getSecond) #endif
+            #endif
+            .forEach(named -> {
+                if (!TAG_MAP.containsKey(named.key().location())) return;
+                named.forEach(blockHolder -> blocksToBuild.add(blockHolder.value()));
+            }
+        );
 
         for (Block block : blocksToBuild) {
-            if (block == Blocks.BEETROOTS) {
-                var uea = true;
-            }
             var blockId = GameUtils.getBlockId(block);
             ArrayList<JsonObject> sortedBlockData = new ArrayList<>(BLOCK_MAP.getOrDefault(blockId, List.of()));
             sortedBlockData.sort(SimulationDataResource::compareJsonPriority);
 
             ArrayList<JsonObject> sortedTagData = new ArrayList<>();
 
-            block.defaultBlockState().tags().forEach(tag -> {
-                var tagId = tag.location();
-
-                sortedTagData.addAll(TAG_MAP.getOrDefault(tagId, List.of()));
-            });
+            block.defaultBlockState() #if MC_VER >= MC_26_1_2 .tags() #else .getTags() #endif
+                .forEach(tag -> {
+                    var tagId = tag.location();
+                    sortedTagData.addAll(TAG_MAP.getOrDefault(tagId, List.of()));
+                }
+            );
 
             sortedTagData.sort(SimulationDataResource::compareJsonPriority);
 

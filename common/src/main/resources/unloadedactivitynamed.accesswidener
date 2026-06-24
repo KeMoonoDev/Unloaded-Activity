@@ -11,6 +11,7 @@ accessible method net/minecraft/world/level/block/SpreadingSnowyDirtBlock canPro
 accessible method net/minecraft/world/level/block/AbstractCauldronBlock canReceiveStalactiteDrip (Lnet/minecraft/world/level/material/Fluid;)Z
 accessible method net/minecraft/world/level/block/AbstractCauldronBlock receiveStalactiteDrip (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/material/Fluid;)V
 
+accessible field net/minecraft/world/level/block/SaplingBlock treeGrower Lnet/minecraft/world/level/block/grower/AbstractTreeGrower;
 accessible field net/minecraft/world/level/block/SaplingBlock treeGrower Lnet/minecraft/world/level/block/grower/TreeGrower;
 
 accessible method net/minecraft/world/level/block/PointedDripstoneBlock isUnmergedTipWithDirection (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;)Z
@@ -23,7 +24,11 @@ accessible method net/minecraft/world/level/block/PointedDripstoneBlock canGrow 
 accessible method net/minecraft/world/level/block/PointedDripstoneBlock canTipGrow (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)Z
 accessible method net/minecraft/world/level/block/PointedDripstoneBlock grow (Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)V
 accessible method net/minecraft/world/level/block/PointedDripstoneBlock growStalagmiteBelow (Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)V
+accessible field net/minecraft/world/level/block/PointedDripstoneBlock MAX_GROWTH_LENGTH I
+accessible field net/minecraft/world/level/block/PointedDripstoneBlock MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING I
 
 accessible method net/minecraft/world/level/block/BambooSaplingBlock growBamboo (Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)V
 accessible method net/minecraft/world/level/block/BambooStalkBlock getHeightBelowUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I
 accessible method net/minecraft/world/level/block/BambooStalkBlock getHeightAboveUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I
+accessible method net/minecraft/world/level/block/BambooBlock getHeightBelowUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I
+accessible method net/minecraft/world/level/block/BambooBlock getHeightAboveUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I

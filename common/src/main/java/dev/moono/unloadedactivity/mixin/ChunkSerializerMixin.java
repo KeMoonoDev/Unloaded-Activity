@@ -6,6 +6,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceLocation;
 #endif
 
+#if MC_VER < MC_1_21_10
+import net.minecraft.core.RegistryAccess;
+#endif
 import dev.moono.unloadedactivity.GroupChunkIndex;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import net.minecraft.nbt.CompoundTag;
@@ -228,7 +231,7 @@ public abstract class ChunkSerializerMixin {
     #if MC_VER >= MC_1_21_10
     private static void fromNbt(LevelHeightAccessor world, PalettedContainerFactory palettesFactory, CompoundTag nbt, CallbackInfoReturnable<SerializableChunkData> cir) {
     #else
-    private static void parse(LevelHeightAccessor world, RegistryAccess registryAccess, CompoundTag nbt, CallbackInfoReturnable<SerializableChunkData> cir) {
+    private static void parse(LevelHeightAccessor levelHeightAccessor, RegistryAccess registryAccess, CompoundTag nbt, CallbackInfoReturnable<SerializableChunkData> cir) {
     #endif
         ChunkSerializerMixin serializedChunk = (ChunkSerializerMixin)(Object)cir.getReturnValue();
 

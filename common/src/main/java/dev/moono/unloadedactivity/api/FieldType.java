@@ -1,21 +1,16 @@
 package dev.moono.unloadedactivity.api;
 
-#if MC_VER >= MC_1_19_4
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.value_expression_containers.FixedValueExpression;
 import dev.moono.unloadedactivity.api.value_expression_containers.RandomizedValueExpression;
 import dev.moono.unloadedactivity.api.value_expression_containers.UpdatingValueExpression;
 import dev.moono.unloadedactivity.datapack.Condition;
 import dev.moono.unloadedactivity.datapack.ValueExpression;
-import net.minecraft.core.registries.BuiltInRegistries;
-#else
-import net.minecraft.core.Registry;
-#endif
-
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.*;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +20,7 @@ import java.util.Optional;
 public enum FieldType {
     NUMBER {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
             DataResult<Number> numberResult = ops.getNumberValue(input);
             if (numberResult.result().isPresent()) {
@@ -36,12 +31,7 @@ public enum FieldType {
 
             if (stringResult.result().isPresent()) {
                 String idUnparsed = stringResult.result().get();
-                Identifier id;
-                if (idUnparsed.indexOf(':') >= 0) {
-                    id = Identifier.parse(idUnparsed);
-                } else {
-                    id = Identifier.parse(UnloadedActivity.MOD_ID+":"+idUnparsed);
-                }
+                var id = UnloadedActivity.parseId(idUnparsed);
                 Optional<Number> maybeNumber = UnloadedActivity.numberFetcherRegistry.getNumber(id);
                 if (maybeNumber.isPresent()) return maybeNumber.get();
                 throw new RuntimeException("The ID \""+id+"\" is not mapped to a number.");
@@ -52,59 +42,46 @@ public enum FieldType {
     },
     BOOLEAN {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            return ops.getBooleanValue(input).getOrThrow();
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
+            return input.getAsJsonPrimitive().getAsBoolean();
         }
     },
     STRING {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            return ops.getStringValue(input).getOrThrow();
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
+            return input.getAsString();
         }
     },
     BLOCK {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            String unparsedBlockId = ops.getStringValue(input).getOrThrow();
-            var blockId = Identifier.parse(unparsedBlockId);
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
+            String unparsedBlockId = input.getAsString();
+            var blockId = GameUtils.parseId(unparsedBlockId);
+            Block block = GameUtils.getBlock(blockId);
 
-            #if MC_VER >= MC_1_19_4
-            Optional<Block> maybeBlock = BuiltInRegistries.BLOCK.getOptional(blockId);
-            #else
-            Optional<Block> maybeBlock = Registry.BLOCK.getOptional(blockId);
-            #endif
-
-            if (maybeBlock.isEmpty())
+            if (block == null)
                 throw new RuntimeException(blockId + " is not a valid block.");
 
-            return maybeBlock.get();
+            return block;
         }
     },
     ENTITY_TYPE {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            String unparsedEntityId = ops.getStringValue(input).getOrThrow();
-            var entityId = Identifier.parse(unparsedEntityId);
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
+            String unparsedEntityId = input.getAsString();
 
-            #if MC_VER >= MC_1_19_4
-            Optional<EntityType<?>> maybeEntity = BuiltInRegistries.ENTITY_TYPE.getOptional(entityId);
-            #else
-            Optional<EntityType<?>> maybeEntity = Registry.ENTITY_TYPE.getOptional(entityId);
-            #endif
+            var entityId = GameUtils.parseId(unparsedEntityId);
+            EntityType<?> entityType = GameUtils.getEntityType(entityId);
 
-            if (maybeEntity.isEmpty())
+            if (entityType == null)
                 throw new RuntimeException(entityId + " is not a valid entity.");
 
-            return maybeEntity.get();
+            return entityType;
         }
     },
     FIXED_NUMBER_EXPRESSION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
             ValueExpression<Number> numberExpression = ValueExpression.parseNumber(ops, input);
 
@@ -118,7 +95,7 @@ public enum FieldType {
     },
     UPDATING_NUMBER_EXPRESSION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
             ValueExpression<Number> numberExpression = ValueExpression.parseNumber(ops, input);
 
@@ -135,7 +112,7 @@ public enum FieldType {
     },
     RANDOMIZED_NUMBER_EXPRESSION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
             ValueExpression<Number> numberExpression = ValueExpression.parseNumber(ops, input);
 
@@ -149,25 +126,20 @@ public enum FieldType {
     },
     FIXED_BLOCK_EXPRESSION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
             ValueExpression<String> stringExpression = ValueExpression.parseString(ops, input);
 
             ValueExpression<Block> blockExpression = stringExpression.map(stringId -> {
                 if (stringId == null) return null;
 
-                var blockId = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.parse(stringId);
+                var blockId = GameUtils.parseId(stringId);
+                Block block = GameUtils.getBlock(blockId);
 
-                #if MC_VER >= MC_1_19_4
-                Optional<Block> maybeBlock = BuiltInRegistries.BLOCK.getOptional(blockId);
-                #else
-                Optional<Block> maybeBlock = Registry.BLOCK.getOptional(blockId);
-                #endif
-
-                if (maybeBlock.isEmpty())
+                if (block == null)
                     throw new RuntimeException(blockId + " is not a valid block.");
 
-                return maybeBlock.get();
+                return block;
             });
 
             if (superData != null) {
@@ -180,25 +152,20 @@ public enum FieldType {
     },
     UPDATING_BLOCK_EXPRESSION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
             ValueExpression<String> stringExpression = ValueExpression.parseString(ops, input);
 
             ValueExpression<Block> blockExpression = stringExpression.map(stringId -> {
                 if (stringId == null) return null;
 
-                var blockId = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.parse(stringId);
+                var blockId = GameUtils.parseId(stringId);
+                Block block = GameUtils.getBlock(blockId);
 
-                #if MC_VER >= MC_1_19_4
-                Optional<Block> maybeBlock = BuiltInRegistries.BLOCK.getOptional(blockId);
-                #else
-                Optional<Block> maybeBlock = Registry.BLOCK.getOptional(blockId);
-                #endif
-
-                if (maybeBlock.isEmpty())
+                if (block == null)
                     throw new RuntimeException(blockId + " is not a valid block.");
 
-                return maybeBlock.get();
+                return block;
             });
 
             if (superData != null) {
@@ -211,25 +178,20 @@ public enum FieldType {
     },
     RANDOMIZED_BLOCK_EXPRESSION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
             ValueExpression<String> stringExpression = ValueExpression.parseString(ops, input);
 
             ValueExpression<Block> blockExpression = stringExpression.map(stringId -> {
                 if (stringId == null) return null;
 
-                var blockId = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.parse(stringId);
+                var blockId = GameUtils.parseId(stringId);
+                Block block = GameUtils.getBlock(blockId);
 
-                #if MC_VER >= MC_1_19_4
-                Optional<Block> maybeBlock = BuiltInRegistries.BLOCK.getOptional(blockId);
-                #else
-                Optional<Block> maybeBlock = Registry.BLOCK.getOptional(blockId);
-                #endif
-
-                if (maybeBlock.isEmpty())
+                if (block == null)
                     throw new RuntimeException(blockId + " is not a valid block.");
 
-                return maybeBlock.get();
+                return block;
             });
 
             if (superData != null) {
@@ -242,9 +204,9 @@ public enum FieldType {
     },
     FIXED_CONDITION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
-            Condition condition = Condition.parse(ops, input).getOrThrow();
+            Condition condition = Condition.parse(ops, input).getOrThrow(#if MC_VER < MC_1_20_6 false, err -> {} #endif);
 
             if (condition.isRandom())
                 throw new RuntimeException("Condition is not fixed. The result can be random.");
@@ -260,9 +222,9 @@ public enum FieldType {
     },
     UPDATING_CONDITION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
-            Condition condition = Condition.parse(ops, input).getOrThrow();
+            Condition condition = Condition.parse(ops, input).getOrThrow(#if MC_VER < MC_1_20_6 false, err -> {} #endif);
 
             if (condition.isRandom())
                 throw new RuntimeException("Condition is not updating. The result can be random.");
@@ -272,16 +234,16 @@ public enum FieldType {
     },
     RANDOMIZED_CONDITION {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             JsonOps ops = JsonOps.INSTANCE;
-            Condition condition = Condition.parse(ops, input).getOrThrow();
+            Condition condition = Condition.parse(ops, input).getOrThrow(#if MC_VER < MC_1_20_6 false, err -> {} #endif);
 
             return condition;
         }
     },
     CONFIG {
         @Override
-        public <T> Object deserialize(JsonElement input, @Nullable Object superData) {
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
             if (!input.isJsonObject()) {
                 throw new RuntimeException("Config wasn't a JsonObject.");
             }
@@ -291,5 +253,5 @@ public enum FieldType {
         }
     };
 
-    public abstract<T> Object deserialize(JsonElement input, @Nullable Object superData);
+    public abstract Object deserialize(JsonElement input, @Nullable Object superData);
 }

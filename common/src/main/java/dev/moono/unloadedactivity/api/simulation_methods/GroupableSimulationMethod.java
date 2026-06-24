@@ -3,7 +3,7 @@ package dev.moono.unloadedactivity.api.simulation_methods;
 import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class GroupableSimulationMethod extends SeparableSimulationMethod {
 
     @Nullable
-    public final Identifier simulateWithGroup;
+    public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif simulateWithGroup;
 
     public GroupableSimulationMethod(SimulationConfig config) {
         super(config);
@@ -20,7 +20,7 @@ public abstract class GroupableSimulationMethod extends SeparableSimulationMetho
         if (simulateWithGroup == null) {
             this.simulateWithGroup = null;
         } else {
-            this.simulateWithGroup = Identifier.parse(simulateWithGroup);
+            this.simulateWithGroup = UnloadedActivity.parseId(simulateWithGroup);
         }
     }
 

@@ -1,20 +1,25 @@
 package dev.moono.unloadedactivity.api.simulation_methods;
 
+#if MC_VER >= MC_1_21_3
+import net.minecraft.world.entity.EntitySpawnReason;
+#endif
+
+#if MC_VER >= MC_1_21_11
+import net.minecraft.world.entity.animal.turtle.Turtle;
+#else
+import net.minecraft.world.entity.animal.Turtle;
+#endif
+
 import dev.moono.unloadedactivity.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.value_expression_containers.RandomizedValueExpression;
-import dev.moono.unloadedactivity.datapack.ExpressionContext;
-import dev.moono.unloadedactivity.datapack.ValueExpression;
-import dev.moono.unloadedactivity.datapack.value_expression.SimpleValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.turtle.Turtle;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;

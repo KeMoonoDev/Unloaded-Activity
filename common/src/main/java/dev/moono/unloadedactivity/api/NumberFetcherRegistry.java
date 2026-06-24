@@ -1,7 +1,7 @@
 package dev.moono.unloadedactivity.api;
 
 import dev.moono.unloadedactivity.datapack.ValueExpression;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -9,15 +9,15 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class NumberFetcherRegistry {
-    private HashMap<Identifier, ValueExpression<Number>> numberFetchers = new HashMap<>();
-    private HashMap<Identifier, Number> numbers = new HashMap<>();
+    private HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ValueExpression<Number>> numberFetchers = new HashMap<>();
+    private HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Number> numbers = new HashMap<>();
     private ArrayList<NumberFetcherFactory> dynamicNumberFetchers = new ArrayList<>();
 
-    public void register(Identifier id, ValueExpression<Number> value) {
+    public void register(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, ValueExpression<Number> value) {
         numberFetchers.put(id, value);
     };
 
-    public void registerNumber(Identifier id, Number number) {
+    public void registerNumber(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, Number number) {
         numbers.put(id, number);
     };
 
@@ -44,11 +44,11 @@ public class NumberFetcherRegistry {
         dynamicNumberFetchers.add(factory);
     };
 
-    public Optional<Number> getNumber(Identifier id) {
+    public Optional<Number> getNumber(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
         return Optional.ofNullable(numbers.get(id));
     };
 
-    public Optional<ValueExpression<Number>> resolve(Identifier id) {
+    public Optional<ValueExpression<Number>> resolve(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
         ValueExpression<Number> fetcher = numberFetchers.get(id);
         if (fetcher != null) return Optional.of(fetcher);
 
@@ -56,7 +56,7 @@ public class NumberFetcherRegistry {
     };
 
     @Nullable
-    private NumberFetcher resolveDynamicFetcher(Identifier id) {
+    private NumberFetcher resolveDynamicFetcher(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
         for (var dynamicNumberFetcher : dynamicNumberFetchers) {
             if (!dynamicNumberFetcher.namespace().equals(id.getNamespace())) {
                 continue;

@@ -1,14 +1,14 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
-import dev.moono.unloadedactivity.api.UnloadedActivityApi;
-import dev.moono.unloadedactivity.datapack.SimulationDataResource;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
 
+import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
+import dev.moono.unloadedactivity.api.UnloadedActivityApi;
+import dev.moono.unloadedactivity.datapack.SimulationDataResource;
 import dev.moono.unloadedactivity.config.BlockOrTag;
 import dev.moono.unloadedactivity.config.UnloadedActivityConfig;
 import dev.moono.unloadedactivity.api.NumberFetcherRegistry;
@@ -108,6 +108,16 @@ public class UnloadedActivity {
         return new ResourceLocation(MOD_ID, path);
         #endif
     }
+
+    public static #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif parseId(String path) {
+        if (path.indexOf(':') >= 0) {
+            return GameUtils.parseId(path);
+        } else {
+            return GameUtils.parseId(UnloadedActivity.MOD_ID+":"+path);
+        }
+    }
+
+
 
     public static void addChunkToQueue(MinecraftServer server, LevelChunk chunk) {
         server.addChunkToQueue(chunk);

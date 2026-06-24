@@ -7,13 +7,9 @@ import dev.moono.unloadedactivity.fabric.mixin.CropBlockInvoker;
 #endif
 
 #if MC_VER >= MC_1_19_4
+import net.minecraft.core.RegistryAccess;
 #endif
-#if MC_VER >= MC_1_21_3
-#elif MC_VER >= MC_1_20_2
-import net.minecraft.world.item.crafting.RecipeHolder;
-#else
-import net.minecraft.world.item.crafting.Recipe;
-#endif
+import net.minecraft.world.item.crafting.*;
 #if MC_VER >= MC_1_21_3
 #endif
 
@@ -26,6 +22,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 

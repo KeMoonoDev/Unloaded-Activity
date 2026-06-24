@@ -1,16 +1,13 @@
 package dev.moono.unloadedactivity.api.simulation_methods;
 
 import dev.moono.unloadedactivity.*;
-import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.SimulationMethod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.BambooSaplingBlock;
-import net.minecraft.world.level.block.BambooStalkBlock;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,7 +64,7 @@ public class GrowBambooMethod extends SimulationMethod {
                     this.simulate(lastState, level, lastPos, random, newTimePassed, randomPickOdds, hasDependents, groupSimulateData);
                 }
             }
-        } else if (thisBlock instanceof BambooStalkBlock bambooBlock) {
+        } else if (thisBlock instanceof #if MC_VER >= MC_1_19_4 BambooStalkBlock #else BambooBlock #endif bambooBlock) {
             int height = bambooBlock.getHeightBelowUpToMax(level, pos);
 
             if (height >= maxHeight)

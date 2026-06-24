@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.SimulationMethod;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.*;
 
 import java.util.*;
 import java.util.function.Function;
@@ -68,7 +68,7 @@ public class SimulationData {
 
             List<JsonObject> mergingMethodData = jsonObjects.subList(methodStartIndex, jsonObjects.size());
 
-            JsonObject firstProperty = mergingMethodData.getFirst();
+            JsonObject firstProperty = mergingMethodData.get(0);
             JsonElement jsonSimulationMethod = firstProperty.get("simulation_method");
 
             if (jsonSimulationMethod == null) {
@@ -81,12 +81,7 @@ public class SimulationData {
 
             String simulationTypeUnparsed = jsonSimulationMethod.getAsString();
 
-            Identifier simulationMethodId;
-            if (simulationTypeUnparsed.indexOf(':') >= 0) {
-                simulationMethodId = Identifier.parse(simulationTypeUnparsed);
-            } else {
-                simulationMethodId = Identifier.parse(UnloadedActivity.MOD_ID+":"+simulationTypeUnparsed);
-            }
+            var simulationMethodId = UnloadedActivity.parseId(simulationTypeUnparsed);
 
             Optional<Function<SimulationConfig, SimulationMethod>> maybeSimulationMethodConstructor = UnloadedActivity.simulationMethodRegistry.get(simulationMethodId);
 

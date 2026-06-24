@@ -50,11 +50,12 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
 
     public record AgeBloomConfig(int bloomAtAge, Block bloomBlock, FixedValueExpression<Number> bloomProbability, List<Condition> condititons) {
         public AgeBloomConfig(SimulationConfig config) {
-            int bloomAtAge = config.getNumber("bloom_at_age").intValue();
-            Block bloomBlock = config.getBlock("bloom_block");
-            FixedValueExpression<Number> bloomProbability = config.getFixedNumberExpression("bloom_probability");
-            List<Condition> condititons = config.getFixedConditionList("conditions");
-            this(bloomAtAge, bloomBlock, bloomProbability, condititons);
+            this(
+                config.getNumber("bloom_at_age").intValue(),
+                config.getBlock("bloom_block"),
+                config.getFixedNumberExpression("bloom_probability"),
+                config.getFixedConditionList("conditions")
+            );
         }
     }
 

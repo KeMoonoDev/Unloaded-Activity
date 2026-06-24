@@ -8,6 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 #if MC_VER >= MC_1_21_4
 import net.minecraft.resources.FileToIdConverter;
 #endif
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
 
 import com.mojang.datafixers.util.Pair;
 import dev.moono.unloadedactivity.GameUtils;
@@ -66,7 +69,7 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
             #else
             ResourceLocation
             #endif,
-            JsonElement
+                JsonElement
         > object,
         ResourceManager resourceManager,
         ProfilerFiller profilerFiller

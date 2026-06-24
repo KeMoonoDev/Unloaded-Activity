@@ -8,6 +8,11 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.block.entity.FuelValues;
 #endif
 
+#if MC_VER >= MC_1_21_1
+#else
+import net.minecraft.world.Container;
+#endif
+
 import dev.moono.unloadedactivity.interfaces.SimulateBlockEntity;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import net.minecraft.core.BlockPos;
@@ -18,6 +23,7 @@ import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.inventory.StackedContentsCompatible;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;

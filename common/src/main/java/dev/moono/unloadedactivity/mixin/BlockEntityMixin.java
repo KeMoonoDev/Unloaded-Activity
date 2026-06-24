@@ -1,15 +1,17 @@
 package dev.moono.unloadedactivity.mixin;
 
-import dev.moono.unloadedactivity.GameUtils;
-import dev.moono.unloadedactivity.interfaces.BlockEntityTimeData;
-import dev.moono.unloadedactivity.interfaces.SimulateBlockEntity;
-import dev.moono.unloadedactivity.UnloadedActivity;
 #if MC_VER > MC_1_20_4
+import net.minecraft.core.HolderLookup;
 #endif
 #if MC_VER > MC_1_21_5
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 #endif
+
+import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.interfaces.BlockEntityTimeData;
+import dev.moono.unloadedactivity.interfaces.SimulateBlockEntity;
+import dev.moono.unloadedactivity.UnloadedActivity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;

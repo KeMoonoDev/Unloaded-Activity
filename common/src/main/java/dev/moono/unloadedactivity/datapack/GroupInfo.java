@@ -1,13 +1,13 @@
 package dev.moono.unloadedactivity.datapack;
 
 #if MC_VER >= MC_1_21_11
-import com.google.common.collect.ImmutableList;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.BlockPos;
