@@ -1,6 +1,19 @@
 {
   "age": {
     "simulation_method": "max_property_growth",
+    "conditions": [
+      {
+        "check": "has_solid_neighbors",
+        "comparison": "equal",
+        "value": false
+      },
+      {
+        "check": "has_lava_neighbors",
+        "comparison": "equal",
+        "value": false
+      }
+    ],
+    "check_conditions_every_height": true,
     "property_name": "age",
     "update_neighbors": true,
     "update_type": "update_invisible",

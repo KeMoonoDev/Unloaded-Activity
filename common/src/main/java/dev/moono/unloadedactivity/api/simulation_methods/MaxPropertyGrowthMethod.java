@@ -31,6 +31,7 @@ import java.util.Optional;
 public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
     public String propertyName;
     public int updateType;
+    public boolean checkConditionsEveryHeight;
     public boolean updateNeighbors;
     public boolean reverseHeightGrowthDirection;
     public boolean stopUpdatingAfterMaxHeight;
@@ -63,6 +64,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
         super(config);
         this.propertyName = config.getString("property_name");
         this.updateType = config.getNumberOrDefault("update_type", Block.UPDATE_ALL).intValue();
+        this.checkConditionsEveryHeight = config.getBooleanOrDefault("check_conditions_every_height", false);
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);
         this.reverseHeightGrowthDirection = config.getBooleanOrDefault("reverse_height_growth_direction", false);
         this.stopUpdatingAfterMaxHeight = config.getBooleanOrDefault("stop_updating_after_max_height", false);
@@ -125,9 +127,6 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
             max = Math.min(propertyMax, calculated.intValue());
         }
 
-        int updateCount = Math.max(0, max - current);
-
-
         List<Block> currentLowerBlocks = Objects.requireNonNullElseGet(this.lowerBlocks, () -> List.of(thisBlock));
 
         int height;
@@ -162,42 +161,51 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
         int freeSpace;
         if (this.onlyInWater) {
             if (this.reverseHeightGrowthDirection) {
-                for(freeSpace = 1; level.getBlockState(pos.below(freeSpace)).is(Blocks.WATER) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
+                for(freeSpace = 1; level.getBlockState(pos.below(freeSpace)).is(Blocks.WATER) && freeSpace <= freeSpaceLimit && (!this.checkConditionsEveryHeight || this.hasValidConditions(state, level, pos.below(freeSpace - 1))); ++freeSpace) {}
             } else {
-                for(freeSpace = 1; level.getBlockState(pos.above(freeSpace)).is(Blocks.WATER) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
+                for(freeSpace = 1; level.getBlockState(pos.above(freeSpace)).is(Blocks.WATER) && freeSpace <= freeSpaceLimit && (!this.checkConditionsEveryHeight || this.hasValidConditions(state, level, pos.above(freeSpace - 1))); ++freeSpace) {}
             }
         } else {
             if (this.reverseHeightGrowthDirection) {
-                for(freeSpace = 1; level.isEmptyBlock(pos.below(freeSpace)) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
+                for(freeSpace = 1; level.isEmptyBlock(pos.below(freeSpace)) && freeSpace <= freeSpaceLimit && (!this.checkConditionsEveryHeight || this.hasValidConditions(state, level, pos.below(freeSpace - 1))); ++freeSpace) {}
             } else {
-                for(freeSpace = 1; level.isEmptyBlock(pos.above(freeSpace)) && freeSpace <= freeSpaceLimit; ++freeSpace) {}
+                for(freeSpace = 1; level.isEmptyBlock(pos.above(freeSpace)) && freeSpace <= freeSpaceLimit && (!this.checkConditionsEveryHeight || this.hasValidConditions(state, level, pos.above(freeSpace - 1))); ++freeSpace) {}
             }
         }
         --freeSpace;
 
         boolean reachedMax = freeSpace == freeSpaceLimit;
+        boolean failedConditions = false;
         boolean wasBlocked;
 
-        if (this.onlyInWater) {
-            if (this.reverseHeightGrowthDirection) {
-                wasBlocked = !level.getBlockState(pos.below(freeSpace + 1)).is(Blocks.WATER);
-            } else {
-                wasBlocked = !level.getBlockState(pos.above(freeSpace + 1)).is(Blocks.WATER);
-            }
+        BlockPos checkBlockedPos;
+        BlockPos checkConditionsPos;
+        if (this.reverseHeightGrowthDirection) {
+            checkBlockedPos = pos.below(freeSpace + 1);
+            checkConditionsPos = pos.below(freeSpace);
         } else {
-            if (this.reverseHeightGrowthDirection) {
-                wasBlocked = !level.isEmptyBlock(pos.below(freeSpace + 1));
-            } else {
-                wasBlocked = !level.isEmptyBlock(pos.above(freeSpace + 1));
-            }
+            checkBlockedPos = pos.above(freeSpace + 1);
+            checkConditionsPos = pos.above(freeSpace);
         }
 
-        // Updates for growing in height
-        updateCount += freeSpace;
+        if (this.onlyInWater) {
+            wasBlocked = !level.getBlockState(checkBlockedPos).is(Blocks.WATER);
+        } else {
+            wasBlocked = !level.isEmptyBlock(checkBlockedPos);
+        }
 
-        if (reachedMax && stopUpdatingAfterMaxHeight || wasBlocked && stopUpdatingAfterBlockage) {
+        if (this.checkConditionsEveryHeight) failedConditions = !this.hasValidConditions(state, level, checkConditionsPos);
+
+        // Updates for growing in height
+        int updateCount = freeSpace;
+
+        boolean stopAfterLastGrowth = reachedMax && stopUpdatingAfterMaxHeight || wasBlocked && stopUpdatingAfterBlockage || failedConditions;
+
+        if (stopAfterLastGrowth) {
+            if (freeSpace > 0) updateCount += Math.max(0, max - current);
             updateCount += max * Math.max(freeSpace - 1, 0);
         } else {
+            updateCount += Math.max(0, max - current);
             updateCount += max * freeSpace;
         }
 

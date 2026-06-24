@@ -49,18 +49,33 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         );
 
         registry.register(
-                UnloadedActivity.id("has_lava_neighbors_above"),
-                new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA), new Vec3i(0, 1, 0))
+            UnloadedActivity.id("has_lava_neighbors_above"),
+            new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA), new Vec3i(0, 1, 0))
         );
 
         registry.register(
-                UnloadedActivity.id("has_solid_neighbors_above"),
-                new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid(), new Vec3i(0, 1, 0))
+            UnloadedActivity.id("has_lava_neighbors"),
+            new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA))
         );
 
         registry.register(
-                UnloadedActivity.id("has_solid_neighbors_below"),
-                new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid(), new Vec3i(0, -1, 0))
+            UnloadedActivity.id("has_lava_neighbors_below"),
+            new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA), new Vec3i(0, -1, 0))
+        );
+
+        registry.register(
+            UnloadedActivity.id("has_solid_neighbors_above"),
+            new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid(), new Vec3i(0, 1, 0))
+        );
+
+        registry.register(
+            UnloadedActivity.id("has_solid_neighbors"),
+            new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid())
+        );
+
+        registry.register(
+            UnloadedActivity.id("has_solid_neighbors_below"),
+            new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid(), new Vec3i(0, -1, 0))
         );
 
         registry.register(
