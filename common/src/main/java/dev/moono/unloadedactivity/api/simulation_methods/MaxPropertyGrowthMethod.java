@@ -159,7 +159,6 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
 
         int freeSpaceLimit = this.maxHeight - height;
 
-
         int freeSpace;
         if (this.onlyInWater) {
             if (this.reverseHeightGrowthDirection) {
@@ -176,10 +175,27 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
         }
         --freeSpace;
 
+        boolean reachedMax = freeSpace == freeSpaceLimit;
+        boolean wasBlocked;
+
+        if (this.onlyInWater) {
+            if (this.reverseHeightGrowthDirection) {
+                wasBlocked = !level.getBlockState(pos.below(freeSpace + 1)).is(Blocks.WATER);
+            } else {
+                wasBlocked = !level.getBlockState(pos.above(freeSpace + 1)).is(Blocks.WATER);
+            }
+        } else {
+            if (this.reverseHeightGrowthDirection) {
+                wasBlocked = !level.isEmptyBlock(pos.below(freeSpace + 1));
+            } else {
+                wasBlocked = !level.isEmptyBlock(pos.above(freeSpace + 1));
+            }
+        }
+
         // Updates for growing in height
         updateCount += freeSpace;
 
-        if (stopUpdatingAfterMaxHeight) {
+        if (reachedMax && stopUpdatingAfterMaxHeight || wasBlocked && stopUpdatingAfterBlockage) {
             updateCount += max * Math.max(freeSpace - 1, 0);
         } else {
             updateCount += max * freeSpace;
