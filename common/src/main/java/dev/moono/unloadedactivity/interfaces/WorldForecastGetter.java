@@ -1,6 +1,6 @@
 package dev.moono.unloadedactivity.interfaces;
 
-import dev.moono.unloadedactivity.WorldWeatherForecast;
+import dev.moono.unloadedactivity.api.WorldWeatherForecast;
 
 public interface WorldForecastGetter {
     default WorldWeatherForecast getWeatherForecast() {

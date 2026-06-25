@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
 import dev.moono.unloadedactivity.api.UnloadedActivityApi;
-import dev.moono.unloadedactivity.datapack.SimulationDataResource;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import dev.moono.unloadedactivity.config.BlockOrTag;
 import dev.moono.unloadedactivity.config.UnloadedActivityConfig;
 import dev.moono.unloadedactivity.api.NumberFetcherRegistry;

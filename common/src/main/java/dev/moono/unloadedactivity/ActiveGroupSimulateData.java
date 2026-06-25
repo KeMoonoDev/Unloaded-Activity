@@ -1,10 +1,10 @@
 package dev.moono.unloadedactivity;
 
 import com.mojang.datafixers.util.Pair;
-import dev.moono.unloadedactivity.api.SimulationMethod;
-import dev.moono.unloadedactivity.api.simulation_methods.GroupableSimulationMethod;
-import dev.moono.unloadedactivity.datapack.ExpressionContext;
-import dev.moono.unloadedactivity.datapack.GroupMemberInfo;
+import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
+import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
+import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;

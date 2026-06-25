@@ -1,6 +1,8 @@
 package dev.moono.unloadedactivity.api;
 
-import dev.moono.unloadedactivity.datapack.ValueExpression;
+import dev.moono.unloadedactivity.api.number_fetcher.NumberFetcher;
+import dev.moono.unloadedactivity.api.number_fetcher.NumberFetcherFactory;
+import dev.moono.unloadedactivity.api.value_expression.ValueExpression;
 import net.minecraft.resources.*;
 import org.jetbrains.annotations.Nullable;
 

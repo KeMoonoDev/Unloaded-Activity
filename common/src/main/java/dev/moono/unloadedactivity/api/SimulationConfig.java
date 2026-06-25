@@ -2,12 +2,13 @@ package dev.moono.unloadedactivity.api;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import dev.moono.unloadedactivity.api.value_expression_containers.FixedValueExpression;
-import dev.moono.unloadedactivity.api.value_expression_containers.RandomizedValueExpression;
-import dev.moono.unloadedactivity.api.value_expression_containers.UpdatingValueExpression;
-import dev.moono.unloadedactivity.datapack.Condition;
-import dev.moono.unloadedactivity.datapack.ValueExpression;
+import dev.moono.unloadedactivity.impl.FieldType;
+import dev.moono.unloadedactivity.api.condition.FixedCondition;
+import dev.moono.unloadedactivity.api.condition.RandomizedCondition;
+import dev.moono.unloadedactivity.api.condition.UpdatingCondition;
+import dev.moono.unloadedactivity.api.value_expression.FixedValueExpression;
+import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
+import dev.moono.unloadedactivity.api.value_expression.UpdatingValueExpression;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
@@ -24,33 +25,6 @@ public class SimulationConfig {
             ArrayList<JsonElement> list = fieldValues.computeIfAbsent(entry.getKey(), ignored -> new ArrayList<>());
             list.add(entry.getValue());
         }
-        /*
-        for (var pair : schema.fieldsList) {
-            String fieldName = pair.getFirst();
-            TypeDescriptor typeDescriptor = pair.getSecond();
-            JsonElement input = jsonObject.get(fieldName);
-            if (input == null) continue;
-            switch (typeDescriptor.container()) {
-                case ContainerKind.NONE, ContainerKind.NULLABLE -> {
-                    fieldValues.put(fieldName, typeDescriptor.type().deserialize(JsonOps.INSTANCE, input, fieldValues.get(fieldName)));
-                }
-                case ContainerKind.LIST -> {
-                    ArrayList<Object> list = getList(fieldName, typeDescriptor.type());
-                    input.getAsJsonArray().forEach(element -> {
-                        list.add(typeDescriptor.type().deserialize(JsonOps.INSTANCE, element, null));
-                    });
-                }
-                case ContainerKind.MAP -> {
-                    HashMap<String, Object> map = getMap(fieldName, typeDescriptor.type());
-                    input.getAsJsonObject().entrySet().forEach(entry -> {
-                        String key = entry.getKey();
-                        map.compute(key, (k, superData) -> typeDescriptor.type().deserialize(JsonOps.INSTANCE, entry.getValue(), superData));
-                    });
-                }
-            }
-        }
-
-         */
     }
     public boolean isDefined(String fieldName) {
         List<JsonElement> elements = this.fieldValues.get(fieldName);
@@ -370,73 +344,73 @@ public class SimulationConfig {
 
 
     @Nullable
-    public Condition getFixedConditionNullable(String fieldName) {
+    public FixedCondition getFixedConditionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.FIXED_CONDITION);
     }
 
-    public Condition getFixedCondition(String fieldName) {
+    public FixedCondition getFixedCondition(String fieldName) {
         var value = getFixedConditionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public Condition getFixedConditionOrDefault(String fieldName, Condition defaultValue) {
+    public FixedCondition getFixedConditionOrDefault(String fieldName, FixedCondition defaultValue) {
         var value = getFixedConditionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<Condition> getFixedConditionList(String fieldName) {
+    public ArrayList<FixedCondition> getFixedConditionList(String fieldName) {
         return this.getList(fieldName, FieldType.FIXED_CONDITION);
     }
 
-    public HashMap<String, Condition> getFixedConditionMap(String fieldName) {
+    public HashMap<String, FixedCondition> getFixedConditionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.FIXED_CONDITION);
     }
 
 
     @Nullable
-    public Condition getUpdatingConditionNullable(String fieldName) {
+    public UpdatingCondition getUpdatingConditionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.UPDATING_CONDITION);
     }
 
-    public Condition getUpdatingCondition(String fieldName) {
+    public UpdatingCondition getUpdatingCondition(String fieldName) {
         var value = getUpdatingConditionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public Condition getUpdatingConditionOrDefault(String fieldName, Condition defaultValue) {
+    public UpdatingCondition getUpdatingConditionOrDefault(String fieldName, UpdatingCondition defaultValue) {
         var value = getUpdatingConditionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<Condition> getUpdatingConditionList(String fieldName) {
+    public ArrayList<UpdatingCondition> getUpdatingConditionList(String fieldName) {
         return this.getList(fieldName, FieldType.UPDATING_CONDITION);
     }
 
-    public HashMap<String, Condition> getUpdatingConditionMap(String fieldName) {
+    public HashMap<String, UpdatingCondition> getUpdatingConditionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.UPDATING_CONDITION);
     }
 
 
     @Nullable
-    public Condition getRandomizedConditionNullable(String fieldName) {
+    public RandomizedCondition getRandomizedConditionNullable(String fieldName) {
         return this.getValue(fieldName, FieldType.RANDOMIZED_CONDITION);
     }
 
-    public Condition getRandomizedCondition(String fieldName) {
+    public RandomizedCondition getRandomizedCondition(String fieldName) {
         var value = getRandomizedConditionNullable(fieldName);
         return throwIfNull(value, fieldName);
     }
 
-    public Condition getRandomizedConditionOrDefault(String fieldName, Condition defaultValue) {
+    public RandomizedCondition getRandomizedConditionOrDefault(String fieldName, RandomizedCondition defaultValue) {
         var value = getRandomizedConditionNullable(fieldName);
         return value != null ? value : defaultValue;
     }
 
-    public ArrayList<Condition> getRandomizedConditionList(String fieldName) {
+    public ArrayList<RandomizedCondition> getRandomizedConditionList(String fieldName) {
         return this.getList(fieldName, FieldType.RANDOMIZED_CONDITION);
     }
 
-    public HashMap<String, Condition> getRandomizedConditionMap(String fieldName) {
+    public HashMap<String, RandomizedCondition> getRandomizedConditionMap(String fieldName) {
         return this.getMap(fieldName, FieldType.RANDOMIZED_CONDITION);
     }
 

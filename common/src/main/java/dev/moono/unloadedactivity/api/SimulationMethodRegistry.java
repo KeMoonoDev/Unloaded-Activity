@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity.api;
 
+import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import net.minecraft.resources.*;
 
 import java.util.HashMap;

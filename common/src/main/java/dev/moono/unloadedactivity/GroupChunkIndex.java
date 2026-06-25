@@ -1,14 +1,18 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
+import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationData;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
 
-import dev.moono.unloadedactivity.api.SimulationMethod;
-import dev.moono.unloadedactivity.api.simulation_methods.GroupableSimulationMethod;
-import dev.moono.unloadedactivity.datapack.*;
+import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
+import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;

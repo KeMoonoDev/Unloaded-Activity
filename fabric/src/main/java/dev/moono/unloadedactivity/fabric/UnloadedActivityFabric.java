@@ -6,8 +6,8 @@ import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 #endif
 
-import dev.moono.unloadedactivity.datapack.GroupInfoResource;
-import dev.moono.unloadedactivity.datapack.SimulationDataResource;
+import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.UnloadedActivityCommand;
 import dev.moono.unloadedactivity.fabric.platform.FabricPlatformHelper;

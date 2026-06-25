@@ -2,8 +2,8 @@ package dev.moono.unloadedactivity.neoforge;
 
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.UnloadedActivityCommand;
-import dev.moono.unloadedactivity.datapack.SimulationDataResource;
-import dev.moono.unloadedactivity.datapack.GroupInfoResource;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
+import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -16,7 +16,6 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 public class NeoForgeEventHandler {
