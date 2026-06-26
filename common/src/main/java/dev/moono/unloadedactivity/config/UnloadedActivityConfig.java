@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.config;
 
 #if MC_VER >= MC_1_21_11
+import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +24,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import com.mojang.datafixers.util.Either;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import net.minecraft.commands.CommandSourceStack;
@@ -45,7 +45,7 @@ import static net.minecraft.commands.Commands.literal;
 
 public class UnloadedActivityConfig {
 
-    private transient Int2BooleanOpenHashMap blacklistCache = new Int2BooleanOpenHashMap();
+    private transient Reference2BooleanOpenHashMap<Block> blacklistCache = new Reference2BooleanOpenHashMap<>();
 
     public static class SimpleOption<T> implements ConfigOption {
         public ArgumentType<T> argumentType;
@@ -243,19 +243,18 @@ public class UnloadedActivityConfig {
         configOptions.add(new IdList(name, getter));
     }
 
-    public boolean isBlockBlacklisted(BlockState state) {
-        return blacklistCache.computeIfAbsent(GameUtils.getBlockIntId(state.getBlock()), (unused) -> {
-            var blockId = GameUtils.getBlockId(state.getBlock());
+    public boolean isBlockBlacklisted(Block block) {
+        boolean blacklistHasBlocks = !blacklistedBlocks.isEmpty();
+        return blacklistHasBlocks && blacklistCache.computeIfAbsent(block, (unused) -> {
+            var blockId = GameUtils.getBlockId(block);
             for (var blacklisted : blacklistedBlocks) {
                 boolean isBlacklisted;
                 if (blacklisted.isTag) {
-                    #if MC_VER >= MC_1_19_4
-                    var resourceKey = Registries.BLOCK;
-                    #else
-                    var resourceKey = Registry.BLOCK_REGISTRY;
-                    #endif
-
-                    isBlacklisted = state.is(TagKey.create(resourceKey, blacklisted.id));
+                    isBlacklisted = block
+                        .defaultBlockState()
+                        .typeHolder()
+                        .tags()
+                        .anyMatch(tagKey -> tagKey.location().equals(blacklisted.id));
                 } else {
                     isBlacklisted = blockId.equals(blacklisted.id);
                 }
@@ -433,15 +432,15 @@ public class UnloadedActivityConfig {
     public int maxGroupUpdatesPerTick = 1;
     public int groupTickDifferenceThreshold = 1000;
     public float maxGroupTickDeviationScale = 0.1F;
-    public int maxForcedChunkLoads = 8;
+    public int maxForcedChunkLoads = 0;
     public int maxGroupTickIterations = 128;
     public int minGroupTickIterations = 8;
     public float groupTickUpdateStrength = 1F;
-    public int maxGroupTickSize = 5000;
+    public int maxGroupTickSize = 2500;
 
     //Chunk
-    public int maxChunksIndexedPerTick = 8;
-    public int maxChunkUpdatesPerTick = 64;
+    public int maxChunksIndexedPerTick = 4;
+    public int maxChunkUpdatesPerTick = 24;
     public boolean randomizeBlockUpdates = false;
     public ArrayList<BlockOrTag> blacklistedBlocks = new ArrayList<>();
     public boolean multiplyMaxChunkUpdatesPerPlayer = false;

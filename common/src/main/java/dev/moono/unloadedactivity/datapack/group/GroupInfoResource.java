@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.datapack.group;
 
 #if MC_VER >= MC_1_21_11
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -12,7 +13,6 @@ import net.minecraft.resources.FileToIdConverter;
 import com.mojang.datafixers.util.Pair;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -29,7 +29,7 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     public static final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif GROUPS_ID = UnloadedActivity.id("simulate_groups");
 
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, GroupInfo> GROUPS_MAP = new HashMap<>();
-    public static final Int2ObjectOpenHashMap<List<GroupMemberInfo>> BLOCK_MEMBERSHIPS = new Int2ObjectOpenHashMap<>();
+    public static final Reference2ObjectOpenHashMap<Block, List<GroupMemberInfo>> BLOCK_MEMBERSHIPS = new Reference2ObjectOpenHashMap<>();
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ArrayList<Pair<GroupInfo, IncompleteGroupMemberInfo>>> BLOCKS_WITH_GROUPS_MAP = new HashMap<>();
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ArrayList<Pair<GroupInfo, IncompleteGroupMemberInfo>>> TAGS_WITH_GROUPS_MAP = new HashMap<>();
 
@@ -137,7 +137,7 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     }
 
     public static List<GroupMemberInfo> getBlockMemberInfo(Block block) {
-        return BLOCK_MEMBERSHIPS.computeIfAbsent(GameUtils.getBlockIntId(block), (ignored) -> {
+        return BLOCK_MEMBERSHIPS.computeIfAbsent(block, (ignored) -> {
             HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ArrayList<IncompleteGroupMemberInfo>> dataToBeCombined = new HashMap<>();
             block.builtInRegistryHolder().tags().forEach((tag) -> {
                 for (var tagGroupData : TAGS_WITH_GROUPS_MAP.getOrDefault(tag.location(), new ArrayList<>())) {

@@ -91,7 +91,7 @@ public class GroupChunkIndex {
             if (maybeGroupMemberInfo.isEmpty())
                 return true;
 
-            if (UnloadedActivity.config.isBlockBlacklisted(state)) {
+            if (UnloadedActivity.config.isBlockBlacklisted(block)) {
                 return false;
             }
 

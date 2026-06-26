@@ -743,11 +743,11 @@ public class TimeMachine {
         while (blockHasChanged) {
             blockHasChanged = false;
 
-            if (UnloadedActivity.config.isBlockBlacklisted(state)) {
+            Block block = state.getBlock();
+
+            if (UnloadedActivity.config.isBlockBlacklisted(block)) {
                 break;
             }
-
-            Block block = state.getBlock();
 
             // This is not a HashMap because most of the time a block only has 1 or 2 properties.
             // It's not worth the overhead.

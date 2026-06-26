@@ -75,10 +75,6 @@ public class GameUtils {
         return getBlockRegistry().getKey(block);
     }
 
-    public static int getBlockIntId(Block block) {
-        return getBlockRegistry().getId(block);
-    }
-
     public static long getTime(Level level) {
         #if MC_VER >= MC_26_1_2
         return level.getDefaultClockTime();

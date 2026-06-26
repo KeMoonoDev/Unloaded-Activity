@@ -3,6 +3,7 @@ package dev.moono.unloadedactivity.datapack.simulation_data;
 #if MC_VER >= MC_1_21_11
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.datapack.JsonResourcesCollector;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.resources.Identifier;
 #else
 import com.mojang.datafixers.util.Pair;
@@ -17,7 +18,6 @@ import com.google.gson.*;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.world.level.block.Block;
 
 import java.util.*;
@@ -34,7 +34,7 @@ public class SimulationDataResource extends JsonResourcesCollector {
 
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>> TAG_MAP = new HashMap<>();
     public static final Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>> BLOCK_MAP = new HashMap<>();
-    public static final Int2ObjectOpenHashMap<SimulationData> COMPLETE_BLOCK_MAP = new Int2ObjectOpenHashMap<>();
+    public static final Reference2ObjectOpenHashMap<Block, SimulationData> COMPLETE_BLOCK_MAP = new Reference2ObjectOpenHashMap<>();
 
     public SimulationDataResource(boolean isBlocks) {
         super(
@@ -140,7 +140,7 @@ public class SimulationDataResource extends JsonResourcesCollector {
             sortedData.addAll(sortedBlockData);
 
             try {
-                COMPLETE_BLOCK_MAP.put(GameUtils.getBlockIntId(block), new SimulationData(sortedData));
+                COMPLETE_BLOCK_MAP.put(block, new SimulationData(sortedData));
             } catch (Exception e) {
                 UnloadedActivity.LOGGER.error("Failed to create SimulationData for " + blockId + ".\n" + e.getMessage());
             }
@@ -150,7 +150,7 @@ public class SimulationDataResource extends JsonResourcesCollector {
     }
 
     public static Optional<SimulationData> getSimulationData(Block block) {
-        return Optional.ofNullable(COMPLETE_BLOCK_MAP.get(GameUtils.getBlockIntId(block)));
+        return Optional.ofNullable(COMPLETE_BLOCK_MAP.get(block));
     }
 
     public static int compareJsonPriority(JsonObject a, JsonObject b) {
