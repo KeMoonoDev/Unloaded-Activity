@@ -37,34 +37,36 @@ public abstract class JsonResourcesCollector extends SimplePreparableReloadListe
     protected Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>> prepare(final ResourceManager manager, final ProfilerFiller profiler) {
         Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>> result = new HashMap<>();
         #if MC_VER >= MC_1_21_4
-        for(var entry : lister.listMatchingResources(manager).entrySet()) {
+        for(var entry : lister.listMatchingResourceStacks(manager).entrySet()) {
             var location = entry.getKey();
             var id = lister.fileToId(location);
         #else
         int pathPrefixLength = this.directory.length() + 1;
         int pathSuffixLength = ".json".length();
-        for(var entry : manager.listResources(this.directory, location -> location.getPath().endsWith(".json")).entrySet()) {
+        for(var entry : manager.listResourceStacks(this.directory, location -> location.getPath().endsWith(".json")).entrySet()) {
             var location = entry.getKey();
             String path = location.getPath();
             var id = GameUtils.parseId(location.getNamespace() + ":" + path.substring(pathPrefixLength, path.length() - pathSuffixLength));
-            #endif
-            try (Reader reader = entry.getValue().openAsReader()) {
-                JsonElement parsed = JsonParser.parseReader(reader);
-                if (!parsed.isJsonObject()) {
-                    UnloadedActivity.LOGGER.error("Data file '{}' from '{}' didn't return a JsonObject. It will be ignored.", id, location);
+        #endif
+            for (var resource : entry.getValue()) {
+                try (Reader reader = resource.openAsReader()) {
+                    JsonElement parsed = JsonParser.parseReader(reader);
+                    if (!parsed.isJsonObject()) {
+                        UnloadedActivity.LOGGER.error("Data file '{}' from '{}' didn't return a JsonObject. It will be ignored.", id, location);
+                    }
+
+                    JsonObject jsonObject = parsed.getAsJsonObject();
+
+                    JsonElement priority = jsonObject.get("priority");
+
+                    if (priority != null && (!priority.isJsonPrimitive() || !priority.getAsJsonPrimitive().isNumber())) {
+                        UnloadedActivity.LOGGER.error("Data file '{}' from '{}' defines the field \"priority\" as something that is not a number or null. It will be defaulted to 1000.", id, location);
+                    }
+
+                    result.computeIfAbsent(id, ignored -> new ArrayList<>()).add(parsed.getAsJsonObject());
+                } catch (IllegalArgumentException | IOException | JsonParseException e) {
+                    UnloadedActivity.LOGGER.error("Couldn't parse data file '{}' from '{}'", id, location, e);
                 }
-
-                JsonObject jsonObject = parsed.getAsJsonObject();
-
-                JsonElement priority = jsonObject.get("priority");
-
-                if (priority != null && (!priority.isJsonPrimitive() || !priority.getAsJsonPrimitive().isNumber())) {
-                    UnloadedActivity.LOGGER.error("Data file '{}' from '{}' defines the field \"priority\" as something that is not a number or null. It will be defaulted to 1000.", id, location);
-                }
-
-                result.computeIfAbsent(id, ignored -> new ArrayList<>()).add(parsed.getAsJsonObject());
-            } catch (IllegalArgumentException | IOException | JsonParseException e) {
-                UnloadedActivity.LOGGER.error("Couldn't parse data file '{}' from '{}'", id, location, e);
             }
         }
 
