@@ -1,5 +1,11 @@
 package dev.moono.unloadedactivity.impl.number_fetchers;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.world.level.gamerules.GameRules;
+#else
+import net.minecraft.world.level.GameRules;
+#endif
+
 import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
 import net.minecraft.world.level.block.SnowLayerBlock;
