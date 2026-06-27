@@ -2,6 +2,7 @@ package dev.moono.unloadedactivity.api;
 
 import com.mojang.datafixers.util.Pair;
 import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
@@ -77,7 +78,7 @@ public class ActiveGroupSimulateData {
         return blockState;
     }
 
-    public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, ExpressionContext context) {
+    public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, UpdatingContext context) {
         if (this.nextOddsSwitchDuration <= 0) {
             if (this.simulationMethod == null) {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
@@ -86,7 +87,7 @@ public class ActiveGroupSimulateData {
             }
 
             if (this.simulationMethod.advanceProbability.canBeAffectedByTime) {
-                this.nextOddsSwitchDuration = this.simulationMethod.advanceProbability.inner.getNextValueSwitchDuration(context);
+                this.nextOddsSwitchDuration = this.simulationMethod.advanceProbability.getNextValueSwitchDuration(context);
             } else {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
             }
@@ -95,7 +96,7 @@ public class ActiveGroupSimulateData {
                 this.nextOddsSwitchDuration = Math.min(this.nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }
 
-            this.currentOdds = this.simulationMethod.advanceProbability.inner.evaluate(context).floatValue();
+            this.currentOdds = this.simulationMethod.advanceProbability.evaluate(context).floatValue();
         }
         return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
     }

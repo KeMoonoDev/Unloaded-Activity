@@ -2,6 +2,7 @@ package dev.moono.unloadedactivity.api.condition;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,6 +19,10 @@ public class FixedCondition extends UpdatingCondition {
 
         if (this.canBeAffectedByTime)
             throw new IllegalArgumentException("Provided ValueExpression can be affected by time.");
+    }
+
+    public boolean isValid(FixedContext context) {
+        return inner.isValid((ExpressionContext)context);
     }
 
     public boolean isValidFixed(ServerLevel level, BlockState state, BlockPos pos, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {

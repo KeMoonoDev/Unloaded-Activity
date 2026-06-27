@@ -2,6 +2,7 @@ package dev.moono.unloadedactivity.api.condition;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.RandomizedContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,6 +21,10 @@ public class RandomizedCondition {
 
         this.canBeAffectedByWeather = condition.canBeAffectedByWeather();
         this.canBeAffectedByTime = condition.canBeAffectedByTime();
+    }
+
+    public boolean isValid(RandomizedContext context) {
+        return inner.isValid((ExpressionContext)context);
     }
 
     public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {

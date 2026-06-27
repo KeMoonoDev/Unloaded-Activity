@@ -4,6 +4,7 @@ package dev.moono.unloadedactivity;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
 import dev.moono.unloadedactivity.api.WorldWeatherForecast;
+import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import dev.moono.unloadedactivity.api.value_expression.UpdatingValueExpression;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import net.minecraft.core.BlockPos;
@@ -53,9 +54,9 @@ public class MathUtils {
                 continue;
             }
 
-            ExpressionContext calculationData = ExpressionContext.updating(level, state, pos, currentTime, Map.of(), groupSimulateData);
+            UpdatingContext context = UpdatingContext.of(level, state, pos, currentTime, groupSimulateData);
 
-            long nextOddsSwitchDuration = probability.inner.getNextValueSwitchDuration(calculationData);
+            long nextOddsSwitchDuration = probability.getNextValueSwitchDuration(context);
             if (requiresRain || probability.canBeAffectedByWeather) {
                 long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
                 nextOddsSwitchDuration = Math.min(nextOddsSwitchDuration, nextWeatherSwitchDuration);
@@ -63,7 +64,7 @@ public class MathUtils {
 
             long simulateForCycles = Math.min(nextOddsSwitchDuration, remainingCycles);
 
-            float odds = probability.inner.evaluate(calculationData).floatValue();
+            float odds = probability.evaluate(context).floatValue();
             float totalOdds = odds * randomPickOdds;
 
             if (UnloadedActivity.config.debugLogs)

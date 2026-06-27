@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -97,7 +98,7 @@ public class GroupChunkIndex {
             GroupMemberInfo groupMemberInfo = maybeGroupMemberInfo.get();
 
             if (!groupMemberInfo.conditions.isEmpty()) {
-                ExpressionContext context = ExpressionContext.fixed(serverLevel, state, pos, Map.of(), null);
+                FixedContext context = FixedContext.of(serverLevel, state, pos);
                 for (var condition : groupMemberInfo.conditions) {
                     if (!condition.isValid(context)) {
                         return false;

@@ -4,6 +4,7 @@ import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.condition.FixedCondition;
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.value_expression.UpdatingValueExpression;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import net.minecraft.core.BlockPos;
@@ -43,9 +44,9 @@ public abstract class SimulationMethod {
     }
 
     public boolean hasValidConditions(BlockState state, ServerLevel level, BlockPos pos) {
-        ExpressionContext fixedContext = ExpressionContext.fixed(level, state, pos, Map.of(), null);
+        FixedContext context = FixedContext.of(level, state, pos);
         for (FixedCondition condition : this.conditions) {
-            if (!condition.inner.isValid(fixedContext)) {
+            if (!condition.isValid(context)) {
                 return false;
             }
         }

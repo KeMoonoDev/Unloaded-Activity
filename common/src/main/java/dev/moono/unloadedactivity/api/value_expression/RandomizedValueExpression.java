@@ -2,6 +2,7 @@ package dev.moono.unloadedactivity.api.value_expression;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.RandomizedContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,6 +20,10 @@ public class RandomizedValueExpression<T> {
         this.inner = value;
         this.canBeAffectedByWeather = value.canBeAffectedByWeather();
         this.canBeAffectedByTime = value.canBeAffectedByTime();
+    }
+
+    public T evaluate(RandomizedContext context) {
+        return inner.evaluate((ExpressionContext) context);
     }
 
     public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {

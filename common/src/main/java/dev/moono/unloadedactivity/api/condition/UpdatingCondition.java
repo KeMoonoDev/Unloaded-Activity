@@ -2,6 +2,7 @@ package dev.moono.unloadedactivity.api.condition;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,6 +16,10 @@ public class UpdatingCondition extends RandomizedCondition {
 
         if (condition.isRandom())
             throw new IllegalArgumentException("Provided Condition has a randomized result.");
+    }
+
+    public boolean isValid(UpdatingContext context) {
+        return inner.isValid((ExpressionContext)context);
     }
 
     public boolean isValidUpdating(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {

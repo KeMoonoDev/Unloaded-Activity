@@ -4,6 +4,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import dev.moono.unloadedactivity.api.condition.Condition;
+import dev.moono.unloadedactivity.api.condition.FixedCondition;
 import net.minecraft.core.Vec3i;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +16,7 @@ import static dev.moono.unloadedactivity.GameUtils.returnError;
 public class IncompleteGroupMemberInfo {
     public @Nullable Float value;
     public final ArrayList<Vec3i> ignoredOffsets = new ArrayList<>();
-    public final ArrayList<Condition> conditions = new ArrayList<>();
+    public final ArrayList<FixedCondition> conditions = new ArrayList<>();
 
     public void merge(IncompleteGroupMemberInfo otherGroupMemberInfo) {
         if (otherGroupMemberInfo.value != null) this.value = otherGroupMemberInfo.value;
@@ -70,7 +71,9 @@ public class IncompleteGroupMemberInfo {
                         return returnError(result);
                     }
 
-                    groupMemberInfo.conditions.add(result.result().get());
+                    Condition condition = result.result().get();
+
+                    groupMemberInfo.conditions.add(new FixedCondition(condition));
                 }
             }
         }

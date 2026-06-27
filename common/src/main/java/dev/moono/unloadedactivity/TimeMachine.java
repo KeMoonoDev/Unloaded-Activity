@@ -2,6 +2,7 @@ package dev.moono.unloadedactivity;
 
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
@@ -337,9 +338,9 @@ public class TimeMachine {
                         BlockState state = simulationData.getState();
                         BlockPos pos = simulationData.position;
 
-                        ExpressionContext calculationData = ExpressionContext.updating(level, state, pos, simulationCurrentTime, Map.of(), simulationData);
+                        UpdatingContext context = UpdatingContext.of(level, state, pos, simulationCurrentTime, simulationData);
 
-                        Pair<Float, Long> oddsAndDuration = simulationData.updateAndGetOdds(nextWeatherSwitchDuration, calculationData);
+                        Pair<Float, Long> oddsAndDuration = simulationData.updateAndGetOdds(nextWeatherSwitchDuration, context);
 
                         minNextOddsSwitchDuration = Math.min(minNextOddsSwitchDuration, oddsAndDuration.getSecond());
 

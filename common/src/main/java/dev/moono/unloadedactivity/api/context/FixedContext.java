@@ -1,6 +1,8 @@
 package dev.moono.unloadedactivity.api.context;
 
 #if MC_VER >= MC_1_21_11
+import dev.moono.unloadedactivity.api.condition.FixedCondition;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.gamerules.GameRules;
 #else
 import net.minecraft.world.level.GameRules;
@@ -21,4 +23,20 @@ public interface FixedContext {
     Map<String, Number> getNumberMap();
     @Nullable ActiveGroupSimulateData getGroupSimulateData();
     GameRules getGameRules();
+
+    static FixedContext of(ServerLevel level, BlockState state, BlockPos pos, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return ExpressionContext.fixed(level, state, pos, numberMap, activeGroupSimulateData);
+    }
+
+    static FixedContext of(ServerLevel level, BlockState state, BlockPos pos, Map<String, Number> numberMap) {
+        return ExpressionContext.fixed(level, state, pos, numberMap, null);
+    }
+
+    static FixedContext of(ServerLevel level, BlockState state, BlockPos pos, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return ExpressionContext.fixed(level, state, pos, Map.of(), activeGroupSimulateData);
+    }
+
+    static FixedContext of(ServerLevel level, BlockState state, BlockPos pos) {
+        return ExpressionContext.fixed(level, state, pos, Map.of(), null);
+    }
 }

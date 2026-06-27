@@ -5,6 +5,7 @@ import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.condition.FixedCondition;
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.simulation_method.SeparableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.FixedValueExpression;
 import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
@@ -290,9 +291,9 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
 
                     boolean doContinue = false;
 
-                    ExpressionContext fixedContext = ExpressionContext.fixed(level, state, pos, Map.of("height", height + i), null);
+                    FixedContext context = FixedContext.of(level, state, pos, Map.of("height", height + i));
                     for (FixedCondition condition : this.ageBloom.conditions) {
-                        if (!condition.inner.isValid(fixedContext)) {
+                        if (!condition.isValid(context)) {
                             doContinue = true;
                             break;
                         }
@@ -301,7 +302,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                     if (doContinue) continue;
 
 
-                    double chanceToGrowFlower = this.ageBloom.bloomProbability.inner.evaluate(fixedContext).doubleValue();
+                    double chanceToGrowFlower = this.ageBloom.bloomProbability.evaluate(context).doubleValue();
 
                     RandomSource random = GameUtils.getRand(level);
 
