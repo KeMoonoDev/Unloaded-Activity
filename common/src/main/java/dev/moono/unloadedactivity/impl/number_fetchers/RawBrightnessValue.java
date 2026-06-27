@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity.impl.number_fetchers;
 
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -18,7 +19,7 @@ public class RawBrightnessValue implements FixedNumberFetcher {
     }
 
     @Override
-    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
-        return level.getRawBrightness(pos.offset(offset), 0);
+    public Number evaluate(FixedContext context) {
+        return context.getLevel().getRawBrightness(context.getBlockPos().offset(offset), 0);
     }
 }

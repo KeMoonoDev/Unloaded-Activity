@@ -1,9 +1,11 @@
 package dev.moono.unloadedactivity.impl.number_fetchers;
 
 import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
@@ -20,7 +22,8 @@ public class PropertyValue implements FixedNumberFetcher {
     }
 
     @Override
-    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
+    public Number evaluate(FixedContext context) {
+        BlockState state = context.getBlockState();
         Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, propertyName);
         if (maybeProperty.isEmpty())
             return Float.NaN;

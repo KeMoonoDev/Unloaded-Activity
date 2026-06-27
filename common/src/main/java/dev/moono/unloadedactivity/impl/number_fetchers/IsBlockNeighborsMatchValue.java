@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity.impl.number_fetchers;
 
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,9 +24,9 @@ public class IsBlockNeighborsMatchValue implements FixedNumberFetcher {
     }
 
     @Override
-    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
+    public Number evaluate(FixedContext context) {
         for(Direction direction : Direction.Plane.HORIZONTAL) {
-            BlockState targetState = level.getBlockState(pos.offset(offset).relative(direction));
+            BlockState targetState = context.getLevel().getBlockState(context.getBlockPos().offset(offset).relative(direction));
             if (this.isMatch.test(targetState)) return 1;
         }
         return 0;

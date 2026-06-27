@@ -1,23 +1,32 @@
-package dev.moono.unloadedactivity.api;
+package dev.moono.unloadedactivity.api.context;
 
-import dev.moono.unloadedactivity.ActiveGroupSimulateData;
+#if MC_VER >= MC_1_21_11
+import net.minecraft.world.level.gamerules.GameRules;
+#else
+import net.minecraft.world.level.GameRules;
+#endif
+
+import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.GameUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public class ExpressionContext {
-    public final ServerLevel level;
-    public final BlockState state;
-    public final BlockPos pos;
-    public final long currentTime;
-    public final boolean isRaining;
-    public final boolean isThundering;
-    public final Map<String, Number> numberMap;
+public class ExpressionContext extends RandomizedContext {
+    private final ServerLevel level;
+    private final BlockState state;
+    private final BlockPos pos;
+    private final long currentTime;
+    private final boolean isRaining;
+    private final boolean isThundering;
+    private final Map<String, Number> numberMap;
     @Nullable
-    public final ActiveGroupSimulateData activeGroupSimulateData;
+    private final ActiveGroupSimulateData activeGroupSimulateData;
 
 
     public static ExpressionContext fixed(ServerLevel level, BlockState state, BlockPos pos, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
@@ -47,5 +56,55 @@ public class ExpressionContext {
         }
         this.numberMap = numberMap;
         this.activeGroupSimulateData = activeGroupSimulateData;
+    }
+
+    @Override
+    public RandomSource getRandomSource() {
+        return GameUtils.getRand(this.level);
+    }
+
+    @Override
+    public long getCurrentTime() {
+        return this.currentTime;
+    }
+
+    @Override
+    public boolean isRaining() {
+        return this.isRaining;
+    }
+
+    @Override
+    public boolean isThundering() {
+        return this.isThundering;
+    }
+
+    @Override
+    public LevelReader getLevel() {
+        return this.level;
+    }
+
+    @Override
+    public BlockState getBlockState() {
+        return this.state;
+    }
+
+    @Override
+    public BlockPos getBlockPos() {
+        return this.pos;
+    }
+
+    @Override
+    public Map<String, Number> getNumberMap() {
+        return this.numberMap;
+    }
+
+    @Override
+    public @Nullable ActiveGroupSimulateData getGroupSimulateData() {
+        return this.activeGroupSimulateData;
+    }
+
+    @Override
+    public GameRules getGameRules() {
+        return this.level.getGameRules();
     }
 }

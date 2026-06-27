@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.api.simulation_method;
 
 import dev.moono.unloadedactivity.*;
+import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import net.minecraft.core.BlockPos;

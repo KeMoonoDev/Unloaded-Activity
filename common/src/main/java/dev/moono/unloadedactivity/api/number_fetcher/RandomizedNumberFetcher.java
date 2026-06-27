@@ -1,18 +1,14 @@
 package dev.moono.unloadedactivity.api.number_fetcher;
 
-import dev.moono.unloadedactivity.GameUtils;
-import dev.moono.unloadedactivity.api.ExpressionContext;
-import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.state.BlockState;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.RandomizedContext;
 
 public interface RandomizedNumberFetcher extends NumberFetcher {
-    Number evaluate(LevelReader level, BlockState state, BlockPos pos, long currentSimulatedTime, boolean isRaining, RandomSource random);
+    Number evaluate(RandomizedContext context);
 
     @Override
     default Number evaluate(ExpressionContext context) {
-        return this.evaluate(context.level, context.state, context.pos, context.currentTime, context.isRaining, GameUtils.getRand(context.level));
+        return this.evaluate((RandomizedContext)context);
     }
 
     @Override

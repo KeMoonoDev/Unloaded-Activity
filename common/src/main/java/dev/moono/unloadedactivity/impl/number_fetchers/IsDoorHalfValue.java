@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity.impl.number_fetchers;
 
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;
@@ -16,8 +17,9 @@ public class IsDoorHalfValue implements FixedNumberFetcher {
     }
 
     @Override
-    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
+    public Number evaluate(FixedContext context) {
         boolean result = false;
+        BlockState state = context.getBlockState();
         if (state.getBlock() instanceof DoorBlock) {
             result = state.getValue(DoorBlock.HALF) == this.doorHalf;
         }

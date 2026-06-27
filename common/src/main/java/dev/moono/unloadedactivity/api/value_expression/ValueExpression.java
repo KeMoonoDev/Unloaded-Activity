@@ -7,7 +7,7 @@ import com.mojang.serialization.MapLike;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.impl.Comparison;
 import dev.moono.unloadedactivity.api.condition.Condition;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.impl.value_expression.*;
 import dev.moono.unloadedactivity.impl.Operator;
 

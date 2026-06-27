@@ -6,7 +6,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceLocation;
 #endif
 
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;

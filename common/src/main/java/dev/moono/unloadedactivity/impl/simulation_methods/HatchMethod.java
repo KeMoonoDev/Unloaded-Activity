@@ -10,7 +10,7 @@ import net.minecraft.world.entity.animal.turtle.Turtle;
 import net.minecraft.world.entity.animal.Turtle;
 #endif
 
-import dev.moono.unloadedactivity.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.SimulationConfig;

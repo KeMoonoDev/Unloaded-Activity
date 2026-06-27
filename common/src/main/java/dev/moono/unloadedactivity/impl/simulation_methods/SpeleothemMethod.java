@@ -5,6 +5,7 @@ import net.minecraft.world.attribute.EnvironmentAttributes;
 #endif
 
 import dev.moono.unloadedactivity.*;
+import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;

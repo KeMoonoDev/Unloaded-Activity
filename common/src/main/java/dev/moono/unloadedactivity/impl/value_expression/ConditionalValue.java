@@ -1,7 +1,7 @@
 package dev.moono.unloadedactivity.impl.value_expression;
 
 import dev.moono.unloadedactivity.api.value_expression.ValueExpression;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.api.condition.Condition;
 
 import java.util.function.Function;

@@ -4,7 +4,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import dev.moono.unloadedactivity.UnloadedActivity;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.api.value_expression.ValueExpression;
 import dev.moono.unloadedactivity.impl.Comparison;
 

@@ -1,8 +1,9 @@
 package dev.moono.unloadedactivity.impl.number_fetchers;
 
+import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.NumberFetcherRegistry;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.api.number_fetcher.NumberFetcher;
 
 
@@ -10,80 +11,88 @@ public enum GroupFetchValue implements NumberFetcher {
     GROUP_SUM {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 0;
 
-            return context.activeGroupSimulateData.getGroupSum();
+            return activeGroupSimulateData.getGroupSum();
         }
     },
 
     GROUP_COUNT {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 1; // We count ourselves
 
-            return context.activeGroupSimulateData.getGroupCount();
+            return activeGroupSimulateData.getGroupCount();
         }
     },
 
     GROUP_HIGHER_VALUE_COUNT {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 0;
 
-            return context.activeGroupSimulateData.getGroupHigherValueCount();
+            return activeGroupSimulateData.getGroupHigherValueCount();
         }
     },
 
     GROUP_HIGHER_OR_EQUAL_VALUE_COUNT {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 1;
 
-            return context.activeGroupSimulateData.getGroupHigherValueCount() + context.activeGroupSimulateData.getGroupEqualValueCount();
+            return activeGroupSimulateData.getGroupHigherValueCount() + activeGroupSimulateData.getGroupEqualValueCount();
         }
     },
 
     GROUP_LOWER_VALUE_COUNT {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 0;
 
-            return context.activeGroupSimulateData.getGroupLowerValueCount();
+            return activeGroupSimulateData.getGroupLowerValueCount();
         }
     },
 
     GROUP_LOWER_OR_EQUAL_VALUE_COUNT {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 1;
 
-            return context.activeGroupSimulateData.getGroupLowerValueCount() + context.activeGroupSimulateData.getGroupEqualValueCount();
+            return activeGroupSimulateData.getGroupLowerValueCount() + activeGroupSimulateData.getGroupEqualValueCount();
         }
     },
 
     GROUP_EQUAL_VALUE_COUNT {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 1;
 
-            return context.activeGroupSimulateData.getGroupEqualValueCount();
+            return activeGroupSimulateData.getGroupEqualValueCount();
         }
     },
 
     GROUP_RANDOM_HIGHER_VALUE {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 0;
 
-            return context.activeGroupSimulateData.getGroupRandomHigherValue();
+            return activeGroupSimulateData.getGroupRandomHigherValue();
         }
 
         @Override
@@ -95,10 +104,11 @@ public enum GroupFetchValue implements NumberFetcher {
     GROUP_RANDOM_HIGHER_OR_EQUAL_VALUE {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 0;
 
-            return context.activeGroupSimulateData.getGroupRandomHigherOrEqualValue();
+            return activeGroupSimulateData.getGroupRandomHigherOrEqualValue();
         }
 
         @Override
@@ -110,10 +120,11 @@ public enum GroupFetchValue implements NumberFetcher {
     GROUP_RANDOM_LOWER_VALUE {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 0;
 
-            return context.activeGroupSimulateData.getGroupRandomLowerValue();
+            return activeGroupSimulateData.getGroupRandomLowerValue();
         }
 
         @Override
@@ -125,10 +136,11 @@ public enum GroupFetchValue implements NumberFetcher {
     GROUP_RANDOM_LOWER_OR_EQUAL_VALUE {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 0;
 
-            return context.activeGroupSimulateData.getGroupRandomLowerOrEqualValue();
+            return activeGroupSimulateData.getGroupRandomLowerOrEqualValue();
         }
 
         @Override
@@ -140,10 +152,11 @@ public enum GroupFetchValue implements NumberFetcher {
     GROUP_RANDOM_NOT_EQUAL_VALUE {
         @Override
         public Number evaluate(ExpressionContext context) {
-            if (context.activeGroupSimulateData == null)
+            ActiveGroupSimulateData activeGroupSimulateData = context.getGroupSimulateData();
+            if (activeGroupSimulateData == null)
                 return 0;
 
-            return context.activeGroupSimulateData.getGroupRandomNotEqualValue();
+            return activeGroupSimulateData.getGroupRandomNotEqualValue();
         }
 
         @Override

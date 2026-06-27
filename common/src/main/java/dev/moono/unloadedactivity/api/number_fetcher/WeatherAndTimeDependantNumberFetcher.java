@@ -1,24 +1,24 @@
 package dev.moono.unloadedactivity.api.number_fetcher;
 
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
-import dev.moono.unloadedactivity.api.context.TimeDependantContext;
+import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
 
-public interface TimeDependantNumberFetcher extends NumberFetcher {
-    Number evaluate(TimeDependantContext context);
+public interface WeatherAndTimeDependantNumberFetcher extends NumberFetcher {
+    Number evaluate(UpdatingContext context);
 
-    long getNextValueSwitchDuration(TimeDependantContext context);
+    long getNextValueSwitchDuration(UpdatingContext context);
 
     @Override
     default Number evaluate(ExpressionContext context) {
-        return this.evaluate((TimeDependantContext)context);
+        return this.evaluate((UpdatingContext)context);
     }
 
     @Override
     default boolean canBeAffectedByWeather() {
-        return false;
+        return true;
     }
 
     @Override
@@ -33,6 +33,6 @@ public interface TimeDependantNumberFetcher extends NumberFetcher {
 
     @Override
     default long getNextValueSwitchDuration(ExpressionContext context) {
-        return this.getNextValueSwitchDuration((TimeDependantContext)context);
+        return this.getNextValueSwitchDuration((UpdatingContext)context);
     }
 }

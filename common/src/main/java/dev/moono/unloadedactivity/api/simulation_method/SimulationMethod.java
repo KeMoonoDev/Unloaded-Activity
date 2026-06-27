@@ -1,12 +1,11 @@
 package dev.moono.unloadedactivity.api.simulation_method;
 
-import dev.moono.unloadedactivity.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.condition.FixedCondition;
 import dev.moono.unloadedactivity.api.value_expression.UpdatingValueExpression;
-import dev.moono.unloadedactivity.api.condition.Condition;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;

@@ -1,9 +1,9 @@
-package dev.moono.unloadedactivity;
+package dev.moono.unloadedactivity.api;
 
 import com.mojang.datafixers.util.Pair;
-import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
+import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;

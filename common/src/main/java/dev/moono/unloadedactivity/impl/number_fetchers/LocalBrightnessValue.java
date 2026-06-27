@@ -1,14 +1,17 @@
 package dev.moono.unloadedactivity.impl.number_fetchers;
 
+import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import dev.moono.unloadedactivity.api.number_fetcher.NumberFetcher;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
+import dev.moono.unloadedactivity.api.number_fetcher.WeatherAndTimeDependantNumberFetcher;
 import dev.moono.unloadedactivity.impl.Comparison;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.LightLayer;
 
-public class LocalBrightnessValue implements NumberFetcher {
+public class LocalBrightnessValue implements WeatherAndTimeDependantNumberFetcher {
 
     Vec3i offset;
 
@@ -105,36 +108,25 @@ public class LocalBrightnessValue implements NumberFetcher {
     public final static int MAX_DARKNESS = 11;
 
     @Override
-    public Number evaluate(ExpressionContext context) {
-        int blockLight = context.level.getBrightness(LightLayer.BLOCK, context.pos.offset(offset));
-        int skyLight = context.level.getBrightness(LightLayer.SKY, context.pos.offset(offset));
+    public Number evaluate(UpdatingContext context) {
+        LevelReader level = context.getLevel();
+        BlockPos offsetPos = context.getBlockPos().offset(offset);
+        int blockLight = level.getBrightness(LightLayer.BLOCK, offsetPos);
+        int skyLight = level.getBrightness(LightLayer.SKY, offsetPos);
 
-        int currentDarken = getCurrentSkyDarken(context.currentTime, context.isRaining, context.isThundering);
+        int currentDarken = getCurrentSkyDarken(context.getCurrentTime(), context.isRaining(), context.isThundering());
 
         return Math.max(blockLight, skyLight - currentDarken);
     }
 
     @Override
-    public boolean canBeAffectedByWeather() {
-        return true;
-    }
+    public long getNextValueSwitchDuration(UpdatingContext context) {
+        LevelReader level = context.getLevel();
+        BlockPos offsetPos = context.getBlockPos().offset(offset);
+        int blockLight = level.getBrightness(LightLayer.BLOCK, offsetPos);
+        int skyLight = level.getBrightness(LightLayer.SKY, offsetPos);
 
-    @Override
-    public boolean canBeAffectedByTime() {
-        return true;
-    }
-
-    @Override
-    public boolean isRandom() {
-        return false;
-    }
-
-    @Override
-    public long getNextValueSwitchDuration(ExpressionContext context) {
-        int blockLight = context.level.getBrightness(LightLayer.BLOCK, context.pos.offset(offset));
-        int skyLight = context.level.getBrightness(LightLayer.SKY, context.pos.offset(offset));
-
-        return getNextValueSwitchDurationFromLights(blockLight, skyLight, context.currentTime, context.isRaining, context.isThundering);
+        return getNextValueSwitchDurationFromLights(blockLight, skyLight, context.getCurrentTime(), context.isRaining(), context.isThundering());
     }
 
     public long getNextValueSwitchDurationFromLights(int blockLight, int skyLight, long currentTime, boolean isRaining, boolean isThundering) {
@@ -159,14 +151,14 @@ public class LocalBrightnessValue implements NumberFetcher {
 
     @Override
     public long getNextConditionSwitchDuration(ExpressionContext context, float target, Comparison comparison) {
-        ServerLevel level = context.level;
-        BlockPos pos = context.pos;
-        long currentTime = context.currentTime;
-        boolean isRaining = context.isRaining;
-        boolean isThundering = context.isThundering;
+        LevelReader level = context.getLevel();
+        BlockPos offsetPos = context.getBlockPos().offset(offset);
+        long currentTime = context.getCurrentTime();
+        boolean isRaining = context.isRaining();
+        boolean isThundering = context.isThundering();
 
-        int blockLight = level.getBrightness(LightLayer.BLOCK, pos.offset(offset));
-        int skyLight = level.getBrightness(LightLayer.SKY, pos.offset(offset));
+        int blockLight = level.getBrightness(LightLayer.BLOCK, offsetPos);
+        int skyLight = level.getBrightness(LightLayer.SKY, offsetPos);
 
         int targetBrightness = (int)target;
 

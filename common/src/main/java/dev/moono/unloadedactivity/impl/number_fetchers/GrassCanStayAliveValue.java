@@ -6,18 +6,18 @@ import net.minecraft.world.level.block.SpreadingSnowyBlock;
 import net.minecraft.world.level.block.SpreadingSnowyDirtBlock;
 #endif
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.LevelReader;
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
-import net.minecraft.world.level.block.state.BlockState;
 
 public class GrassCanStayAliveValue implements FixedNumberFetcher {
     @Override
-    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
+    public Number evaluate(FixedContext context) {
         #if MC_VER >= MC_26_1_2
-        return SpreadingSnowyBlock.canStayAlive(state, level, pos) ? 1 : 0;
+        return SpreadingSnowyBlock
+            .canStayAlive(context.getBlockState(), context.getLevel(), context.getBlockPos()) ? 1 : 0;
         #else
-        return SpreadingSnowyDirtBlock.canBeGrass(state, level, pos) ? 1 : 0;
+        return SpreadingSnowyDirtBlock
+            .canBeGrass(context.getBlockState(), context.getLevel(), context.getBlockPos()) ? 1 : 0;
         #endif
     }
 }

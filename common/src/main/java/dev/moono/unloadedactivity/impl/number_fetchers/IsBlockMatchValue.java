@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity.impl.number_fetchers;
 
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -22,12 +23,12 @@ public class IsBlockMatchValue implements FixedNumberFetcher {
     }
 
     @Override
-    public Number evaluate(LevelReader level, BlockState state, BlockPos pos) {
+    public Number evaluate(FixedContext context) {
         BlockState targetState;
         if (offset.equals(Vec3i.ZERO)) {
-            targetState = state;
+            targetState = context.getBlockState();
         } else {
-            targetState = level.getBlockState(pos.offset(offset));
+            targetState = context.getLevel().getBlockState(context.getBlockPos().offset(offset));
         }
         return this.isMatch.test(targetState) ? 1 : 0;
     }

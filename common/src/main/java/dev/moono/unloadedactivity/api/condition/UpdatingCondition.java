@@ -1,7 +1,7 @@
 package dev.moono.unloadedactivity.api.condition;
 
-import dev.moono.unloadedactivity.ActiveGroupSimulateData;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;

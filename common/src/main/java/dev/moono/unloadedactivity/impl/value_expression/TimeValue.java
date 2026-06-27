@@ -2,7 +2,7 @@ package dev.moono.unloadedactivity.impl.value_expression;
 
 import com.mojang.datafixers.util.Pair;
 import dev.moono.unloadedactivity.api.value_expression.ValueExpression;
-import dev.moono.unloadedactivity.api.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.ExpressionContext;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,7 +23,7 @@ public class TimeValue<T> implements ValueExpression<T> {
             return null;
 
         long length = 24000;
-        long modCurrentTime = Math.floorMod(context.currentTime, length);
+        long modCurrentTime = Math.floorMod(context.getCurrentTime(), length);
 
         var currentPair = this.list.get(this.list.size() - 1);
 
@@ -84,7 +84,7 @@ public class TimeValue<T> implements ValueExpression<T> {
             return Long.MAX_VALUE;
 
         long length = 24000;
-        long modCurrentTime = Math.floorMod(context.currentTime, length);
+        long modCurrentTime = Math.floorMod(context.getCurrentTime(), length);
 
         var currentPair = this.list.get(this.list.size() - 1);
         Pair<Long, ValueExpression<T>> nextPair = null;
