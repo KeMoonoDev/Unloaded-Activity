@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 public class ConditionalValue<T> implements ValueExpression<T> {
 
-    Condition condition;
+    final Condition condition;
     ValueExpression<T> trueValue;
     ValueExpression<T> falseValue;
 

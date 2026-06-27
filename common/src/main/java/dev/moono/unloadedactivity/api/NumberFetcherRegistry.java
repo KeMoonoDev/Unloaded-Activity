@@ -11,17 +11,17 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class NumberFetcherRegistry {
-    private HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ValueExpression<Number>> numberFetchers = new HashMap<>();
-    private HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Number> numbers = new HashMap<>();
-    private ArrayList<NumberFetcherFactory> dynamicNumberFetchers = new ArrayList<>();
+    private final HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ValueExpression<Number>> numberFetchers = new HashMap<>();
+    private final HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Number> numbers = new HashMap<>();
+    private final ArrayList<NumberFetcherFactory> dynamicNumberFetchers = new ArrayList<>();
 
     public void register(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, ValueExpression<Number> value) {
         numberFetchers.put(id, value);
-    };
+    }
 
     public void registerNumber(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, Number number) {
         numbers.put(id, number);
-    };
+    }
 
     public void registerDynamic(String namespace, Predicate<String> matches, Function<String, NumberFetcher> factory) {
         registerDynamic(new NumberFetcherFactory() {
@@ -40,22 +40,22 @@ public class NumberFetcherRegistry {
                 return factory.apply(path);
             }
         });
-    };
+    }
 
     public void registerDynamic(NumberFetcherFactory factory) {
         dynamicNumberFetchers.add(factory);
-    };
+    }
 
     public Optional<Number> getNumber(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
         return Optional.ofNullable(numbers.get(id));
-    };
+    }
 
     public Optional<ValueExpression<Number>> resolve(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
         ValueExpression<Number> fetcher = numberFetchers.get(id);
         if (fetcher != null) return Optional.of(fetcher);
 
         return Optional.ofNullable(resolveDynamicFetcher(id));
-    };
+    }
 
     @Nullable
     private NumberFetcher resolveDynamicFetcher(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
@@ -71,5 +71,5 @@ public class NumberFetcherRegistry {
             return dynamicNumberFetcher.create(id.getPath());
         }
         return null;
-    };
+    }
 }

@@ -1,7 +1,6 @@
 package dev.moono.unloadedactivity.impl.simulation_methods;
 
 #if MC_VER >= MC_1_21_3
-import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import net.minecraft.world.entity.EntitySpawnReason;
 #endif
 
@@ -15,6 +14,7 @@ import dev.moono.unloadedactivity.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.SimulationConfig;
+import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;

@@ -18,14 +18,6 @@ import static net.minecraft.util.Mth.sign;
 
 
 public class MathUtils {
-    public static double getChoose(long x, long y) {
-        double choose = 1;
-        for (int i = 0; i < x; i++) {
-            choose *= (double) (y - i) / (i+1);
-        }
-        return choose;
-    }
-
     public static float getRandomPickOdds(int randomTickSpeed) {
         return (float) (1F-pow(1F - 1F / 4096F, randomTickSpeed));
     }
@@ -112,23 +104,6 @@ public class MathUtils {
 
     }
 
-    //good for very low odds and when maxOccurrences are very high or unrestricted
-    public static int newBinomialFunction(long cycles, double odds, int maxOccurrences, RandomSource random) {
-        double log_q = log(1.0 - odds);
-        int x = 0;
-        double sum = 0;
-        for(;;) {
-            if (x >= maxOccurrences) {
-                return maxOccurrences;
-            }
-            sum += log(random.nextDouble()) / (cycles - x);
-            if(sum < log_q) {
-                return x;
-            }
-            x++;
-        }
-    }
-
     //41ms, 200 chunks
     public static int getOccurrencesBinomial(long cycles, double odds, int maxOccurrences, RandomSource random) {
 
@@ -186,23 +161,6 @@ public class MathUtils {
             //we have attempted this many times and the probability of this happening is probably very low.
             //So we'll just pretend this was the output even though it's not accurate at all
             failedTrials = (long) (random.nextDouble() * cycles);
-        }
-        return failedTrials;
-    }
-
-    public static long sampleNegativeBinomialWithMinMax(long minCycles, long maxCycles, int successes, float odds, RandomSource random) {
-        long failedTrials = Long.MAX_VALUE;
-        long attempts = 0;
-        while ((failedTrials > maxCycles || failedTrials < minCycles) && attempts < 100) {
-
-            failedTrials = sampleNegativeBinomial(successes, odds, random);
-            attempts++;
-        }
-
-        if (failedTrials > maxCycles || failedTrials < minCycles) {
-            //we have attempted this 100 times and the probability of this happening is probably very low.
-            //So we'll just pretend this was the output even though its not accurate at all
-            failedTrials = ((long) (random.nextDouble() * (maxCycles-minCycles)))+minCycles;
         }
         return failedTrials;
     }
@@ -304,60 +262,6 @@ public class MathUtils {
                     return d*v*scale;
             }
         }
-
-    }
-
-    public static long randomRound(double number, RandomSource random) {
-        return (long) floor(number+random.nextDouble());
-    }
-
-    /*
-    public static OccurrencesAndDuration getOccurrencesAndDurationTicks(long cycles, double odds, int maxOccurrences, RandomSource random) {
-
-        if (odds <= 0)
-            return new OccurrencesAndDuration(0, cycles, 0.0);
-
-        if (maxOccurrences <= 0)
-            return new OccurrencesAndDuration(0, 0, odds);
-
-        int successes = getOccurrencesBinomial(cycles, odds, maxOccurrences, random);
-
-        long duration;
-
-        if (successes == maxOccurrences) {
-            long failedTrials = sampleNegativeBinomialWithMax(cycles, successes, odds, random);
-            duration = failedTrials + successes;
-        } else {
-            duration = cycles;
-        }
-
-        return new OccurrencesAndDuration(successes, duration);
-    }*/
-
-    public static long getTicksSinceTime(long currentTime, long timePassed, int startTime, int stopTime) {
-
-        long dayLength = 24000;
-
-        long window = floorMod(stopTime-startTime-1, dayLength)+1; //we + and - 1 because we want dayLength to still be dayLength and not 0
-
-        //the amount of ticks we calculated from the amount of days passed.
-        long usefulTicks = window * (timePassed / dayLength);
-
-        long previousTime = currentTime-timePassed;
-
-        long currentIncompleteTime = floorMod(currentTime-startTime, dayLength);
-        long previousIncompleteTime = floorMod(previousTime-startTime, dayLength);
-
-        //the amount of ticks we calculated from the incomplete day.
-        long restOfDayTicks = min(currentIncompleteTime, window) - min(previousIncompleteTime, window);
-
-        if (currentIncompleteTime < previousIncompleteTime)
-            restOfDayTicks+=window;
-
-        if (restOfDayTicks < 0)
-            restOfDayTicks = floorMod(restOfDayTicks, window);
-
-        return restOfDayTicks + usefulTicks;
     }
 }
 

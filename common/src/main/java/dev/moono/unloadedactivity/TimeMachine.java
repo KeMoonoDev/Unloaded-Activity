@@ -1,6 +1,8 @@
 package dev.moono.unloadedactivity;
 
-#if MC_VER >= MC_1_21_11
+
+import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
+import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.ExpressionContext;
 import dev.moono.unloadedactivity.api.WorldWeatherForecast;
 import dev.moono.unloadedactivity.datapack.group.GroupInfo;
@@ -8,16 +10,10 @@ import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
 import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
 import dev.moono.unloadedactivity.datapack.simulation_data.SimulationData;
 import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
-import net.minecraft.resources.Identifier;
-#else
-import net.minecraft.resources.ResourceLocation;
-#endif
-
-import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
-import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
+import net.minecraft.resources.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -453,23 +449,23 @@ public class TimeMachine {
                         BlockState state = triple.getLeft();
 
                         if (maybeGroupMemberInfo.isEmpty()) {
-                            updatingData.updateBlockInfo(state, Optional.empty(), null);
+                            updatingData.updateBlockInfo(state, null, null);
                             // The line above already invalidates the surrounding data's caches and removes itself from them. No need to be worried.
                             for (ActiveGroupSimulateData extendedData : updatingData.extendingData) {
-                                extendedData.updateBlockInfo(null, Optional.empty(), null);
+                                extendedData.updateBlockInfo(null, null, null);
                             }
                             continue;
                         }
 
                         if (!updatingData.isActive) {
-                            updatingData.updateBlockInfo(state, Optional.empty(), maybeGroupMemberInfo.get());
+                            updatingData.updateBlockInfo(state, null, maybeGroupMemberInfo.get());
                         } else {
                             Optional<GroupableSimulationMethod> newSimulateProperty = SimulationDataResource.getSimulationData(state.getBlock()).flatMap(simulationData -> simulationData.methodMap.values().stream().filter(method -> method instanceof GroupableSimulationMethod groupableMethod && groupId.equals(groupableMethod.simulateWithGroup)).findFirst()).map(method -> (GroupableSimulationMethod)method);
-                            updatingData.updateBlockInfo(state, newSimulateProperty, maybeGroupMemberInfo.get());
+                            updatingData.updateBlockInfo(state, newSimulateProperty.orElse(null), maybeGroupMemberInfo.get());
                         }
 
                         for (ActiveGroupSimulateData extendedData : updatingData.extendingData) {
-                            extendedData.updateBlockInfo(null, Optional.empty(), maybeGroupMemberInfo.get());
+                            extendedData.updateBlockInfo(null, null, maybeGroupMemberInfo.get());
                         }
                     }
 
@@ -528,7 +524,7 @@ public class TimeMachine {
                     if (added && groupSimulateData.getState().getBlock() instanceof DoorBlock) {
                         if (groupSimulateData.getState().getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
                             BlockPos abovePos = groupSimulateData.position.above();
-                            var newGroupSimulateData = new ActiveGroupSimulateData(abovePos, null, Optional.empty(), groupSimulateData.getGroupMemberInfo(), level);
+                            var newGroupSimulateData = new ActiveGroupSimulateData(abovePos, null, null, groupSimulateData.getGroupMemberInfo(), level);
                             groupSimulateData.extendingData.add(newGroupSimulateData);
                             activeGroupDataMap.put(abovePos.asLong(), newGroupSimulateData);
                         }

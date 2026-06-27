@@ -31,7 +31,7 @@ import static net.minecraft.commands.Commands.literal;
 
 public class UnloadedActivityCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        LiteralArgumentBuilder commandBuilder = literal(MOD_ID).requires(source -> {
+        LiteralArgumentBuilder<CommandSourceStack> commandBuilder = literal(MOD_ID).requires(source -> {
             // If it's single player then the host should have access to the commands. Otherwise, only people with permission level 4 have access to them.
 
             #if MC_VER >= MC_1_21_11
@@ -116,7 +116,7 @@ public class UnloadedActivityCommand {
         dispatcher.register(commandBuilder);
     }
 
-    public static void addConfigs(LiteralArgumentBuilder commandBuilder) {
+    public static void addConfigs(LiteralArgumentBuilder<CommandSourceStack> commandBuilder) {
         LiteralArgumentBuilder<CommandSourceStack> configBuilder = literal("config");
 
         for (ConfigOption configOption : UnloadedActivity.config.configOptions) {
@@ -126,7 +126,7 @@ public class UnloadedActivityCommand {
         commandBuilder.then(configBuilder);
     }
 
-    public static void addBenchmark(LiteralArgumentBuilder commandBuilder) {
+    public static void addBenchmark(LiteralArgumentBuilder<CommandSourceStack> commandBuilder) {
         commandBuilder.then(
             literal("benchmark").requires(source ->
             #if MC_VER >= MC_1_21_11

@@ -41,14 +41,10 @@ public abstract class BlockEntityMixin implements SimulateBlockEntity, BlockEnti
     }
 
     @Shadow
-    public Level getLevel() {
-        return null;
-    }
+    public abstract Level getLevel();
 
     @Shadow
-    public boolean hasLevel() {
-        return true;
-    }
+    public abstract boolean hasLevel();
 
     #if MC_VER >= MC_26_1_2
     @Inject(method = {"saveWithoutMetadata(Lnet/minecraft/world/level/storage/ValueOutput;)V", "saveCustomOnly(Lnet/minecraft/world/level/storage/ValueOutput;)V"}, at = @At("RETURN"))

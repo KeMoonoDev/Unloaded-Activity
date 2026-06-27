@@ -232,5 +232,5 @@ public enum GroupFetchValue implements NumberFetcher {
             UnloadedActivity.id("group_random_not_equal_value"),
             GROUP_RANDOM_NOT_EQUAL_VALUE
         );
-    };
+    }
 }

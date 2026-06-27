@@ -255,7 +255,7 @@ public abstract class ChunkSerializerMixin {
 
             ArrayList<GroupChunkIndex> groupIndexes = new ArrayList<>();
 
-            CompoundTag groupsData = chunkData.getCompound("groups")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;;
+            CompoundTag groupsData = chunkData.getCompound("groups")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
             #if MC_VER >= MC_1_21_5
             for (String key : groupsData.keySet()) {
             #else
@@ -267,7 +267,7 @@ public abstract class ChunkSerializerMixin {
 
                 var groupId = maybeId.result().get();
 
-                CompoundTag groupData = groupsData.getCompound(key)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;;
+                CompoundTag groupData = groupsData.getCompound(key)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
 
                 long groupLastTicked = groupData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(serializedChunk.lastTick)#endif;
 
@@ -297,7 +297,7 @@ public abstract class ChunkSerializerMixin {
 
                 CompoundTag chunkSimBlocks = cardinalData.getCompound("unloadedactivity:chunk-sim-blocks")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
                 if (!chunkSimBlocks.isEmpty()) {
-                    serializedChunk.simBlocks = chunkSimBlocks.getLongArray("sim-blocks")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif;;
+                    serializedChunk.simBlocks = chunkSimBlocks.getLongArray("sim-blocks")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif;
                 }
 
                 // This is so that cardinal components doesn't start sending warnings.

@@ -1,26 +1,21 @@
 package dev.moono.unloadedactivity.mixin;
 
-#if MC_VER >= MC_1_21_11
-#else
-import net.minecraft.resources.ResourceLocation;
-#endif
-
 #if MC_VER >= MC_1_21_3
 import net.minecraft.util.profiling.Profiler;
 #endif
 
-        import com.mojang.datafixers.util.Pair;
+import com.mojang.datafixers.util.Pair;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.UnloadedActivity;
-        import dev.moono.unloadedactivity.interfaces.ChunkIndexQueue;
+import dev.moono.unloadedactivity.interfaces.ChunkIndexQueue;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-        import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -29,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-        import java.util.*;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 
 @Mixin(MinecraftServer.class)

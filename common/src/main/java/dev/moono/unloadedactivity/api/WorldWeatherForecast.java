@@ -2,18 +2,22 @@ package dev.moono.unloadedactivity.api;
 
 #if MC_VER >= MC_1_21_11
 import com.mojang.serialization.Codec;
+#endif
+
+#if MC_VER <= MC_1_20_4
+#elif MC_VER >= MC_1_21_5
+#else
+import net.minecraft.core.HolderLookup;
+#endif
+
 import dev.moono.unloadedactivity.GameUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import java.util.*;
-import java.util.stream.LongStream;
-#endif
-
-#if MC_VER > MC_1_20_4
-#endif
-
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.Level;
-import java.util.ArrayList;
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.util.*;
+import java.util.stream.LongStream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -37,7 +41,7 @@ public class WorldWeatherForecast extends SavedData {
     #endif
 
     final int maxWeatherHistory = 3;
-    private ArrayList<Long> weatherList;
+    private final ArrayList<Long> weatherList;
 
     public WorldWeatherForecast() {
         this.weatherList = new ArrayList<>();

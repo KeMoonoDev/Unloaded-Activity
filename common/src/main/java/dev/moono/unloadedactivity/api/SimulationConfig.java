@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class SimulationConfig {
-    private final HashMap<String, ArrayList<JsonElement>> fieldValues = new HashMap<>();;
+    private final HashMap<String, ArrayList<JsonElement>> fieldValues = new HashMap<>();
 
     public void merge(JsonObject jsonObject) {
         for (var entry : jsonObject.entrySet()) {

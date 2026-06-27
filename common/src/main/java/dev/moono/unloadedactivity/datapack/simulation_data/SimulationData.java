@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 public class SimulationData {
 
-    public Map<String, SimulationMethod> methodMap = new HashMap<>();
+    public final Map<String, SimulationMethod> methodMap = new HashMap<>();
 
     public final boolean hasRandTicksWithoutGroup;
     public final boolean hasPrecTicksWithoutGroup;

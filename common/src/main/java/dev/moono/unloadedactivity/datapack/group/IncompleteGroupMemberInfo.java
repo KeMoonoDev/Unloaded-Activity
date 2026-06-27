@@ -5,6 +5,7 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
 import dev.moono.unloadedactivity.api.condition.Condition;
 import net.minecraft.core.Vec3i;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -12,12 +13,12 @@ import java.util.Optional;
 import static dev.moono.unloadedactivity.GameUtils.returnError;
 
 public class IncompleteGroupMemberInfo {
-    public Optional<Float> value = Optional.empty();
-    public ArrayList<Vec3i> ignoredOffsets = new ArrayList<>();
-    public ArrayList<Condition> conditions = new ArrayList<>();
+    public @Nullable Float value;
+    public final ArrayList<Vec3i> ignoredOffsets = new ArrayList<>();
+    public final ArrayList<Condition> conditions = new ArrayList<>();
 
     public void merge(IncompleteGroupMemberInfo otherGroupMemberInfo) {
-        this.value = otherGroupMemberInfo.value.or(() -> this.value);
+        if (otherGroupMemberInfo.value != null) this.value = otherGroupMemberInfo.value;
         this.ignoredOffsets.addAll(otherGroupMemberInfo.ignoredOffsets);
         this.conditions.addAll(otherGroupMemberInfo.conditions);
     }
@@ -27,7 +28,7 @@ public class IncompleteGroupMemberInfo {
 
         DataResult<Number> number = ops.getNumberValue(input);
         if (number.result().isPresent()) {
-            groupMemberInfo.value = Optional.of(number.result().get().floatValue());
+            groupMemberInfo.value = number.result().get().floatValue();
             return DataResult.success(groupMemberInfo);
         }
 
@@ -47,7 +48,7 @@ public class IncompleteGroupMemberInfo {
             if (valueResult.result().isEmpty())
                 return returnError(valueResult);
 
-            groupMemberInfo.value = valueResult.result().map(Number::floatValue);
+            groupMemberInfo.value = valueResult.result().get().floatValue();
         }
 
         {

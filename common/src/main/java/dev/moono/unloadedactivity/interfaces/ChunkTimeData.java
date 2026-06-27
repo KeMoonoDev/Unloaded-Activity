@@ -11,15 +11,15 @@ import dev.moono.unloadedactivity.GroupChunkIndex;
 import java.util.ArrayList;
 
 public interface ChunkTimeData {
-    default long getLastTick() {return 0;};
+    default long getLastTick() {return 0;}
 
-    default void setLastTick(long tick) {};
+    default void setLastTick(long tick) {}
 
-    default long getSimulationVersion() {return 0;};
+    default long getSimulationVersion() {return 0;}
 
-    default void setSimulationVersion(long ver) {};
+    default void setSimulationVersion(long ver) {}
 
-    default ArrayList<GroupChunkIndex> getGroupIndexes() {return new ArrayList<>();};
+    default ArrayList<GroupChunkIndex> getGroupIndexes() {return new ArrayList<>();}
 
     default GroupChunkIndex getOrCreateGroupIndex(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
         ArrayList<GroupChunkIndex> groupChunkIndexes = getGroupIndexes();
@@ -33,13 +33,13 @@ public interface ChunkTimeData {
         GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), getLastTick(), groupId);
         groupChunkIndexes.add(groupChunkIndex);
         return groupChunkIndex;
-    };
+    }
 
-    default void setGroupIndexes(ArrayList<GroupChunkIndex> groupIndexes) {};
+    default void setGroupIndexes(ArrayList<GroupChunkIndex> groupIndexes) {}
 
-    default ArrayList<Long> getSimulationBlocks() {return new ArrayList<>();};
+    default ArrayList<Long> getSimulationBlocks() {return new ArrayList<>();}
 
-    default void setSimulationBlocks(ArrayList<Long> positions) {};
+    default void setSimulationBlocks(ArrayList<Long> positions) {}
     default void setSimulationBlocks(long[] positions) {
         ArrayList<Long> positionsList = new ArrayList<>();
 
@@ -48,9 +48,9 @@ public interface ChunkTimeData {
         }
 
         this.setSimulationBlocks(positionsList);
-    };
+    }
 
-    default void addSimulationBlock(long blockPos) {};
+    default void addSimulationBlock(long blockPos) {}
 
-    default void removeSimulationBlock(long blockPos) {};
+    default void removeSimulationBlock(long blockPos) {}
 }

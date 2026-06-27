@@ -1,17 +1,12 @@
 package dev.moono.unloadedactivity.datapack.group;
 
-#if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.impl.LookupShape;
-import net.minecraft.resources.Identifier;
-#else
-import net.minecraft.resources.ResourceLocation;
-#endif
-
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
+import dev.moono.unloadedactivity.impl.LookupShape;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class GroupInfo {
-    public #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id;
+    public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id;
     // It's incomplete because it will be combined later because blocks may have multiple tags and multiple member infos assigned.
     // This should only be used for constructing GroupMemberInfos for blocks.
     public HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values;
@@ -32,34 +27,34 @@ public class GroupInfo {
     public GroupInfo(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, IncompleteGroupInfo incomplete) {
         this.id = id;
 
-        if (incomplete.width.isEmpty())
+        if (incomplete.width == null)
             throw new RuntimeException("width has not been set.");
 
-        this.width = incomplete.width.get();
+        this.width = incomplete.width;
 
         if (this.width < 0) {
             throw new RuntimeException("width cannot be less than 0.");
         }
 
-        if (incomplete.height.isEmpty())
+        if (incomplete.height == null)
             throw new RuntimeException("height has not been set.");
 
-        this.height = incomplete.height.get();
+        this.height = incomplete.height;
 
         if (this.height < 0) {
             throw new RuntimeException("height cannot be less than 0.");
         }
 
-        this.groupSizePenalty = incomplete.groupSizePenalty.orElse(1f);
+        this.groupSizePenalty = incomplete.groupSizePenalty != null ? incomplete.groupSizePenalty : 1f;
 
         if (this.groupSizePenalty <= 0) {
             throw new RuntimeException("group_size_penality cannot be less or equal to 0.");
         }
 
-        if (incomplete.shape.isEmpty())
+        if (incomplete.shape == null)
             throw new RuntimeException("shape has not been set.");
 
-        this.shape = incomplete.shape.get();
+        this.shape = incomplete.shape;
 
         this.values = new HashMap<>(incomplete.values.size());
         for (var entry : incomplete.values.entrySet()) {

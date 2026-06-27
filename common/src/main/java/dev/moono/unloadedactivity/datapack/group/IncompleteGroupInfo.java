@@ -1,17 +1,14 @@
 package dev.moono.unloadedactivity.datapack.group;
 
-#if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.impl.LookupShape;
-import net.minecraft.resources.Identifier;
-#else
-import net.minecraft.resources.ResourceLocation;
-#endif
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapLike;
+import dev.moono.unloadedactivity.impl.LookupShape;
+import net.minecraft.resources.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -20,23 +17,17 @@ import static dev.moono.unloadedactivity.GameUtils.returnError;
 public class IncompleteGroupInfo {
     public static final Codec<IncompleteGroupInfo> CODEC;
 
-    public Optional<LookupShape> shape = Optional.empty();
-    public Optional<Integer> width = Optional.empty();
-    public Optional<Integer> height = Optional.empty();
-    public Optional<Float> groupSizePenalty = Optional.empty();
-    public HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values = new HashMap<>();
-
-    public IncompleteGroupInfo replicate() {
-        IncompleteGroupInfo newGroupSimulateInfo = new IncompleteGroupInfo();
-        newGroupSimulateInfo.merge(this);
-        return newGroupSimulateInfo;
-    }
+    public @Nullable LookupShape shape;
+    public @Nullable Integer width;
+    public @Nullable Integer height;
+    public @Nullable Float groupSizePenalty;
+    public final HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values = new HashMap<>();
 
     public void merge(IncompleteGroupInfo otherGroupInfo) {
-        this.shape = otherGroupInfo.shape.or(() -> this.shape);
-        this.width = otherGroupInfo.width.or(() -> this.width);
-        this.height = otherGroupInfo.height.or(() -> this.height);
-        this.groupSizePenalty = otherGroupInfo.groupSizePenalty.or(() -> this.groupSizePenalty);
+        if (otherGroupInfo.shape != null) this.shape = otherGroupInfo.shape;
+        if (otherGroupInfo.width != null) this.width = otherGroupInfo.width;
+        if (otherGroupInfo.height != null) this.height = otherGroupInfo.height;
+        if (otherGroupInfo.groupSizePenalty != null) this.groupSizePenalty = otherGroupInfo.groupSizePenalty;
 
         for (var entry : otherGroupInfo.values.entrySet()) {
             IncompleteGroupMemberInfo thisGroupMemberInfo = this.values.computeIfAbsent(entry.getKey(), k -> new IncompleteGroupMemberInfo());
@@ -70,7 +61,7 @@ public class IncompleteGroupInfo {
             if (shape.isEmpty())
                 return returnError(shapeName + " is not a valid shape.");
 
-            groupInfo.shape = shape;
+            groupInfo.shape = shape.get();
         }
 
         {
@@ -80,7 +71,7 @@ public class IncompleteGroupInfo {
                 if (valueResult.result().isEmpty())
                     return returnError(valueResult);
 
-                groupInfo.width = valueResult.result().map(Number::intValue);
+                groupInfo.width = valueResult.result().get().intValue();
             }
         }
 
@@ -91,7 +82,7 @@ public class IncompleteGroupInfo {
                 if (valueResult.result().isEmpty())
                     return returnError(valueResult);
 
-                groupInfo.height = valueResult.result().map(Number::intValue);
+                groupInfo.height = valueResult.result().get().intValue();
             }
         }
 
@@ -102,7 +93,7 @@ public class IncompleteGroupInfo {
                 if (valueResult.result().isEmpty())
                     return returnError(valueResult);
 
-                groupInfo.groupSizePenalty = valueResult.result().map(Number::floatValue);
+                groupInfo.groupSizePenalty = valueResult.result().get().floatValue();
             }
         }
 

@@ -12,10 +12,10 @@ public class GroupMemberInfo {
     public List<Condition> conditions;
 
     public GroupMemberInfo(IncompleteGroupMemberInfo incomplete, GroupInfo groupInfo) {
-        if (incomplete.value.isEmpty())
+        if (incomplete.value == null)
             throw new RuntimeException("value has not been set.");
 
-        this.value = incomplete.value.get();
+        this.value = incomplete.value;
         this.groupInfo = groupInfo;
         this.ignoredOffsets = incomplete.ignoredOffsets.stream().toList();
         this.conditions = incomplete.conditions.stream().toList();

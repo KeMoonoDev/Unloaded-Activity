@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(CropBlock.class)
 public interface CropBlockInvoker {
     @Invoker("getGrowthSpeed")
-    public static float invokeGetGrowthSpeed(Block block, BlockGetter blockGetter, BlockPos pos) {
+    static float invokeGetGrowthSpeed(Block block, BlockGetter blockGetter, BlockPos pos) {
         throw new AssertionError();
     }
 }

@@ -2,8 +2,8 @@ package dev.moono.unloadedactivity.forge;
 
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.UnloadedActivityCommand;
-import dev.moono.unloadedactivity.datapack.GroupInfoResource;
-import dev.moono.unloadedactivity.datapack.SimulationDataResource;
+import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.chunk.LevelChunk;

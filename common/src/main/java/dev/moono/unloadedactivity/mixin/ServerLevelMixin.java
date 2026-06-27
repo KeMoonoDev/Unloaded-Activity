@@ -12,6 +12,7 @@ import net.minecraft.util.datafix.DataFixTypes;
 #if MC_VER >= MC_1_19_4
 import net.minecraft.core.RegistryAccess;
 #endif
+
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.Holder;
@@ -20,7 +21,9 @@ import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.WorldWeatherForecast;
 import dev.moono.unloadedactivity.interfaces.WorldForecastGetter;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -34,6 +37,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
+
+import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
 
 
 @Mixin(value = ServerLevel.class, priority = 1001)
@@ -120,7 +126,8 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 	}
 
 	#if MC_VER >= MC_1_21_5
-	private static SavedDataType<WorldWeatherForecast> type = new SavedDataType<>(
+	@Unique
+	private static final SavedDataType<WorldWeatherForecast> type = new SavedDataType<>(
 	        #if MC_VER >= MC_26_1_2
 			UnloadedActivity.id("weather_list"),
 			#else
@@ -142,7 +149,7 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 	);
 	#elif MC_VER >= MC_1_20_2
 	@Unique
-	private static SavedData.Factory<WorldWeatherForecast> type = new SavedData.Factory<>(
+	private static final SavedData.Factory<WorldWeatherForecast> type = new SavedData.Factory<>(
 			WorldWeatherForecast::new,
 			WorldWeatherForecast::load,
 			net.minecraft.util.datafix.DataFixTypes.LEVEL

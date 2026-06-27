@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 public class IsDoorHalfValue implements FixedNumberFetcher {
 
-    DoubleBlockHalf doorHalf;
+    final DoubleBlockHalf doorHalf;
 
     public IsDoorHalfValue(DoubleBlockHalf doorHalf) {
         this.doorHalf = doorHalf;

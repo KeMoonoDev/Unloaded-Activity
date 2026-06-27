@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.function.Consumer;
 
 public class DeferredBlockPlacer {
-    private ArrayList<BlockPlacementInfo> blockPlacements = new ArrayList<>();
+    private final ArrayList<BlockPlacementInfo> blockPlacements = new ArrayList<>();
     private boolean isSorted = false;
 
     public static DeferredBlockPlacer empty() {

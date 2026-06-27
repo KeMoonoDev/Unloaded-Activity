@@ -30,16 +30,16 @@ public interface AbstractFurnaceBlockEntityInvoker {
 
     @Invoker("burn")
     #if MC_VER >= MC_26_1_2
-    public static void invokeBurn(
+    static void invokeBurn(
         final NonNullList<ItemStack> items,
         final ItemStack inputItemStack,
         final ItemStack result
     )
     #else
     #if MC_VER >= MC_1_20_6
-    public static boolean invokeBurn(
+    static boolean invokeBurn(
     #else
-    public boolean invokeBurn(
+    boolean invokeBurn(
     #endif
         #if MC_VER >= MC_1_19_4
         RegistryAccess registryAccess,
@@ -63,5 +63,8 @@ public interface AbstractFurnaceBlockEntityInvoker {
     ) #endif
     #if MC_VER >= MC_1_20_6 {
         throw new AssertionError();
-    } #endif;
+    }
+    #else
+    ; // the semicolon
+    #endif
 }

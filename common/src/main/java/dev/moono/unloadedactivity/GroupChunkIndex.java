@@ -1,25 +1,25 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.api.ExpressionContext;
-import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
-import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
-import dev.moono.unloadedactivity.datapack.simulation_data.SimulationData;
-import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
 
+import dev.moono.unloadedactivity.api.ExpressionContext;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
+import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
+import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationData;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,8 +69,6 @@ public class GroupChunkIndex {
             throw new RuntimeException("Please run the function getAndFilterBlocks on the server side only pls thx.");
         }
 
-        MinecraftServer server = serverLevel.getServer();
-
         ArrayList<ActiveGroupSimulateData> blockInfoList = new ArrayList<>(this.positions.size());
 
         this.positions.removeIf((longPos) -> {
@@ -106,7 +104,7 @@ public class GroupChunkIndex {
                 }
             }
 
-            Optional<GroupableSimulationMethod> method = Optional.empty();
+            @Nullable GroupableSimulationMethod method = null;
 
             Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
             if (maybeSimulationData.isPresent()) {
@@ -115,7 +113,7 @@ public class GroupChunkIndex {
                     if (!simulationMethod.simulatesWithGroup()) continue;
                     GroupableSimulationMethod groupableMethod = (GroupableSimulationMethod)simulationMethod;
                     if (this.groupId.equals(groupableMethod.simulateWithGroup)) {
-                        method = Optional.of(groupableMethod);
+                        method = groupableMethod;
                         break;
                     }
                 }

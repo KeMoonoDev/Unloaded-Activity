@@ -1,12 +1,5 @@
 package dev.moono.unloadedactivity.config;
 
-#if MC_VER >= MC_1_21_11
-import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
-import net.minecraft.resources.Identifier;
-#else
-import net.minecraft.resources.ResourceLocation;
-#endif
-
 #if MC_VER >= MC_1_19_4
 import net.minecraft.core.registries.Registries;
 import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
@@ -26,12 +19,12 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.datafixers.util.Either;
 import dev.moono.unloadedactivity.UnloadedActivity;
+import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.*;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,15 +38,15 @@ import static net.minecraft.commands.Commands.literal;
 
 public class UnloadedActivityConfig {
 
-    private transient Reference2BooleanOpenHashMap<Block> blacklistCache = new Reference2BooleanOpenHashMap<>();
+    private transient final Reference2BooleanOpenHashMap<Block> blacklistCache = new Reference2BooleanOpenHashMap<>();
 
     public static class SimpleOption<T> implements ConfigOption {
-        public ArgumentType<T> argumentType;
-        public T defaultValue;
-        public String name;
-        public Function<Void, T> getter;
-        public Consumer<T> setter;
-        public Class<T> tClass;
+        public final ArgumentType<T> argumentType;
+        public final T defaultValue;
+        public final String name;
+        public final Function<Void, T> getter;
+        public final Consumer<T> setter;
+        public final Class<T> tClass;
 
         public SimpleOption(ArgumentType<T> argumentType, String name, T defaultValue, Function<Void, T> getter, Consumer<T> setter, Class<T> tClass) {
             this.argumentType = argumentType;
@@ -94,8 +87,8 @@ public class UnloadedActivityConfig {
     }
 
     public static class IdList implements ConfigOption {
-        public String name;
-        public Supplier<List<BlockOrTag>> getter;
+        public final String name;
+        public final Supplier<List<BlockOrTag>> getter;
 
         public IdList(String name, Supplier<List<BlockOrTag>> getter) {
             this.name = name;
@@ -219,7 +212,7 @@ public class UnloadedActivityConfig {
         }
     }
 
-    public transient ArrayList<ConfigOption> configOptions = new ArrayList<>();
+    public transient final ArrayList<ConfigOption> configOptions = new ArrayList<>();
 
     public void registerInt(String name, int defaultValue, int minValue, int maxValue, Function<Void, Integer> getter, Consumer<Integer> setter) {
         IntegerArgumentType argumentType = IntegerArgumentType.integer(minValue, maxValue);
@@ -250,10 +243,7 @@ public class UnloadedActivityConfig {
             for (var blacklisted : blacklistedBlocks) {
                 boolean isBlacklisted;
                 if (blacklisted.isTag) {
-                    isBlacklisted = block
-                        .defaultBlockState()
-                        .typeHolder()
-                        .tags()
+                    isBlacklisted = GameUtils.getBlockTags(block)
                         .anyMatch(tagKey -> tagKey.location().equals(blacklisted.id));
                 } else {
                     isBlacklisted = blockId.equals(blacklisted.id);
@@ -442,7 +432,7 @@ public class UnloadedActivityConfig {
     public int maxChunksIndexedPerTick = 4;
     public int maxChunkUpdatesPerTick = 24;
     public boolean randomizeBlockUpdates = false;
-    public ArrayList<BlockOrTag> blacklistedBlocks = new ArrayList<>();
+    public final ArrayList<BlockOrTag> blacklistedBlocks = new ArrayList<>();
     public boolean multiplyMaxChunkUpdatesPerPlayer = false;
     public boolean multiplyMaxChunksIndexedPerPlayer = false;
 

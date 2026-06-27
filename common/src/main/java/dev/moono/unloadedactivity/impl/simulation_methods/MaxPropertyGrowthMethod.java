@@ -28,25 +28,25 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
-    public String propertyName;
-    public int updateType;
-    public boolean checkConditionsEveryHeight;
-    public boolean updateNeighbors;
-    public boolean reverseHeightGrowthDirection;
-    public boolean stopUpdatingAfterMaxHeight;
-    public boolean stopUpdatingAfterBlockage;
-    public boolean resetOnHeightChange;
-    public boolean onlyInWater;
-    public Map<String, RandomizedValueExpression<Number>> setProperties;
-    public List<String> transferProperties;
-    public Integer maxHeight;
+    public final String propertyName;
+    public final int updateType;
+    public final boolean checkConditionsEveryHeight;
+    public final boolean updateNeighbors;
+    public final boolean reverseHeightGrowthDirection;
+    public final boolean stopUpdatingAfterMaxHeight;
+    public final boolean stopUpdatingAfterBlockage;
+    public final boolean resetOnHeightChange;
+    public final boolean onlyInWater;
+    public final Map<String, RandomizedValueExpression<Number>> setProperties;
+    public final List<String> transferProperties;
+    public final Integer maxHeight;
 
     @Nullable public final List<Block> lowerBlocks;
 
-    @Nullable public RandomizedValueExpression<Block> bottomBlockReplacement;
-    @Nullable public FixedValueExpression<Number> maxValue;
+    @Nullable public final RandomizedValueExpression<Block> bottomBlockReplacement;
+    @Nullable public final FixedValueExpression<Number> maxValue;
 
-    @Nullable public AgeBloomConfig ageBloom;
+    @Nullable public final AgeBloomConfig ageBloom;
 
     public record AgeBloomConfig(int bloomAtAge, Block bloomBlock, FixedValueExpression<Number> bloomProbability, List<FixedCondition> conditions) {
         public AgeBloomConfig(SimulationConfig config) {
@@ -136,7 +136,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                     if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
                         doContinue = true;
                         break;
-                    };
+                    }
                 }
                 if (doContinue) continue;
                 break;
@@ -148,7 +148,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                     if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
                         doContinue = true;
                         break;
-                    };
+                    }
                 }
                 if (doContinue) continue;
                 break;
@@ -264,7 +264,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                             if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
                                 doContinue = true;
                                 break;
-                            };
+                            }
                         }
                         if (doContinue) continue;
                         break;
@@ -276,7 +276,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                             if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
                                 doContinue = true;
                                 break;
-                            };
+                            }
                         }
                         if (doContinue) continue;
                         break;

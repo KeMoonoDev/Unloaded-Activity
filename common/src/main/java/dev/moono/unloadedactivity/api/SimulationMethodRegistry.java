@@ -16,5 +16,5 @@ public class SimulationMethodRegistry {
 
     public Optional<Function<SimulationConfig, SimulationMethod>> get(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
         return Optional.ofNullable(simulationMethods.get(id));
-    };
+    }
 }

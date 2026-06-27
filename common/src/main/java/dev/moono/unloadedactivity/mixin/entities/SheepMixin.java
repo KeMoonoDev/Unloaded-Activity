@@ -28,7 +28,7 @@ abstract public class SheepMixin extends Animal implements Shearable {
     }
 
     @Shadow
-    public boolean isSheared() {return false;};
+    public abstract boolean isSheared();
 
     @Shadow
     private EatBlockGoal eatBlockGoal;
@@ -51,8 +51,7 @@ abstract public class SheepMixin extends Animal implements Shearable {
         // Sheared sheep may get their grass stolen from unsheared sheep,
         // and because this is a game, and we want the player to be happy,
         // it'd be nicer to only make sheared sheep want to eat.
-        if (!this.isSheared()) return false;
-        return true;
+        return this.isSheared();
     }
 
     @Override

@@ -36,8 +36,8 @@ public class UnloadedActivity {
     public static UnloadedActivityConfig config;
     public static IPlatformHelper platform;
 
-    public static NumberFetcherRegistry numberFetcherRegistry = new NumberFetcherRegistry();
-    public static SimulationMethodRegistry simulationMethodRegistry = new SimulationMethodRegistry();
+    public static final NumberFetcherRegistry numberFetcherRegistry = new NumberFetcherRegistry();
+    public static final SimulationMethodRegistry simulationMethodRegistry = new SimulationMethodRegistry();
 
     public static void init(IPlatformHelper platformHelper) {
         platform = platformHelper;
@@ -124,7 +124,7 @@ public class UnloadedActivity {
     }
 
     public static void dataPackReloaded(boolean success) {
-        if (success) SimulationDataResource.buildSimulationDatas();
-        SimulationDataResource.clearRawSimulationDatas();
+        if (success) SimulationDataResource.buildAllSimulationData();
+        SimulationDataResource.clearAllRawSimulationData();
     }
 }

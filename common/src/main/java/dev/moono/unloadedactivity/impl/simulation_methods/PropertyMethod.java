@@ -20,10 +20,10 @@ import java.util.Optional;
 
 public class PropertyMethod extends GroupableSimulationMethod {
     public final String propertyName;
-    public int updateType;
-    public boolean updateNeighbors;
+    public final int updateType;
+    public final boolean updateNeighbors;
 
-    @Nullable public FixedValueExpression<Number> maxValue;
+    @Nullable public final FixedValueExpression<Number> maxValue;
 
     public PropertyMethod(SimulationConfig config) {
         super(config);

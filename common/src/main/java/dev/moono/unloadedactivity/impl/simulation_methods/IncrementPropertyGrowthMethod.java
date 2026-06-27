@@ -115,7 +115,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
                         if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
                             doContinue = true;
                             break;
-                        };
+                        }
                     }
                     if (doContinue) continue;
                     break;
@@ -127,7 +127,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
                         if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
                             doContinue = true;
                             break;
-                        };
+                        }
                     }
                     if (doContinue) continue;
                     break;

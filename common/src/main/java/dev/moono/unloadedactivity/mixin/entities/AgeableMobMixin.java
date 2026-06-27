@@ -26,13 +26,11 @@ public abstract class AgeableMobMixin extends PathfinderMob {
     }
 
     @Shadow
-    public void setAge(int i) {}
+    public abstract void setAge(int i);
 
     #if MC_VER >= MC_26_1_2
     @Shadow
-    public boolean canAgeUp() {
-        throw new RuntimeException("Shadow no work.");
-    }
+    public abstract boolean canAgeUp();
     #else
     @Unique
     private boolean canAgeUp() {

@@ -1,13 +1,8 @@
 package dev.moono.unloadedactivity.mixin;
 
-#if MC_VER >= MC_1_21_11
-#else
-import net.minecraft.resources.ResourceLocation;
-#endif
-
 import dev.moono.unloadedactivity.GroupChunkIndex;
 import dev.moono.unloadedactivity.interfaces.ChunkTimeData;
-        import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -55,11 +50,11 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     }
 
 
-    public ArrayList<GroupChunkIndex> getGroupIndexes() {return groupIndexes;};
+    public ArrayList<GroupChunkIndex> getGroupIndexes() {return groupIndexes;}
 
     public void setGroupIndexes(ArrayList<GroupChunkIndex> groupIndexes) {
         this.groupIndexes = groupIndexes;
-    };
+    }
 
     @Override
     public ArrayList<Long> getSimulationBlocks() {

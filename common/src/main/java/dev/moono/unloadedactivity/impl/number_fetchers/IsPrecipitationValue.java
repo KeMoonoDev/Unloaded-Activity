@@ -24,8 +24,8 @@ public class IsPrecipitationValue implements FixedNumberFetcher {
         #elif MC_VER >= MC_1_19_4
         Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
         #else
-        Biome.Precipitation precipitation = biome.getPrecipitation()
-        #endif;
+        Biome.Precipitation precipitation = biome.getPrecipitation();
+        #endif
         boolean isPrecipitation = precipitation == this.precipitation;
         return isPrecipitation ? 1 : 0;
     }

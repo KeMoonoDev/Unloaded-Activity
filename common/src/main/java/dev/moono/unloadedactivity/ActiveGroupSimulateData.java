@@ -18,12 +18,12 @@ import java.util.Optional;
 
 public class ActiveGroupSimulateData {
     // Simulation data that affects this data.
-    public ArrayList<ActiveGroupSimulateData> surroundingData;
-    public ArrayList<ActiveGroupSimulateData> extendingData;
+    public final ArrayList<ActiveGroupSimulateData> surroundingData;
+    public final ArrayList<ActiveGroupSimulateData> extendingData;
     public boolean isActive;
     public int groupIndex;
     public final BlockPos position;
-    private BlockState blockState;
+    private @Nullable BlockState blockState;
     public final ServerLevel level;
     private int currentUpdateCount;
     private int maxUpdateCount;
@@ -34,10 +34,10 @@ public class ActiveGroupSimulateData {
     public long nextOddsSwitchDuration;
     public float currentOdds;
 
-    private Optional<GroupableSimulationMethod> simulationMethod;
+    private @Nullable GroupableSimulationMethod simulationMethod;
     private GroupMemberInfo groupMemberInfo;
 
-    public ActiveGroupSimulateData(BlockPos position, BlockState blockState, Optional<GroupableSimulationMethod> simulationMethod, GroupMemberInfo groupMemberInfo, ServerLevel level) {
+    public ActiveGroupSimulateData(BlockPos position, BlockState blockState, @Nullable GroupableSimulationMethod simulationMethod, GroupMemberInfo groupMemberInfo, ServerLevel level) {
         this.surroundingData = new ArrayList<>();
         this.extendingData = new ArrayList<>();
         this.position = position;
@@ -58,7 +58,7 @@ public class ActiveGroupSimulateData {
     }
 
     public Optional<GroupableSimulationMethod> getSimulationMethod() {
-        return simulationMethod;
+        return Optional.ofNullable(simulationMethod);
     }
 
     public int getRemainingUpdates() {
@@ -73,31 +73,29 @@ public class ActiveGroupSimulateData {
         return currentUpdateCount;
     }
 
-    public BlockState getState() {
+    public @Nullable BlockState getState() {
         return blockState;
     }
 
     public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, ExpressionContext context) {
         if (this.nextOddsSwitchDuration <= 0) {
-            if (this.simulationMethod.isEmpty()) {
+            if (this.simulationMethod == null) {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
                 this.currentOdds = 0;
                 return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
             }
 
-            SimulationMethod simulationMethod = this.simulationMethod.get();
-
-            if (simulationMethod.advanceProbability.canBeAffectedByTime) {
-                this.nextOddsSwitchDuration = simulationMethod.advanceProbability.inner.getNextValueSwitchDuration(context);
+            if (this.simulationMethod.advanceProbability.canBeAffectedByTime) {
+                this.nextOddsSwitchDuration = this.simulationMethod.advanceProbability.inner.getNextValueSwitchDuration(context);
             } else {
                 this.nextOddsSwitchDuration = Long.MAX_VALUE;
             }
 
-            if (simulationMethod.advanceProbability.canBeAffectedByWeather) {
+            if (this.simulationMethod.advanceProbability.canBeAffectedByWeather) {
                 this.nextOddsSwitchDuration = Math.min(this.nextOddsSwitchDuration, nextWeatherSwitchDuration);
             }
 
-            this.currentOdds = simulationMethod.advanceProbability.inner.evaluate(context).floatValue();
+            this.currentOdds = this.simulationMethod.advanceProbability.inner.evaluate(context).floatValue();
         }
         return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
     }
@@ -107,17 +105,15 @@ public class ActiveGroupSimulateData {
     }
 
 
-    public void updateBlockInfo(BlockState state, Optional<GroupableSimulationMethod> simulationMethod, @Nullable GroupMemberInfo groupMemberInfo) {
+    public void updateBlockInfo(@Nullable BlockState state, @Nullable GroupableSimulationMethod simulationMethod, @Nullable GroupMemberInfo groupMemberInfo) {
         this.simulationMethod = simulationMethod;
         this.blockState = state;
         this.maxUpdateCount = 0;
         this.currentUpdateCount = 0;
-        if (this.simulationMethod.isPresent()) {
-            GroupableSimulationMethod someSimulationMethod = this.simulationMethod.get();
-
+        if (this.simulationMethod != null) {
             this.isActive = true;
 
-            if (someSimulationMethod.isPrecipitation) {
+            if (this.simulationMethod.isPrecipitation) {
                 BlockPos airPos = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, new BlockPos(this.position.getX(),0,this.position.getZ()));
                 if (!airPos.equals(this.position)) {
                     BlockPos groundPos = airPos.below();
@@ -128,10 +124,10 @@ public class ActiveGroupSimulateData {
             }
 
             if (this.isActive)
-                this.isActive = someSimulationMethod.canSimulate(this.blockState, this.level, this.position);
+                this.isActive = this.simulationMethod.canSimulate(this.blockState, this.level, this.position);
 
             if (this.isActive) {
-                this.maxUpdateCount = someSimulationMethod.getMaxUpdateCount(this.blockState, this.level, this.position);
+                this.maxUpdateCount = this.simulationMethod.getMaxUpdateCount(this.blockState, this.level, this.position);
                 this.currentUpdateCount = 0;
             }
         } else {

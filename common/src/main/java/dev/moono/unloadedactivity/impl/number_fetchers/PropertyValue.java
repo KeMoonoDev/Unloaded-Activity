@@ -13,7 +13,7 @@ import java.util.Optional;
 
 
 public class PropertyValue implements FixedNumberFetcher {
-    private String propertyName;
+    private final String propertyName;
 
     public PropertyValue(String propertyName) {
         this.propertyName = propertyName;

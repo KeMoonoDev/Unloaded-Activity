@@ -40,8 +40,8 @@ public class ShouldSnowValue implements FixedNumberFetcher {
         #elif MC_VER >= MC_1_19_4
         Biome.Precipitation precipitation = biome.getPrecipitationAt(pos);
         #else
-        Biome.Precipitation precipitation = biome.getPrecipitation()
-        #endif;
+        Biome.Precipitation precipitation = biome.getPrecipitation();
+        #endif
 
         if (precipitation != Biome.Precipitation.SNOW) {
             return 0;

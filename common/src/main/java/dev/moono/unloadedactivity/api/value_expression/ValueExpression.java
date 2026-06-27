@@ -32,7 +32,7 @@ public interface ValueExpression<T> {
 
     default long getNextConditionSwitchDuration(ExpressionContext context, float target, Comparison comparison) {
         return getNextValueSwitchDuration(context);
-    };
+    }
 
     /// Doesn't guarantee a clone. If a type doesn't get mutated, it's able to return itself.
     ValueExpression<T> replicate();
@@ -41,7 +41,7 @@ public interface ValueExpression<T> {
 
     default boolean isSuper() {
         return false;
-    };
+    }
 
     <U> ValueExpression<U> map(Function<T, U> mapFunction);
 
@@ -153,7 +153,7 @@ public interface ValueExpression<T> {
                 throw new RuntimeException("Probability value has no keys.");
             }
 
-            return new TimeValue(list);
+            return new TimeValue<>(list);
 
         }
 

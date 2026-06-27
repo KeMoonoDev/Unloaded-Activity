@@ -13,9 +13,9 @@ public class ExpressionContext {
     public final BlockState state;
     public final BlockPos pos;
     public final long currentTime;
-    public boolean isRaining;
-    public boolean isThundering;
-    public Map<String, Number> numberMap;
+    public final boolean isRaining;
+    public final boolean isThundering;
+    public final Map<String, Number> numberMap;
     @Nullable
     public final ActiveGroupSimulateData activeGroupSimulateData;
 
@@ -40,7 +40,7 @@ public class ExpressionContext {
         this.currentTime = currentTime;
         if (currentTime > 0) {
             this.isRaining = level.getWeatherForecast().getWeatherAtTime(currentTime);
-            this.isThundering = false;
+            this.isThundering = false; // todo make thunder be recorded in the forecast
         } else {
             this.isRaining = false;
             this.isThundering = false;

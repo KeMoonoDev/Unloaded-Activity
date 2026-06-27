@@ -1,18 +1,17 @@
 package dev.moono.unloadedactivity.datapack.group;
 
-#if MC_VER >= MC_1_21_11
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import net.minecraft.resources.Identifier;
-#else
-import net.minecraft.resources.ResourceLocation;
-#endif
 #if MC_VER >= MC_1_21_4
 import net.minecraft.resources.FileToIdConverter;
 #endif
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.JsonOps;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import net.minecraft.resources.*;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -78,7 +77,7 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
         BLOCKS_WITH_GROUPS_MAP.clear();
         TAGS_WITH_GROUPS_MAP.clear();
 
-        Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<IncompleteGroupInfo>> datas = new HashMap<>();
+        Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<IncompleteGroupInfo>> incompleteGroupInfos = new HashMap<>();
 
         object.forEach((key, input) -> {
             try {
@@ -92,14 +91,14 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
                 IncompleteGroupInfo incompleteGroupInfo = result.result().get();
                 #endif
 
-                var list = datas.computeIfAbsent(key, k -> new ArrayList<>());
+                var list = incompleteGroupInfos.computeIfAbsent(key, k -> new ArrayList<>());
                 list.add(incompleteGroupInfo);
             } catch(Exception e) {
                 UnloadedActivity.LOGGER.error("{}\n{}\n{}", key, e, e.getStackTrace());
             }
         });
 
-        for (var entry : datas.entrySet()) {
+        for (var entry : incompleteGroupInfos.entrySet()) {
             List<IncompleteGroupInfo> dataList = entry.getValue();
 
             if (dataList.isEmpty())
@@ -139,7 +138,7 @@ public class GroupInfoResource extends SimpleJsonResourceReloadListener #if MC_V
     public static List<GroupMemberInfo> getBlockMemberInfo(Block block) {
         return BLOCK_MEMBERSHIPS.computeIfAbsent(block, (ignored) -> {
             HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ArrayList<IncompleteGroupMemberInfo>> dataToBeCombined = new HashMap<>();
-            block.builtInRegistryHolder().tags().forEach((tag) -> {
+            GameUtils.getBlockTags(block).forEach((tag) -> {
                 for (var tagGroupData : TAGS_WITH_GROUPS_MAP.getOrDefault(tag.location(), new ArrayList<>())) {
                     ArrayList<IncompleteGroupMemberInfo> dataList = dataToBeCombined.computeIfAbsent(tagGroupData.getFirst().id, (ignored2) -> new ArrayList<>());
                     dataList.add(tagGroupData.getSecond());

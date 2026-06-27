@@ -26,13 +26,13 @@ public record Condition (ValueExpression<Number> value1, ValueExpression<Number>
 
     public boolean canBeAffectedByWeather() {
         return value1.canBeAffectedByWeather() || value2.canBeAffectedByWeather();
-    };
+    }
     public boolean isRandom() {
         return value1.isRandom() || value2.isRandom();
     }
     public boolean canBeAffectedByTime() {
         return value1.canBeAffectedByTime() || value2.canBeAffectedByTime();
-    };
+    }
 
     public long getNextConditionSwitchDuration(ExpressionContext context) {
         float value2Float = value2.evaluate(context).floatValue();
@@ -41,7 +41,7 @@ public record Condition (ValueExpression<Number> value1, ValueExpression<Number>
             value1.getNextConditionSwitchDuration(context, value2Float, comparison),
             value2.getNextValueSwitchDuration(context)
         );
-    };
+    }
 
     public static <T> DataResult<Condition> parse(DynamicOps<T> ops, T input) {
         var mapValue = ops.getMap(input);

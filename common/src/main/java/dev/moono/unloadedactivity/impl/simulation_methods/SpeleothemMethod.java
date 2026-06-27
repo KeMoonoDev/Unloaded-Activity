@@ -1,11 +1,11 @@
 package dev.moono.unloadedactivity.impl.simulation_methods;
 
 #if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
 import net.minecraft.world.attribute.EnvironmentAttributes;
 #endif
 
 import dev.moono.unloadedactivity.*;
+import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import net.minecraft.core.BlockPos;
@@ -241,7 +241,7 @@ public class SpeleothemMethod extends SimulationMethod {
             --successesUntilReachGround;
             --totalUpperDripGrowth;
             thisBlock.grow(level, tipPos, Direction.DOWN);
-            //recalculate tip so if tryGrow fails, we wont grow past any blocking blocks. Simply doing tipPos.down() doesnt account for fail.
+            //recalculate tip so if tryGrow fails, we wont grow past any blocking blocks. Simply doing tipPos.down() doesn't account for fail.
             tipPos = GameUtils.findTip(level.getBlockState(pos), level, pos, 12, false);
             if (tipPos == null) return null;
         }

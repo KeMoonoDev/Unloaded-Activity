@@ -18,6 +18,7 @@ import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.BlockGetter;
@@ -31,6 +32,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /// A bunch of functions that are used frequently with version specific logic.
 /// Separated into here to reduce clutter elsewhere.
@@ -64,6 +66,16 @@ public class GameUtils {
     @Nullable
     public static EntityType<?> getEntityType(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif blockId) {
         return getEntityTypeRegistry().getOptional(blockId).orElse(null);
+    }
+
+    public static Stream<TagKey<Block>> getBlockTags(Block block) {
+        return block.defaultBlockState()
+            #if MC_VER <= MC_1_21_11
+            .getTags();
+            #else
+            .typeHolder()
+            .tags();
+            #endif
     }
 
     @Nullable

@@ -7,7 +7,7 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class RawBrightnessValue implements FixedNumberFetcher {
-    Vec3i offset;
+    final Vec3i offset;
 
     public RawBrightnessValue() {
         this(Vec3i.ZERO);

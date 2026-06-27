@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.datapack;
 
 import com.google.gson.JsonParser;
+import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import net.minecraft.resources.*;
 

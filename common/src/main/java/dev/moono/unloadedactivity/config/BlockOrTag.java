@@ -12,8 +12,8 @@ import java.lang.reflect.Type;
 import java.util.Objects;
 
 public class BlockOrTag {
-    public boolean isTag;
-    public #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id;
+    public final boolean isTag;
+    public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id;
 
     public BlockOrTag(boolean isTag, #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
         this.isTag = isTag;

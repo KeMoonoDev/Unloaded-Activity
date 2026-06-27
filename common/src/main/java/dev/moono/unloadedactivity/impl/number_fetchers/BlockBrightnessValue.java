@@ -8,7 +8,7 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class BlockBrightnessValue implements FixedNumberFetcher {
-    Vec3i offset;
+    final Vec3i offset;
 
     public BlockBrightnessValue() {
         this(Vec3i.ZERO);

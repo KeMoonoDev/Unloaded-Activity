@@ -14,13 +14,13 @@ public class NumberOperatorValue implements NumberFetcher {
 
     public NumberOperatorValue(Operator operator, ValueExpression<Number> value) {
         this(operator, value, null);
-    };
+    }
 
     public NumberOperatorValue(Operator operator, ValueExpression<Number> value, @Nullable ValueExpression<Number> secondaryValue) {
         this.operator = operator;
         this.value = value;
         this.secondaryValue = secondaryValue;
-    };
+    }
 
     @Override
     public Number evaluate(ExpressionContext context) {
@@ -106,12 +106,12 @@ public class NumberOperatorValue implements NumberFetcher {
     }
 
     @Override
-    public ValueExpression replicate() {
+    public ValueExpression<Number> replicate() {
         return new NumberOperatorValue(operator, value.replicate(), secondaryValue == null ? null : secondaryValue.replicate());
     }
 
     @Override
-    public void replaceSuper(ValueExpression superValue) {
+    public void replaceSuper(ValueExpression<Number> superValue) {
         if (value.isSuper()) {
             value = superValue;
         } else {

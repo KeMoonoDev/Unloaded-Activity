@@ -1,21 +1,16 @@
 package dev.moono.unloadedactivity.datapack.simulation_data;
 
-#if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.GameUtils;
-import dev.moono.unloadedactivity.datapack.JsonResourcesCollector;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import net.minecraft.resources.Identifier;
-#else
-import com.mojang.datafixers.util.Pair;
-import dev.moono.unloadedactivity.GameUtils;
-import net.minecraft.resources.ResourceLocation;
-#endif
 #if MC_VER >= MC_1_21_4
 import net.minecraft.resources.FileToIdConverter;
 #endif
 
 import com.google.gson.*;
+import com.mojang.datafixers.util.Pair;
+import dev.moono.unloadedactivity.datapack.JsonResourcesCollector;
+import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import net.minecraft.resources.*;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.block.Block;
@@ -64,41 +59,19 @@ public class SimulationDataResource extends JsonResourcesCollector {
         }
 
         COMPLETE_BLOCK_MAP.clear();
-
-        /*
-        for (Map.Entry<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<IncompleteSimulationData>> tagEntry : datas.entrySet()) {
-            List<IncompleteSimulationData> dataList = tagEntry.getValue();
-
-            if (dataList.isEmpty())
-                continue;
-
-            var id = tagEntry.getKey();
-            IncompleteSimulationData finalSimulationData = new IncompleteSimulationData();
-
-            for (IncompleteSimulationData simulationData : dataList) {
-                finalSimulationData.merge(simulationData);
-            }
-
-            if (this.isBlocks) {
-                BLOCK_MAP.put(id, finalSimulationData);
-            } else {
-                TAG_MAP.put(id, finalSimulationData);
-            }
-        }
-         */
     }
 
-    public static void clearSimulationDatas() {
+    public static void clearAllSimulationData() {
         COMPLETE_BLOCK_MAP.clear();
     }
 
-    public static void clearRawSimulationDatas() {
+    public static void clearAllRawSimulationData() {
         BLOCK_MAP.clear();
         TAG_MAP.clear();
     }
 
-    public static void buildSimulationDatas() {
-        clearSimulationDatas();
+    public static void buildAllSimulationData() {
+        clearAllSimulationData();
 
         HashSet<Block> blocksToBuild = new HashSet<>();
 
@@ -146,7 +119,7 @@ public class SimulationDataResource extends JsonResourcesCollector {
             }
         }
 
-        clearRawSimulationDatas();
+        clearAllRawSimulationData();
     }
 
     public static Optional<SimulationData> getSimulationData(Block block) {

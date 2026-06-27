@@ -151,7 +151,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
     #endif
 
     @Shadow
-    public void setRecipeUsed(@Nullable #if MC_VER >= MC_1_20_2 RecipeHolder<?> #else Recipe<?> #endif recipe) {}
+    public abstract void setRecipeUsed(@Nullable #if MC_VER >= MC_1_20_2 RecipeHolder<?> #else Recipe<?> #endif recipe);
 
     @Unique
     public boolean shouldSimulate(BlockState state) {
