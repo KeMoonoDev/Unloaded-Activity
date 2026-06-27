@@ -100,12 +100,10 @@ public class SimulationDataResource extends JsonResourcesCollector {
 
             ArrayList<JsonObject> sortedTagData = new ArrayList<>();
 
-            block.defaultBlockState() #if MC_VER >= MC_26_1_2 .tags() #else .getTags() #endif
-                .forEach(tag -> {
-                    var tagId = tag.location();
-                    sortedTagData.addAll(TAG_MAP.getOrDefault(tagId, List.of()));
-                }
-            );
+            GameUtils.getBlockTags(block).forEach(tag -> {
+                var tagId = tag.location();
+                sortedTagData.addAll(TAG_MAP.getOrDefault(tagId, List.of()));
+            });
 
             sortedTagData.sort(SimulationDataResource::compareJsonPriority);
 

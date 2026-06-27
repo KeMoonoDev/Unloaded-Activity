@@ -69,13 +69,7 @@ public class GameUtils {
     }
 
     public static Stream<TagKey<Block>> getBlockTags(Block block) {
-        return block.defaultBlockState()
-            #if MC_VER <= MC_1_21_11
-            .getTags();
-            #else
-            .typeHolder()
-            .tags();
-            #endif
+        return block.defaultBlockState() #if MC_VER >= MC_26_1_2 .tags() #else .getTags() #endif;
     }
 
     @Nullable
