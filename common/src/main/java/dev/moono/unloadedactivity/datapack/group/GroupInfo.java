@@ -23,9 +23,10 @@ public class GroupInfo {
     // It's incomplete because it will be combined later because blocks may have multiple tags and multiple member infos assigned.
     // This should only be used for constructing GroupMemberInfos for blocks.
     public HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values;
-    private LookupShape shape;
-    private int width;
-    private int height;
+    private final LookupShape shape;
+    private final int width;
+    private final int height;
+    public final float groupSizePenalty;
     private List<Vec3i> offsetsWithoutZero;
 
     public GroupInfo(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, IncompleteGroupInfo incomplete) {
@@ -47,6 +48,12 @@ public class GroupInfo {
 
         if (this.height < 0) {
             throw new RuntimeException("height cannot be less than 0.");
+        }
+
+        this.groupSizePenalty = incomplete.groupSizePenalty.orElse(1f);
+
+        if (this.groupSizePenalty <= 0) {
+            throw new RuntimeException("group_size_penality cannot be less or equal to 0.");
         }
 
         if (incomplete.shape.isEmpty())

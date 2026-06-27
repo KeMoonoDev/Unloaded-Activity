@@ -5,6 +5,7 @@
     "#unloadedactivity:oxidized_level/2": { "value": 2 },
     "#unloadedactivity:oxidized_level/3": { "value": 3 }
   },
+  "group_size_penalty": 2.75,
   "width": 4,
   "height": 4,
   "shape": "diamond"

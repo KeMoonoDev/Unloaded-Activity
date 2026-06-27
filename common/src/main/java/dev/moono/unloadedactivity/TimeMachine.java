@@ -498,6 +498,8 @@ public class TimeMachine {
 
 
     public static Optional<Collection<ActiveGroupSimulateData>> generateActiveGroupDataMap(ServerLevel level, LevelChunk chunk, ArrayList<ActiveGroupSimulateData> checkingBlockPositions, GroupInfo groupInfo, long lastMainChunkGroupTick, long currentTime) {
+        int adjustedMaxGroupTickSize = Math.round(UnloadedActivity.config.maxGroupTickSize / groupInfo.groupSizePenalty);
+
         long groupTimeDifference = Math.max(currentTime - lastMainChunkGroupTick, 0);
 
         List<ActiveGroupSimulateData> pendingBlockPositions = new ArrayList<>();
@@ -620,7 +622,7 @@ public class TimeMachine {
                 List<ActiveGroupSimulateData> newData = newGroupChunkIndex.getAndFilterBlocks(newChunk);
                 int newTotalSize = activeGroupDataMap.size() + newData.size();
 
-                if (newTotalSize > UnloadedActivity.config.maxGroupTickSize)
+                if (newTotalSize > adjustedMaxGroupTickSize)
                     forceInactive = true;
 
                 if (forceInactive) {

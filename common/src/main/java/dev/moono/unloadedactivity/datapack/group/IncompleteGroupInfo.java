@@ -20,9 +20,10 @@ import static dev.moono.unloadedactivity.GameUtils.returnError;
 public class IncompleteGroupInfo {
     public static final Codec<IncompleteGroupInfo> CODEC;
 
-    public Optional<LookupShape> shape;
-    public Optional<Integer> width;
-    public Optional<Integer> height;
+    public Optional<LookupShape> shape = Optional.empty();
+    public Optional<Integer> width = Optional.empty();
+    public Optional<Integer> height = Optional.empty();
+    public Optional<Float> groupSizePenalty = Optional.empty();
     public HashMap<Pair<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Boolean>, IncompleteGroupMemberInfo> values = new HashMap<>();
 
     public IncompleteGroupInfo replicate() {
@@ -35,6 +36,7 @@ public class IncompleteGroupInfo {
         this.shape = otherGroupInfo.shape.or(() -> this.shape);
         this.width = otherGroupInfo.width.or(() -> this.width);
         this.height = otherGroupInfo.height.or(() -> this.height);
+        this.groupSizePenalty = otherGroupInfo.groupSizePenalty.or(() -> this.groupSizePenalty);
 
         for (var entry : otherGroupInfo.values.entrySet()) {
             IncompleteGroupMemberInfo thisGroupMemberInfo = this.values.computeIfAbsent(entry.getKey(), k -> new IncompleteGroupMemberInfo());
@@ -73,61 +75,78 @@ public class IncompleteGroupInfo {
 
         {
             T mapValue = map.get("width");
-            DataResult<Number> valueResult = ops.getNumberValue(mapValue);
-            if (valueResult.result().isEmpty())
-                return returnError(valueResult);
+            if (mapValue != null) {
+                DataResult<Number> valueResult = ops.getNumberValue(mapValue);
+                if (valueResult.result().isEmpty())
+                    return returnError(valueResult);
 
-            groupInfo.width = valueResult.result().map(Number::intValue);
+                groupInfo.width = valueResult.result().map(Number::intValue);
+            }
         }
 
         {
             T mapValue = map.get("height");
-            DataResult<Number> valueResult = ops.getNumberValue(mapValue);
-            if (valueResult.result().isEmpty())
-                return returnError(valueResult);
+            if (mapValue != null) {
+                DataResult<Number> valueResult = ops.getNumberValue(mapValue);
+                if (valueResult.result().isEmpty())
+                    return returnError(valueResult);
 
-            groupInfo.height = valueResult.result().map(Number::intValue);
+                groupInfo.height = valueResult.result().map(Number::intValue);
+            }
+        }
+
+        {
+            T mapValue = map.get("group_size_penalty");
+            if (mapValue != null) {
+                DataResult<Number> valueResult = ops.getNumberValue(mapValue);
+                if (valueResult.result().isEmpty())
+                    return returnError(valueResult);
+
+                groupInfo.groupSizePenalty = valueResult.result().map(Number::floatValue);
+            }
         }
 
         {
             T mapValue = map.get("values");
 
-            DataResult<MapLike<T>> valueMapResult = ops.getMap(mapValue);
-            if (valueMapResult.result().isEmpty())
-                return returnError(valueMapResult);
+            if (mapValue != null) {
+                DataResult<MapLike<T>> valueMapResult = ops.getMap(mapValue);
+                if (valueMapResult.result().isEmpty())
+                    return returnError(valueMapResult);
 
-            for (Iterator<Pair<T, T>> it = valueMapResult.result().get().entries().iterator(); it.hasNext(); ) {
-                Pair<T, T> entry = it.next();
-                T idValue = entry.getFirst();
-                DataResult<String> idStringResult = ops.getStringValue(idValue);
+                for (Iterator<Pair<T, T>> it = valueMapResult.result().get().entries().iterator(); it.hasNext(); ) {
+                    Pair<T, T> entry = it.next();
+                    T idValue = entry.getFirst();
+                    DataResult<String> idStringResult = ops.getStringValue(idValue);
 
-                if (idStringResult.result().isEmpty())
-                    return returnError(idStringResult);
+                    if (idStringResult.result().isEmpty())
+                        return returnError(idStringResult);
 
-                String idStringValue = idStringResult.result().get();
+                    String idStringValue = idStringResult.result().get();
 
-                Boolean isTag = idStringValue.startsWith("#");
+                    Boolean isTag = idStringValue.startsWith("#");
 
-                if (isTag)
-                    idStringValue = idStringValue.substring(1);
+                    if (isTag)
+                        idStringValue = idStringValue.substring(1);
 
-                var idResult = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.read(idStringValue);
+                    var idResult = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif .read(idStringValue);
 
-                if (idResult.result().isEmpty())
-                    return returnError(idResult);
+                    if (idResult.result().isEmpty())
+                        return returnError(idResult);
 
-                var id = idResult.result().get();
+                    var id = idResult.result().get();
 
-                T memberValue = entry.getSecond();
+                    T memberValue = entry.getSecond();
 
-                DataResult<IncompleteGroupMemberInfo> groupMemberInfoResult = IncompleteGroupMemberInfo.parse(ops, memberValue);
+                    DataResult<IncompleteGroupMemberInfo> groupMemberInfoResult = IncompleteGroupMemberInfo.parse(ops, memberValue);
 
-                if (groupMemberInfoResult.result().isEmpty())
-                    return returnError(groupMemberInfoResult);
+                    if (groupMemberInfoResult.result().isEmpty())
+                        return returnError(groupMemberInfoResult);
 
-                IncompleteGroupMemberInfo groupMemberInfo = groupMemberInfoResult.result().get();
+                    IncompleteGroupMemberInfo groupMemberInfo = groupMemberInfoResult.result().get();
 
-                groupInfo.values.put(Pair.of(id, isTag), groupMemberInfo);
+                    groupInfo.values.put(Pair.of(id, isTag), groupMemberInfo);
+                }
             }
         }
 
