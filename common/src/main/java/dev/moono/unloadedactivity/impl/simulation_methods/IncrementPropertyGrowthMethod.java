@@ -3,6 +3,8 @@ package dev.moono.unloadedactivity.impl.simulation_methods;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SeparableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.FixedValueExpression;
@@ -159,7 +161,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
     }
 
     @Override
-    public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
         Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.propertyName);
 
         DeferredBlockPlacer blockPlacer = DeferredBlockPlacer.empty();
@@ -183,12 +185,11 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             return blockPlacer;
         }
 
-        long currentTime = GameUtils.getTime(level);
-
-        long finishTime = currentTime - timePassed + simulationDuration;
+        SimulatedTime finalTime = occurrencesAndTimings.getFinalTime();
+        long endTime = finalTime.endTime();
 
         if (this.bottomBlockReplacement != null) {
-            Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishTime);
+            Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, endTime);
             BlockState newState = newBlock.defaultBlockState();
 
             for (String propertyName : this.transferProperties) {
@@ -214,9 +215,10 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
 
 
             state = newState;
-            blockPlacer.setBlock(pos, state, simulationDuration);
+            blockPlacer.setBlock(pos, state, finalTime);
         }
 
+        int occurrences = occurrencesAndTimings.occurrences();
 
         for (int i=0;i<occurrences;i++) {
             if (this.reverseHeightGrowthDirection) {
@@ -228,7 +230,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             boolean isFinal = i+1 == occurrences;
 
             if (this.bottomBlockReplacement != null && !isFinal) {
-                Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishTime);
+                Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, endTime);
                 state = newBlock.defaultBlockState();
             } else {
                 int newValue = current + (i + 1);
@@ -246,17 +248,17 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
                 if (maybeSetProperty.isPresent()) {
                     Property<?> newSetProperty = maybeSetProperty.get();
                     if (newSetProperty instanceof BooleanProperty booleanProperty) {
-                        float value = propertyValue.evaluateRandomized(level, state, pos, finishTime).floatValue();
+                        float value = propertyValue.evaluateRandomized(level, state, pos, endTime).floatValue();
                         state = state.setValue(booleanProperty, value != 0);
                     }
                     if (newSetProperty instanceof IntegerProperty integerProperty) {
-                        int value = propertyValue.evaluateRandomized(level, state, pos, finishTime).intValue();
+                        int value = propertyValue.evaluateRandomized(level, state, pos, endTime).intValue();
                         state = state.setValue(integerProperty, value);
                     }
                 }
             }
 
-            blockPlacer.setBlock(pos, state, simulationDuration);
+            blockPlacer.setBlock(pos, state, finalTime);
         }
 
         return blockPlacer;

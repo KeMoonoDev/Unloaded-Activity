@@ -6,7 +6,8 @@ import net.minecraft.world.attribute.EnvironmentAttributes;
 
 import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
-import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import net.minecraft.core.BlockPos;
@@ -112,7 +113,7 @@ public class SpeleothemMethod extends SimulationMethod {
     }
 
     @Override
-    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, long timePassed, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
         #if MC_VER >= MC_26_2
         SpeleothemBlock thisBlock;
         Block gotBlock = state.getBlock();
@@ -169,22 +170,22 @@ public class SpeleothemMethod extends SimulationMethod {
             successesUntilReachCauldron = 0;
         }
 
-        float averageUpperProbability = -1F;
+        OccurrencesAndTimings upperResult = OccurrencesAndTimings.empty(simulatedTime);
 
         if (currentLength < maxGrowthLength) {
             if (GameUtils.canGrow(level, pos, thisBlock)) {
                 if (GameUtils.isFreeHangingStalactite(tip) && GameUtils.canTipGrow(tip, level, tipPos, thisBlock)) {
 
-                    var upperResult = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, this.advanceProbability, this.requiresRain, lengthDifference, randomPickOdds, false, random, groupSimulateData);
-                    averageUpperProbability = upperResult.averageProbability();
+                    boolean calculateDuration = successesUntilReachGround > 0 || successesUntilReachCauldron > 0;
+
+                    upperResult = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, lengthDifference, randomPickOdds, calculateDuration, random, groupSimulateData);
                     totalUpperDripGrowth = upperResult.occurrences();
 
                     if (bottomStalagmiteDistance != -1) {
                         if (totalUpperDripGrowth >= successesUntilReachGround) {
-                            var recalculatedDuration = OccurrencesAndDuration.recalculatedDuration(successesUntilReachGround, timePassed, averageUpperProbability, random);
-                            long leftover = timePassed - recalculatedDuration.duration();
+                            SimulatedTime newTime = upperResult.getTimeAtOccurrence(successesUntilReachGround);
                             int maxGroundGrowth = Math.min(bottomStalagmiteDistance, bottomSearchRange);
-                            var lowerResult = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), leftover, this.advanceProbability, this.requiresRain, maxGroundGrowth, randomPickOdds, false, random, groupSimulateData);
+                            var lowerResult = MathUtils.getOccurrences(level, state, pos, newTime, this.advanceProbability, this.requiresRain, maxGroundGrowth, randomPickOdds, false, random, groupSimulateData);
                             totalLowerDripGrowth = lowerResult.occurrences();
                         }
                     }
@@ -193,6 +194,7 @@ public class SpeleothemMethod extends SimulationMethod {
         }
 
         if (this.cauldronFillConfig != null) {
+            // todo seperate this into a different config
             boolean ultraWarm = #if MC_VER >= MC_1_21_11
                 level.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, pos)
             #else
@@ -201,9 +203,8 @@ public class SpeleothemMethod extends SimulationMethod {
 
             if (liquidState.is(Blocks.MUD) && !ultraWarm) {
                 float totalDripOdds = this.cauldronFillConfig.waterFillProbability * randomPickOdds;
-                int dripOccurrences = MathUtils.getOccurrencesBinomial(timePassed, totalDripOdds, 1, random);
+                int dripOccurrences = MathUtils.getOccurrencesBinomial(simulatedTime.remainingTime(), totalDripOdds, 1, random);
                 if (dripOccurrences != 0) {
-
                     BlockState clay = Blocks.CLAY.defaultBlockState();
                     level.setBlockAndUpdate(pos.above(2), clay);
                     Block.pushEntitiesUp(liquidState, clay, level, pos.above(2));
@@ -217,14 +218,9 @@ public class SpeleothemMethod extends SimulationMethod {
                     if (!cauldronBlock.isFull(cauldronState) && cauldronBlock.canReceiveStalactiteDrip(dripstoneFluid)) {
                         float totalDripOdds = this.cauldronFillConfig.getCauldronDripOdds(dripstoneFluid) * randomPickOdds;
 
-                        long leftover = timePassed;
+                        SimulatedTime newTime = upperResult.getTimeAtOccurrence(successesUntilReachCauldron);
 
-                        // if successesUntilReachCauldron is 0, that means it didn't need to grow to reach the cauldron.
-                        // If it wasn't 0, it did grow to reach this point, and averageUpperProbability is now a valid value.
-                        if (successesUntilReachCauldron > 0)
-                            leftover = timePassed - (MathUtils.sampleNegativeBinomialWithMax(timePassed, successesUntilReachCauldron, averageUpperProbability, random));
-
-                        int dripOccurrences = MathUtils.getOccurrencesBinomial(leftover, totalDripOdds, LayeredCauldronBlock.MAX_FILL_LEVEL, random);
+                        int dripOccurrences = MathUtils.getOccurrencesBinomial(newTime.remainingTime(), totalDripOdds, LayeredCauldronBlock.MAX_FILL_LEVEL, random);
                         while (dripOccurrences > 0) {
                             --dripOccurrences;
                             cauldronBlock.receiveStalactiteDrip(cauldronState, level, cauldronPos, dripstoneFluid);

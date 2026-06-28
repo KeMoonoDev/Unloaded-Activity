@@ -3,6 +3,8 @@ package dev.moono.unloadedactivity.impl.simulation_methods;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
@@ -69,16 +71,14 @@ public class ReplaceMethod extends GroupableSimulationMethod {
     }
 
     @Override
-    public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (this.dropsResources) {
             Block.dropResources(state, level, pos);
         }
 
-        long currentTime = GameUtils.getTime(level);
+        SimulatedTime finishTime = occurrencesAndTimings.getFinalTime();
 
-        long finishTime = currentTime - timePassed + simulationDuration;
-
-        Block blockReplacement = this.blockReplacement.evaluateRandomized(level, state, pos, finishTime, Map.of(), groupSimulateData);
+        Block blockReplacement = this.blockReplacement.evaluateRandomized(level, state, pos, finishTime.currentTime(), Map.of(), groupSimulateData);
         BlockState newState = blockReplacement.defaultBlockState();
         for (String propertyName : this.transferProperties) {
             Optional<Property<?>> maybeNewProperty = GameUtils.getProperty(newState, propertyName);
@@ -107,15 +107,15 @@ public class ReplaceMethod extends GroupableSimulationMethod {
             if (maybeSetProperty.isPresent()) {
                 Property<?> newSetProperty = maybeSetProperty.get();
                 if (newSetProperty instanceof BooleanProperty booleanProperty) {
-                    float value = propertyValue.evaluateRandomized(level, newState, pos, finishTime).floatValue();
+                    float value = propertyValue.evaluateRandomized(level, newState, pos, finishTime.currentTime()).floatValue();
                     newState = newState.setValue(booleanProperty, value != 0);
                 }
                 if (newSetProperty instanceof IntegerProperty integerProperty) {
-                    int value = propertyValue.evaluateRandomized(level, newState, pos, finishTime).intValue();
+                    int value = propertyValue.evaluateRandomized(level, newState, pos, finishTime.currentTime()).intValue();
                     newState = newState.setValue(integerProperty, value);
                 }
             }
         }
-        return new DeferredBlockPlacer.SingleBlockPlacement(newState, simulationDuration);
+        return new DeferredBlockPlacer.SingleBlockPlacement(newState, finishTime);
     }
 }

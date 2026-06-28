@@ -1,8 +1,6 @@
 package dev.moono.unloadedactivity.api.context;
 
 #if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.api.condition.FixedCondition;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.gamerules.GameRules;
 #else
 import net.minecraft.world.level.GameRules;
@@ -10,6 +8,7 @@ import net.minecraft.world.level.GameRules;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;

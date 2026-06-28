@@ -2,7 +2,8 @@ package dev.moono.unloadedactivity.impl.simulation_methods;
 
 import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
-import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import net.minecraft.core.BlockPos;
@@ -38,19 +39,20 @@ public class GrowBambooMethod extends SimulationMethod {
     }
 
     @Override
-    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, long timePassed, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (maxHeight <= 1 || !level.isEmptyBlock(pos.above())) return null;
 
         Block thisBlock = state.getBlock();
         if (thisBlock instanceof BambooSaplingBlock bambooSaplingBlock) {
 
-            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, this.advanceProbability, this.requiresRain, 1, randomPickOdds, true, random, groupSimulateData);
+            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, 1, randomPickOdds, true, random, groupSimulateData);
 
             if (result.occurrences() != 0) {
                 bambooSaplingBlock.growBamboo(level, pos);
 
-                long newTimePassed = timePassed - result.duration();
-                if (newTimePassed > 0) {
+                SimulatedTime finalTime = result.getFinalTime();
+
+                if (finalTime.remainingTime() > 0) {
                     BlockState lastState = level.getBlockState(pos);
                     BlockPos lastPos = pos;
                     Block searchBlock = lastState.getBlock();
@@ -63,7 +65,7 @@ public class GrowBambooMethod extends SimulationMethod {
                         lastPos = pos.above(i);
                     }
 
-                    this.simulate(lastState, level, lastPos, random, newTimePassed, randomPickOdds, hasDependents, groupSimulateData);
+                    this.simulate(lastState, level, lastPos, random, finalTime, randomPickOdds, hasDependents, groupSimulateData);
                 }
             }
         } else if (thisBlock instanceof #if MC_VER >= MC_1_19_4 BambooStalkBlock #else BambooBlock #endif bambooBlock) {
@@ -75,7 +77,7 @@ public class GrowBambooMethod extends SimulationMethod {
             int heightDifference = maxHeight - height;
             int maxGrowth = this.countAirAboveUpToMax(level,pos, heightDifference);
 
-            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, this.advanceProbability, this.requiresRain, maxGrowth, randomPickOdds, false, random, groupSimulateData);
+            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, maxGrowth, randomPickOdds, false, random, groupSimulateData);
 
             int totalGrowth = 0;
 

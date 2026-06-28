@@ -2,7 +2,8 @@ package dev.moono.unloadedactivity.impl.simulation_methods;
 
 import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
-import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import net.minecraft.core.BlockPos;
@@ -99,7 +100,7 @@ public class BuddingMethod extends SimulationMethod {
     }
 
     @Override
-    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, long timePassed, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
         List<Direction> availableDirections = Arrays.stream(Direction.values()).filter(direction -> !this.ignoreBuddingDirections.contains(direction)).toList();
 
         DeferredBlockPlacer blockPlacer = DeferredBlockPlacer.empty();
@@ -155,7 +156,7 @@ public class BuddingMethod extends SimulationMethod {
 
             int maxOccurrences = this.buddingBlocks.size() - stage;
 
-            OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, GameUtils.getTime(level), timePassed, this.advanceProbability, this.requiresRain, maxOccurrences, randomPickOdds, hasDependents, random, groupSimulateData);
+            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, maxOccurrences, randomPickOdds, hasDependents, random, groupSimulateData);
 
             if (result.occurrences() == 0) {
                 continue;
@@ -178,7 +179,7 @@ public class BuddingMethod extends SimulationMethod {
                 newBudState = newBudState.setValue(BlockStateProperties.WATERLOGGED, budState.getFluidState().getType() == Fluids.WATER);
             }
 
-            blockPlacer.setBlock(budPos, newBudState, result.duration());
+            blockPlacer.setBlock(budPos, newBudState, result.getFinalTime());
         }
 
         return blockPlacer;

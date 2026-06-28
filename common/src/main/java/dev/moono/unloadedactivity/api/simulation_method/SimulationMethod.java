@@ -2,11 +2,11 @@ package dev.moono.unloadedactivity.api.simulation_method;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.condition.FixedCondition;
 import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.value_expression.UpdatingValueExpression;
-import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -14,7 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 public abstract class SimulationMethod {
     public final boolean isPrecipitation;
@@ -37,7 +36,7 @@ public abstract class SimulationMethod {
     public abstract boolean isDependable();
 
     @Nullable
-    public abstract DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, long timePassed, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData);
+    public abstract DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData);
 
     public boolean simulatesWithGroup() {
         return false;

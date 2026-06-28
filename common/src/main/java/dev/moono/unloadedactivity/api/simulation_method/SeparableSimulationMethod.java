@@ -2,7 +2,8 @@ package dev.moono.unloadedactivity.api.simulation_method;
 
 import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
-import dev.moono.unloadedactivity.api.OccurrencesAndDuration;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -22,10 +23,10 @@ public abstract class SeparableSimulationMethod extends SimulationMethod {
 
     public abstract int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos);
 
-    public abstract DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData);
+    public abstract DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData);
 
     @Override
-    public DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, long timePassed, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
         int updateCount = this.getMaxUpdateCount(state, level, pos);
         boolean calculateDuration = hasDependents || this.shouldCalculateDuration(state, level, pos);
 
@@ -34,11 +35,11 @@ public abstract class SeparableSimulationMethod extends SimulationMethod {
 
         long currentTime = GameUtils.getTime(level);
 
-        OccurrencesAndDuration result = MathUtils.getOccurrences(level, state, pos, currentTime, timePassed, this.advanceProbability, this.requiresRain, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
+        OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
 
         if (result.occurrences() == 0)
             return DeferredBlockPlacer.empty();
 
-        return this.getNewBlockStates(state, level, pos, result.occurrences(), result.duration(), timePassed, groupSimulateData);
+        return this.getNewBlockStates(state, level, pos, result, groupSimulateData);
     }
 }

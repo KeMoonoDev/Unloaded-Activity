@@ -11,8 +11,9 @@ import net.minecraft.world.entity.animal.Turtle;
 #endif
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
-import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
@@ -57,12 +58,13 @@ public class HatchMethod extends GroupableSimulationMethod {
     }
 
     @Override
-    public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (this.dropsResources) {
             Block.dropResources(state, level, pos);
         }
 
-        long hatchTime = GameUtils.getTime(level) - timePassed + simulationDuration;
+        SimulatedTime finalTime = occurrencesAndTimings.getFinalTime();
+        long hatchTime = finalTime.currentTime();
         int hatchCount = this.hatchCount.evaluateRandomized(level, state, pos, hatchTime).intValue();
 
         if (hatchCount > 0) {
@@ -89,10 +91,10 @@ public class HatchMethod extends GroupableSimulationMethod {
                 }
 
                 level.addFreshEntity(hatchedEntity);
-                hatchedEntity.unloadedactivity$simulateTime(timePassed - simulationDuration);
+                hatchedEntity.unloadedactivity$simulateTime(finalTime.remainingTime());
             }
         }
 
-        return new DeferredBlockPlacer.SingleBlockPlacement(state.getFluidState().createLegacyBlock(), simulationDuration);
+        return new DeferredBlockPlacer.SingleBlockPlacement(state.getFluidState().createLegacyBlock(), finalTime);
     }
 }

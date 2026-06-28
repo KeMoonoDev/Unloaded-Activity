@@ -19,6 +19,7 @@ import net.minecraft.core.Holder;
 import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.WorldWeatherForecast;
 import dev.moono.unloadedactivity.interfaces.WorldForecastGetter;
 import net.minecraft.nbt.CompoundTag;
@@ -91,7 +92,8 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier()) {
 					++updateCount;
 					int groupUpdateBudget = UnloadedActivity.config.maxGroupUpdatesPerTick - groupUpdateCount;
-					Pair<Integer, Boolean> result = TimeMachine.simulateChunk(timeDifference, this.getLevel(), chunk, randomTickSpeed, groupUpdateBudget, currentTime);
+					SimulatedTime simulatedTime = new SimulatedTime(timeDifference, currentTime);
+					Pair<Integer, Boolean> result = TimeMachine.simulateChunk(this.getLevel(), chunk, simulatedTime, randomTickSpeed, groupUpdateBudget);
 					groupUpdateCount += result.getFirst();
 					boolean simulatedAllGroups = result.getSecond();
 					if (!simulatedAllGroups) {

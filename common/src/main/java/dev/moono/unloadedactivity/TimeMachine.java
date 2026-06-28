@@ -2,6 +2,8 @@ package dev.moono.unloadedactivity;
 
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
@@ -38,7 +40,7 @@ import java.util.*;
 
 public class TimeMachine {
     /// Returns how many groups were simulated and if the last ticked time should be updated/if normal ticks were simulated.
-    public static Pair<Integer, Boolean> simulateChunk(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget, long currentTime) {
+    public static Pair<Integer, Boolean> simulateChunk(ServerLevel level, LevelChunk chunk, SimulatedTime simulatedTime, int randomTickSpeed, int groupUpdateBudget) {
         if (!UnloadedActivity.config.enableSimulatingRandomTicks
             && !UnloadedActivity.config.enableSimulatingPrecipitationTicks
             && !UnloadedActivity.config.enableSimulatingGroups) return Pair.of(0, true);
@@ -46,7 +48,7 @@ public class TimeMachine {
         int simulatedGroupCount = 0;
 
         if (UnloadedActivity.config.enableSimulatingGroups) {
-            Pair<Integer, Boolean> result = TimeMachine.simulateGroupTicks(level, chunk, randomTickSpeed, groupUpdateBudget, currentTime);
+            Pair<Integer, Boolean> result = TimeMachine.simulateGroupTicks(level, chunk, randomTickSpeed, groupUpdateBudget, simulatedTime);
             simulatedGroupCount = result.getFirst();
             boolean simulatedAllGroups = result.getSecond();
             if (!simulatedAllGroups) {
@@ -55,7 +57,7 @@ public class TimeMachine {
         }
 
         if (UnloadedActivity.config.enableSimulatingRandomTicks || UnloadedActivity.config.enableSimulatingPrecipitationTicks)
-            TimeMachine.simulateTicks(timeDifference, level, chunk, randomTickSpeed);
+            TimeMachine.simulateTicks(level, chunk, simulatedTime, randomTickSpeed);
 
         return Pair.of(simulatedGroupCount, true);
     }
@@ -222,7 +224,7 @@ public class TimeMachine {
     }
 
     // This doesn't take a timeDifference parameter because that is supposed to be calculated in the function using the last group tick.
-    public static Pair<Integer, Boolean> simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget, long currentTime) {
+    public static Pair<Integer, Boolean> simulateGroupTicks(ServerLevel level, LevelChunk chunk, int randomTickSpeed, int groupUpdateBudget, SimulatedTime simulatedTime) {
         MinecraftServer server = chunk.getLevel().getServer();
 
         if (server == null) {
@@ -243,10 +245,10 @@ public class TimeMachine {
                 continue;
 
             long lastGroupTick = groupChunkIndex.getLastTick(chunk.getLastTick());
-            long groupTimeDifference = Math.max(currentTime - lastGroupTick, 0);
+            long groupTimeDifference = Math.max(simulatedTime.endTime() - lastGroupTick, 0);
 
             if (groupTimeDifference <= UnloadedActivity.config.groupTickDifferenceThreshold) {
-                groupChunkIndex.setLastTick(currentTime);
+                groupChunkIndex.setLastTick(simulatedTime.endTime());
                 continue;
             }
 
@@ -262,7 +264,7 @@ public class TimeMachine {
             }
 
             if (isAllInactive) {
-                groupChunkIndex.setLastTick(currentTime);
+                groupChunkIndex.setLastTick(simulatedTime.endTime());
                 #if MC_VER >= MC_1_21_3
                 chunk.markUnsaved();
                 #else
@@ -279,7 +281,7 @@ public class TimeMachine {
 
             simulatedGroups++;
 
-            Optional<Collection<ActiveGroupSimulateData>> maybeActiveGroupDataMap = generateActiveGroupDataMap(level, chunk, checkingBlockPositions, groupInfo, lastGroupTick, currentTime);
+            Optional<Collection<ActiveGroupSimulateData>> maybeActiveGroupDataMap = generateActiveGroupDataMap(level, chunk, checkingBlockPositions, groupInfo, lastGroupTick, simulatedTime);
 
             if (maybeActiveGroupDataMap.isEmpty()) {
                 break;
@@ -308,7 +310,7 @@ public class TimeMachine {
                     UnloadedActivity.LOGGER.info("Simulating isolated group of " + group.size() + " members");
 
                 while (remainingCycles > 0 && totalIterations < UnloadedActivity.config.maxGroupTickIterations) {
-                    long simulationCurrentTime = currentTime - remainingCycles;
+                    long simulationCurrentTime = simulatedTime.endTime() - remainingCycles;
 
                     long minProbabilityStepDuration = remainingCycles / (UnloadedActivity.config.maxGroupTickIterations - totalIterations);
                     long maxProbabilityStepDuration = remainingCycles / Math.max(1, UnloadedActivity.config.minGroupTickIterations - totalIterations);
@@ -371,6 +373,8 @@ public class TimeMachine {
 
                     ArrayList<Triple<BlockState, ActiveGroupSimulateData, Optional<GroupMemberInfo>>> pendingUpdateBlockInfo = new ArrayList<>();
 
+                    SimulatedTime activeSimulatedTime = new SimulatedTime(simulationStepDuration, simulationCurrentTime + simulationStepDuration);
+
                     for (ActiveGroupSimulateData simulationData : group) {
                         if (!simulationData.isActive)
                             continue;
@@ -407,7 +411,7 @@ public class TimeMachine {
 
                         int updateCount = simulationData.getCurrentUpdateCount();
 
-                        DeferredBlockPlacer newBlockStates = simulationMethod.getNewBlockStates(state, level, simulationData.position, updateCount, simulationStepDuration, simulationStepDuration, simulationData);
+                        DeferredBlockPlacer newBlockStates = simulationMethod.getNewBlockStates(state, level, simulationData.position, OccurrencesAndTimings.fastDuration(updateCount, activeSimulatedTime), simulationData);
 
                         if (newBlockStates.size() > 1) {
                             throw new RuntimeException("Group simulation type must only return 1 or 0 new blockstates.");
@@ -482,10 +486,15 @@ public class TimeMachine {
                     if (!data.placeBlock)
                         continue;
 
+                    BlockState state = data.getState();
+
+                    if (state == null)
+                        continue;
+
                     if (data.blockIsReplaced) {
-                        level.setBlockAndUpdate(data.position, data.getState());
+                        level.setBlockAndUpdate(data.position, state);
                     } else {
-                        level.setBlock(data.position, data.getState(), data.updateType);
+                        level.setBlock(data.position, state, data.updateType);
                     }
                 }
             }
@@ -495,10 +504,10 @@ public class TimeMachine {
     }
 
 
-    public static Optional<Collection<ActiveGroupSimulateData>> generateActiveGroupDataMap(ServerLevel level, LevelChunk chunk, ArrayList<ActiveGroupSimulateData> checkingBlockPositions, GroupInfo groupInfo, long lastMainChunkGroupTick, long currentTime) {
+    public static Optional<Collection<ActiveGroupSimulateData>> generateActiveGroupDataMap(ServerLevel level, LevelChunk chunk, ArrayList<ActiveGroupSimulateData> checkingBlockPositions, GroupInfo groupInfo, long lastMainChunkGroupTick, SimulatedTime simulatedTime) {
         int adjustedMaxGroupTickSize = Math.round(UnloadedActivity.config.maxGroupTickSize / groupInfo.groupSizePenalty);
 
-        long groupTimeDifference = Math.max(currentTime - lastMainChunkGroupTick, 0);
+        long groupTimeDifference = Math.max(simulatedTime.endTime() - lastMainChunkGroupTick, 0);
 
         List<ActiveGroupSimulateData> pendingBlockPositions = new ArrayList<>();
         List<ActiveGroupSimulateData> toBeAddedToMap = new ArrayList<>(checkingBlockPositions);
@@ -629,7 +638,7 @@ public class TimeMachine {
                         groupSimData.isActive = false;
                     }
                 } else {
-                    newGroupChunkIndex.setLastTick(currentTime);
+                    newGroupChunkIndex.setLastTick(simulatedTime.endTime());
                     #if MC_VER >= MC_1_21_3
                     chunk.markUnsaved();
                     #else
@@ -704,7 +713,7 @@ public class TimeMachine {
         return isolatedGroups;
     }
 
-    public static void simulateTicks(long timeDifference, ServerLevel level, LevelChunk chunk, int randomTickSpeed) {
+    public static void simulateTicks(ServerLevel level, LevelChunk chunk,  SimulatedTime simulatedTime, int randomTickSpeed) {
         List<BlockPos> precipitationBlocks = List.of();
 
         if (UnloadedActivity.config.enableSimulatingPrecipitationTicks) {
@@ -714,7 +723,7 @@ public class TimeMachine {
                 Collections.shuffle(precipitationBlocks);
 
             for (BlockPos blockPos : precipitationBlocks)
-                simulateBlock(blockPos, level, timeDifference, randomTickSpeed, true);
+                simulateBlock(blockPos, level, simulatedTime, randomTickSpeed, true);
         }
 
         if (UnloadedActivity.config.enableSimulatingRandomTicks) {
@@ -725,14 +734,12 @@ public class TimeMachine {
 
             for (BlockPos blockPos : blockPosArray) {
                 if (precipitationBlocks.contains(blockPos)) continue;
-                simulateBlock(blockPos, level, timeDifference, randomTickSpeed, false);
+                simulateBlock(blockPos, level, simulatedTime, randomTickSpeed, false);
             }
         }
     }
 
-    public static void simulateBlock(BlockPos pos, ServerLevel level, long timeLeft, int randomTickSpeed, boolean allowPrecipitationTicks) {
-        MinecraftServer server = level.getServer();
-
+    public static void simulateBlock(BlockPos pos, ServerLevel level, SimulatedTime simulatedTime, int randomTickSpeed, boolean allowPrecipitationTicks) {
         float randomPickChance = MathUtils.getRandomPickOdds(randomTickSpeed);
         float precipitationPickChance = MathUtils.getPrecipitationPickOdds(randomTickSpeed);
 
@@ -750,8 +757,8 @@ public class TimeMachine {
             }
 
             // This is not a HashMap because most of the time a block only has 1 or 2 properties.
-            // It's not worth the overhead.
-            ArrayList<Pair<String, Long>> finishedProperties = new ArrayList<>();
+            // It's probably not worth the overhead.
+            ArrayList<Pair<String, SimulatedTime>> finishedProperties = new ArrayList<>();
 
             // This is not a HashSet because of the same reason above.
             // Even if there's a duplicate, we only check if it contains, so it doesn't matter.
@@ -774,7 +781,7 @@ public class TimeMachine {
                 var simulationMethod = entry.getValue();
 
                 if (!simulationMethod.canDoMore(state, level, pos)) {
-                    finishedProperties.add(Pair.of(propertyName, 0L));
+                    finishedProperties.add(Pair.of(propertyName, simulatedTime));
                 } else {
                     pendingProperties.add(Pair.of(propertyName, simulationMethod));
                 }
@@ -793,7 +800,7 @@ public class TimeMachine {
                     var entry = iterator.next();
 
                     boolean validDependencies = true;
-                    long maxDuration = 0;
+                    SimulatedTime lastSimulatedTime = simulatedTime;
 
                     SimulationMethod simulationMethod = entry.getSecond();
 
@@ -808,21 +815,23 @@ public class TimeMachine {
                     }
                     var propertyName = entry.getFirst();
                     for (String dependency : simulationMethod.dependencies) {
-                        Long dependencyDuration = null;
+                        SimulatedTime dependencySimulatedTime = null;
 
                         for (var pair : finishedProperties) {
                             if (pair.getFirst().equals(dependency)) {
-                                dependencyDuration = pair.getSecond();
+                                dependencySimulatedTime = pair.getSecond();
                                 break;
                             }
                         }
 
-                        if (dependencyDuration == null) {
+                        if (dependencySimulatedTime == null) {
                             validDependencies = false;
                             break;
                         }
 
-                        maxDuration = Math.max(maxDuration, dependencyDuration);
+                        if (lastSimulatedTime.currentTime() < dependencySimulatedTime.currentTime()) {
+                            lastSimulatedTime = dependencySimulatedTime;
+                        }
                     }
 
                     if (!validDependencies) {
@@ -841,11 +850,7 @@ public class TimeMachine {
                         continue;
                     }
 
-                    long simulateTime = timeLeft - maxDuration;
-
-                    assert (simulateTime >= 0);
-
-                    if (simulateTime == 0) {
+                    if (lastSimulatedTime.remainingTime() <= 0) {
                         if (UnloadedActivity.config.debugLogs)
                             UnloadedActivity.LOGGER.info("Skipping simulating property " + propertyName + " due to no simulation time.");
                         continue;
@@ -856,7 +861,7 @@ public class TimeMachine {
 
                     float pickChance = simulationMethod.isPrecipitation ? precipitationPickChance : randomPickChance;
 
-                    DeferredBlockPlacer blockPlacer = simulationMethod.simulate(state, level, pos, GameUtils.getRand(level), simulateTime, pickChance, propertiesWithDependents.contains(propertyName), null);
+                    DeferredBlockPlacer blockPlacer = simulationMethod.simulate(state, level, pos, GameUtils.getRand(level), lastSimulatedTime, pickChance, propertiesWithDependents.contains(propertyName), null);
 
                     if (blockPlacer == null) {
                         continueCheck = false;
@@ -877,30 +882,22 @@ public class TimeMachine {
                         }
                     });
 
-                    DeferredBlockPlacer.BlockPlacementInfo lastBlockPlacement = blockPlacer.get(blockPlacer.size()-1);
+                    DeferredBlockPlacer.BlockPlacementInfo lastBlockPlacement = blockPlacer.lastPlacedBlock();
 
                     state = lastBlockPlacement.blockState();
                     pos = lastBlockPlacement.blockPos();
 
-                    long duration = lastBlockPlacement.duration();
-
-                    assert (duration <= simulateTime);
-
-                    long simulationDuration = duration + maxDuration;
-
-                    assert (simulationDuration <= timeLeft);
+                    SimulatedTime placedAtTime = lastBlockPlacement.placedAtTime();
 
                     if (state.getBlock() != block) {
                         continueCheck = false;
-                        timeLeft -= simulationDuration;
-                        if (timeLeft > 0)
-                            blockHasChanged = true;
+                        if (placedAtTime.remainingTime() > 0) blockHasChanged = true;
                         break;
                     }
 
                     if (!simulationMethod.canDoMore(state, level, pos)) {
                         continueCheck = true;
-                        finishedProperties.add(Pair.of(propertyName, blockPlacer.maxDuration()));
+                        finishedProperties.add(Pair.of(propertyName, placedAtTime));
                     }
                 }
             }

@@ -3,6 +3,7 @@ package dev.moono.unloadedactivity.impl.simulation_methods;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.FixedValueExpression;
@@ -77,11 +78,11 @@ public class PropertyMethod extends GroupableSimulationMethod {
     }
 
     @Override
-    public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
         Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.propertyName);
 
         if (maybeProperty.isEmpty())
-            return DeferredBlockPlacer.SingleBlockPlacement.empty();
+            throw new RuntimeException("Property should have been validated at this point.");
 
         Property<?> property = maybeProperty.get();
 
@@ -89,15 +90,13 @@ public class PropertyMethod extends GroupableSimulationMethod {
 
         if (property instanceof IntegerProperty integerProperty) {
             current = state.getValue(integerProperty);
-
         } else if (property instanceof BooleanProperty booleanProperty) {
             current = state.getValue(booleanProperty) ? 1 : 0;
-
         } else {
-            return DeferredBlockPlacer.SingleBlockPlacement.empty();
+            throw new RuntimeException("Property should have been validated at this point.");
         }
 
-        int newPropertyValue = current + occurrences;
+        int newPropertyValue = current + occurrencesAndTimings.occurrences();
 
         if (property instanceof IntegerProperty integerProperty) {
             state = state.setValue(integerProperty, newPropertyValue);
@@ -110,6 +109,6 @@ public class PropertyMethod extends GroupableSimulationMethod {
             state = state.setValue(booleanProperty, newPropertyValue > 0);
         }
 
-        return new DeferredBlockPlacer.SingleBlockPlacement(state, updateType, simulationDuration);
+        return new DeferredBlockPlacer.SingleBlockPlacement(state, updateType, occurrencesAndTimings.getFinalTime());
     }
 }

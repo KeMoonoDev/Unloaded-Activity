@@ -1,14 +1,13 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.api.context.FixedContext;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
 #endif
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
-import dev.moono.unloadedactivity.api.context.ExpressionContext;
+import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;

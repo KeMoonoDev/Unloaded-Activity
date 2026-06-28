@@ -3,6 +3,7 @@ package dev.moono.unloadedactivity.impl.simulation_methods;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SeparableSimulationMethod;
 import net.minecraft.core.BlockPos;
@@ -36,7 +37,7 @@ public class GrowFruitMethod extends SeparableSimulationMethod {
     }
 
     @Override
-    public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
         List<Direction> directions = Direction.Plane.HORIZONTAL.shuffledCopy(GameUtils.getRand(level));
 
         DeferredBlockPlacer blockPlacer = DeferredBlockPlacer.empty();
@@ -47,9 +48,9 @@ public class GrowFruitMethod extends SeparableSimulationMethod {
             if (!GameUtils.isValidGourdPosition(direction, pos, state, level)) continue;
 
             BlockPos blockPos = pos.relative(direction);
-            blockPlacer.setBlock(blockPos, this.fruitBlock.defaultBlockState(), simulationDuration);
+            blockPlacer.setBlock(blockPos, this.fruitBlock.defaultBlockState(), occurrencesAndTimings.getFinalTime());
             state = this.stemBlock.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, direction);
-            blockPlacer.setBlock(pos, state, simulationDuration);
+            blockPlacer.setBlock(pos, state, occurrencesAndTimings.getFinalTime());
             break;
         }
         return blockPlacer;

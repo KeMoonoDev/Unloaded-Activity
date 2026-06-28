@@ -2,6 +2,7 @@ package dev.moono.unloadedactivity.impl.simulation_methods;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
+import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import net.minecraft.core.BlockPos;
@@ -29,11 +30,8 @@ public class DecayMethod extends GroupableSimulationMethod {
     }
 
     @Override
-    public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, int occurrences, long simulationDuration, long timePassed, @Nullable ActiveGroupSimulateData groupSimulateData) {
-        if (this.dropsResources) {
-            Block.dropResources(state, level, pos);
-        }
-
-        return new DeferredBlockPlacer.SingleBlockPlacement(state.getFluidState().createLegacyBlock(), simulationDuration);
+    public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
+        if (this.dropsResources) Block.dropResources(state, level, pos);
+        return new DeferredBlockPlacer.SingleBlockPlacement(state.getFluidState().createLegacyBlock(), occurrencesAndTimings.getFinalTime());
     }
 }
