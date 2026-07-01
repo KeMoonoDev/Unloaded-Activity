@@ -47,3 +47,9 @@ nav:
   - For developers:
       - Introduction: developers/index.md
       - Using SimulationMethods: developers/simulation_methods.md
+      - Abstract SimulationMethods:
+        - Base SimulationMethod: developers/abstract_simulation_methods/base_simulation_method.md
+        - SeparableSimulationMethod: developers/abstract_simulation_methods/separable_simulation_method.md
+        - GroupableSimulationMethod: developers/abstract_simulation_methods/groupable_simulation_method.md
+      - Available SimulationMethods:
+        - PropertyMethod: developers/available_simulation_methods/property_method.md

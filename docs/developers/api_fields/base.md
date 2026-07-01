@@ -1,0 +1,9 @@
+| Field | Type | Description |
+| - | - | - |
+| <nobr><a id="simulation_method"></a>`simulation_method`<nobr> | Identifier | The identifier of the SimulationMethod you want to use. If the identifiers namespace is "unloadedactivity", you can skip writing it. So instead of writing "unloadedactivity:property", you can just write "property". |
+| <nobr>`advance_probability`<nobr> | UpdatingValueExpression<Number> | The probability of the SimulationMethod performing 1 successful step per random/precipitation tick. A "step" can mean different things depending on the SimulationMethod. For `PropertyMethod`, it can mean to increase an IntegerProperty by 1, and for `DecayMethod`, it means that the block disappears. |
+| <nobr>`conditions`?<nobr> | FixedCondition[] | Conditions that needs to be valid in order for the simulation to start.<br>(Default: []) |
+| <nobr>`dependencies`?<nobr> | String[] | The keys to different SimulationMethods on the same block that needs to have been finished before this SimulationMethod can start. This only works on SimulationMethods that are dependable.<br>(Default: []) |
+| <nobr>`is_precipitation`?<nobr> | Boolean | If the simulation should only be active if it has direct access to the sky.<br>(Default: false) |
+| <nobr>`requires_rain`?<nobr> | Boolean | If the simulation should only be active if it's currently raining.<br>(Default: whatever `is_precipitation` is set to) |
+| `replace`? | Boolean | If it should discard all old data and start fresh. By default, if there's 2 different entries affecting the same SimulationMethod, the one with lower priority will overlay it's data on top of the previous entry.<br>(Default: false) |
