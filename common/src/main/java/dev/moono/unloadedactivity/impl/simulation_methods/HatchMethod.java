@@ -64,8 +64,8 @@ public class HatchMethod extends GroupableSimulationMethod {
         }
 
         SimulatedTime finalTime = occurrencesAndTimings.getFinalTime();
-        long hatchTime = finalTime.currentTime();
-        int hatchCount = this.hatchCount.evaluateRandomized(level, state, pos, hatchTime).intValue();
+        long finishedAtTime = finalTime.currentTime();
+        int hatchCount = this.hatchCount.evaluateRandomized(level, state, pos, finishedAtTime).intValue();
 
         if (hatchCount > 0) {
             for(int i = 0; i < hatchCount; i++) {

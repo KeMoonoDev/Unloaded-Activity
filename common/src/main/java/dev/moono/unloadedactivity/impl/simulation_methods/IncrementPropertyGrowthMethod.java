@@ -28,7 +28,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
     public final boolean updateNeighbors;
     public final boolean reverseHeightGrowthDirection;
     public final boolean onlyInWater;
-    public final List<Pair<Property<?>, RandomizedValueExpression<Number>>> setProperties;
+    public final Map<String, RandomizedValueExpression<Number>> setProperties;
     public final List<String> transferProperties;
 
     @Nullable public final List<Block> lowerBlocks;
@@ -41,8 +41,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
         super(config, hasDependants);
         String propertyName = config.getString("property_name");
 
-        Map<String, RandomizedValueExpression<Number>> setPropertiesNames = config.getRandomizedNumberExpressionMap("set_properties");
-
+        this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);
         this.reverseHeightGrowthDirection = config.getBooleanOrDefault("reverse_height_growth_direction", false);
         this.onlyInWater = config.getBooleanOrDefault("only_in_water", false);
@@ -70,25 +69,6 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
 
         if (!(property instanceof IntegerProperty) && !(property instanceof BooleanProperty))
             throw new RuntimeException("Block " + block + " has the property named " + propertyName + ", but the property isn't an IntegerProperty or BooleanProperty.");
-
-        ArrayList<Pair<Property<?>, RandomizedValueExpression<Number>>> convertedSetProperties = new ArrayList<>();
-        for (var entry : setPropertiesNames.entrySet()) {
-            String setPropertyName = entry.getKey();
-            Optional<Property<?>> maybeSetProperty = GameUtils.getProperty(block.defaultBlockState(), setPropertyName);;
-
-            if (maybeSetProperty.isEmpty())
-                throw new RuntimeException("Block " + block + " does not have a property named " + setPropertyName);
-
-            Property<?> setProperty = maybeSetProperty.get();
-
-            if (!(setProperty instanceof IntegerProperty) && !(setProperty instanceof BooleanProperty))
-                throw new RuntimeException("Block " + block + " has the property named " + setPropertyName + ", but the property isn't an IntegerProperty or BooleanProperty.");
-
-            convertedSetProperties.add(Pair.of(setProperty, entry.getValue()));
-        }
-
-        // Make it immutable
-        this.setProperties = List.copyOf(convertedSetProperties);
     }
 
     @Override
@@ -195,10 +175,10 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
         }
 
         SimulatedTime finalTime = occurrencesAndTimings.getFinalTime();
-        long endTime = finalTime.endTime();
+        long finishedAtTime = finalTime.currentTime();
 
         if (this.bottomBlockReplacement != null) {
-            Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, endTime);
+            Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishedAtTime);
             BlockState newState = newBlock.defaultBlockState();
 
             for (String propertyName : this.transferProperties) {
@@ -239,7 +219,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             boolean isFinal = i+1 == occurrences;
 
             if (this.bottomBlockReplacement != null && !isFinal) {
-                Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, endTime);
+                Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishedAtTime);
                 state = newBlock.defaultBlockState();
             } else {
                 int newValue = current + (i + 1);
@@ -252,17 +232,21 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
                 }
             }
 
-            for (var pair : this.setProperties) {
-                Property<?> setProperty = pair.getLeft();
-                RandomizedValueExpression<Number> propertyValue = pair.getRight();
+            for (var entry : this.setProperties.entrySet()) {
+                String propertyName = entry.getKey();
+                RandomizedValueExpression<Number> propertyValue = entry.getValue();
+
+                Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, propertyName);
+                if (maybeProperty.isEmpty()) continue;
+
+                Property<?> setProperty = maybeProperty.get();
+
                 if (setProperty instanceof BooleanProperty booleanProperty) {
-                    float value = propertyValue.evaluateRandomized(level, state, pos, endTime).floatValue();
+                    float value = propertyValue.evaluateRandomized(level, state, pos, finishedAtTime).floatValue();
                     state = state.setValue(booleanProperty, value != 0);
                 } else if (setProperty instanceof IntegerProperty integerProperty) {
-                    int value = propertyValue.evaluateRandomized(level, state, pos, endTime).intValue();
+                    int value = propertyValue.evaluateRandomized(level, state, pos, finishedAtTime).intValue();
                     state = state.setValue(integerProperty, value);
-                } else {
-                    throw new RuntimeException("Property should have been validated at this point.");
                 }
             }
 
