@@ -17,10 +17,7 @@ import net.minecraft.world.level.material.Fluids;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class BuddingMethod extends SimulationMethod {
     public final List<Pair<Block, @Nullable #if MC_VER >= MC_1_21_3 EnumProperty<Direction> #else DirectionProperty #endif>> buddingBlocks;
@@ -64,7 +61,7 @@ public class BuddingMethod extends SimulationMethod {
                 Optional<Property<?>> maybeProperty = GameUtils.getProperty(buddingBlock.defaultBlockState(), this.buddingDirectionPropertyName);
                 if (maybeProperty.isEmpty()) throw new RuntimeException("The property " + buddingDirectionPropertyName + " does not exist for all budding blocks.");
                 Property<?> property = maybeProperty.get();
-                List<?> possibleValues = property.getPossibleValues();
+                Collection<?> possibleValues = property.getPossibleValues();
                 for (Direction supportedDirection : supportedBuddingDirections) {
                     if (!possibleValues.contains(supportedDirection)) {
                         throw new RuntimeException("The property " + buddingDirectionPropertyName + " on block " + buddingBlock + " does not support the direction " + supportedDirection + ".");
