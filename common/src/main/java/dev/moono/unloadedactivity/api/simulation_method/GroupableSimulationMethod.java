@@ -17,8 +17,8 @@ public abstract class GroupableSimulationMethod extends SeparableSimulationMetho
     @Nullable
     public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif simulateWithGroup;
 
-    public GroupableSimulationMethod(SimulationConfig config) {
-        super(config);
+    public GroupableSimulationMethod(SimulationConfig config, boolean hasDependants) {
+        super(config, hasDependants);
         String simulateWithGroup = config.getStringNullable("simulate_with_group");
         if (simulateWithGroup == null) {
             this.simulateWithGroup = null;
@@ -37,26 +37,25 @@ public abstract class GroupableSimulationMethod extends SeparableSimulationMetho
     }
 
     @Override
-    public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings) {
         DeferredBlockPlacer blockPlacer = DeferredBlockPlacer.empty();
-        DeferredBlockPlacer.SingleBlockPlacement singleBlockPlacement = getNewBlockState(state, level, pos, occurrencesAndTimings, groupSimulateData);
+        DeferredBlockPlacer.SingleBlockPlacement singleBlockPlacement = getNewBlockState(state, level, pos, occurrencesAndTimings, null);
         blockPlacer.setBlock(pos, singleBlockPlacement.blockState(), singleBlockPlacement.updateType(), singleBlockPlacement.placedAtTime());
         return blockPlacer;
     }
 
     @Override
-    public DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickProbability) {
         int updateCount = this.getMaxUpdateCount(state, level, pos);
-        boolean calculateDuration = hasDependents || this.shouldCalculateDuration(state, level, pos);
 
         if (updateCount <= 0)
             return DeferredBlockPlacer.empty();
 
-        OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
+        OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this, updateCount, randomPickProbability);
 
         if (result.occurrences() == 0)
             return DeferredBlockPlacer.empty();
 
-        return this.getNewBlockStates(state, level, pos, result, groupSimulateData);
+        return this.getNewBlockStates(state, level, pos, result);
     }
 }

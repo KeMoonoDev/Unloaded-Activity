@@ -1,7 +1,6 @@
 package dev.moono.unloadedactivity.impl.simulation_methods;
 
 import dev.moono.unloadedactivity.*;
-import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
@@ -15,22 +14,26 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.Fluids;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class BuddingMethod extends SimulationMethod {
-    public final List<Block> buddingBlocks;
+    public final List<Pair<Block, @Nullable #if MC_VER >= MC_1_21_3 EnumProperty<Direction> #else DirectionProperty #endif>> buddingBlocks;
     public final List<Direction> ignoreBuddingDirections;
 
     @Nullable public final String buddingDirectionPropertyName;
 
     public final boolean supportsWaterlogged;
 
-    public BuddingMethod(SimulationConfig config) {
-        super(config);
-        this.buddingBlocks = config.getBlockList("budding_blocks");
+    public BuddingMethod(SimulationConfig config, Block block, boolean hasDependants) {
+        super(config, hasDependants);
+        List<Block> onlyBuddingBlocks = config.getBlockList("budding_blocks");
+
         this.ignoreBuddingDirections = config.getStringList("ignore_budding_directions").stream().map(directionString -> {
             for (Direction direction : Direction.values()) {
                 if (direction.name().equalsIgnoreCase(directionString)) {
@@ -40,16 +43,40 @@ public class BuddingMethod extends SimulationMethod {
             throw new RuntimeException(directionString + " is not a valid Direction in field ignore_budding_directions.");
         }).toList();
 
+        ArrayList<Direction> supportedBuddingDirections = new ArrayList<>();
+
+        for (Direction direction : Direction.values())
+            if (!this.ignoreBuddingDirections.contains(direction))
+                supportedBuddingDirections.add(direction);
+
         this.buddingDirectionPropertyName = config.getStringNullable("budding_direction_property_name");
 
         int waterloggedCount = 0;
 
-        for (Block buddingBlock : this.buddingBlocks) {
-            if (buddingBlock.defaultBlockState().hasProperty(BlockStateProperties.WATERLOGGED)) {
-                waterloggedCount++;
+        List<Pair<Block, @Nullable #if MC_VER >= MC_1_21_3 EnumProperty<Direction> #else DirectionProperty #endif>> newBuddingBlocks = new ArrayList<>();
+
+        for (Block buddingBlock : onlyBuddingBlocks) {
+            if (buddingBlock.defaultBlockState().hasProperty(BlockStateProperties.WATERLOGGED)) waterloggedCount++;
+
+            if (this.buddingDirectionPropertyName == null) {
+                newBuddingBlocks.add(Pair.of(buddingBlock, null));
+            } else {
+                Optional<Property<?>> maybeProperty = GameUtils.getProperty(buddingBlock.defaultBlockState(), this.buddingDirectionPropertyName);
+                if (maybeProperty.isEmpty()) throw new RuntimeException("The property " + buddingDirectionPropertyName + " does not exist for all budding blocks.");
+                Property<?> property = maybeProperty.get();
+                List<?> possibleValues = property.getPossibleValues();
+                for (Direction supportedDirection : supportedBuddingDirections) {
+                    if (!possibleValues.contains(supportedDirection)) {
+                        throw new RuntimeException("The property " + buddingDirectionPropertyName + " on block " + buddingBlock + " does not support the direction " + supportedDirection + ".");
+                    }
+                }
+                @SuppressWarnings("unchecked")
+                var buddingProperty = (#if MC_VER >= MC_1_21_3 EnumProperty<Direction> #else DirectionProperty #endif)property;
+                newBuddingBlocks.add(Pair.of(buddingBlock, buddingProperty));
             }
         }
 
+        this.buddingBlocks = List.copyOf(newBuddingBlocks);
         this.supportsWaterlogged = waterloggedCount == this.buddingBlocks.size();
 
         if (this.buddingBlocks.isEmpty())
@@ -58,7 +85,7 @@ public class BuddingMethod extends SimulationMethod {
 
     @Override
     public boolean canDoMore(BlockState state, ServerLevel level, BlockPos pos) {
-        Block finalBlock = buddingBlocks.get(buddingBlocks.size()-1);
+        Block finalBlock = buddingBlocks.get(buddingBlocks.size()-1).getLeft();
 
         List<Direction> availableDirections = Arrays.stream(Direction.values()).filter(direction -> !this.ignoreBuddingDirections.contains(direction)).toList();
 
@@ -75,16 +102,17 @@ public class BuddingMethod extends SimulationMethod {
                 }
             }
 
-            for (Block buddingStageBlock : buddingBlocks) {
+            for (var buddingStagePair : buddingBlocks) {
+                Block buddingStageBlock = buddingStagePair.getLeft();
                 if (!dirBlockState.is(buddingStageBlock)) continue;
 
                 if (buddingStageBlock == finalBlock) continue;
 
-                if (this.buddingDirectionPropertyName == null) return true; // Block is a budding block but not the final block, and it's not limited by alignment to grow.
+                var buddingStageDirProperty = buddingStagePair.getRight();
 
-                var property = (#if MC_VER >= MC_1_21_3 EnumProperty<?> #else DirectionProperty #endif) GameUtils.getProperty(dirBlockState, this.buddingDirectionPropertyName).get();
+                if (buddingStageDirProperty == null) return true; // Block is a budding block but not the final block, and it's not limited by alignment to grow.
 
-                Direction blockDirection = (Direction) dirBlockState.getValue(property);
+                Direction blockDirection = dirBlockState.getValue(buddingStageDirProperty);
                 if (blockDirection == direction) return true; // Block is a budding block but not the final block, and it's properly aligned to grow.
 
             }
@@ -100,7 +128,7 @@ public class BuddingMethod extends SimulationMethod {
     }
 
     @Override
-    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickProbability) {
         List<Direction> availableDirections = Arrays.stream(Direction.values()).filter(direction -> !this.ignoreBuddingDirections.contains(direction)).toList();
 
         DeferredBlockPlacer blockPlacer = DeferredBlockPlacer.empty();
@@ -115,18 +143,19 @@ public class BuddingMethod extends SimulationMethod {
             boolean doContinue = false;
 
             for (int i=0;i<this.buddingBlocks.size();i++) {
-                Block buddingBlockStage = this.buddingBlocks.get(i);
+                var buddingPairStage = this.buddingBlocks.get(i);
+                Block buddingBlockStage = buddingPairStage.getLeft();
+                var buddingDirProperty = buddingPairStage.getRight();
 
                 if (budState.is(buddingBlockStage)) {
-                    var property = (#if MC_VER >= MC_1_21_3 EnumProperty<?> #else DirectionProperty #endif) GameUtils.getProperty(budState, this.buddingDirectionPropertyName).get();
-                    Direction budDirection = (Direction) budState.getValue(property);
-
-                    if (budDirection == direction) {
-                        stage = i+1;
-                    } else {
-                        doContinue = true;
+                    if (buddingDirProperty != null) {
+                        Direction budDirection = budState.getValue(buddingDirProperty);
+                        if (budDirection != direction) {
+                            doContinue = true;
+                            break;
+                        }
                     }
-
+                    stage = i+1;
                     break;
                 }
             }
@@ -156,7 +185,7 @@ public class BuddingMethod extends SimulationMethod {
 
             int maxOccurrences = this.buddingBlocks.size() - stage;
 
-            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, maxOccurrences, randomPickOdds, hasDependents, random, groupSimulateData);
+            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this, maxOccurrences, randomPickProbability);
 
             if (result.occurrences() == 0) {
                 continue;
@@ -164,14 +193,14 @@ public class BuddingMethod extends SimulationMethod {
 
             int newStage = stage + result.occurrences();
 
-            Block newBudBlock = this.buddingBlocks.get(newStage - 1);
+            var newBudPair = this.buddingBlocks.get(newStage - 1);
+            Block newBudBlock = newBudPair.getLeft();
+            var newBudProperty = newBudPair.getRight();
 
             BlockState newBudState = newBudBlock.defaultBlockState();
 
-            if (this.buddingDirectionPropertyName != null) {
-                @SuppressWarnings("unchecked")
-                var property = (#if MC_VER >= MC_1_21_3 EnumProperty<Direction> #else DirectionProperty #endif) GameUtils.getProperty(newBudState, buddingDirectionPropertyName).get();
-                newBudState = newBudState.setValue(property, direction);
+            if (newBudProperty != null) {
+                newBudState = newBudState.setValue(newBudProperty, direction);
             }
 
 

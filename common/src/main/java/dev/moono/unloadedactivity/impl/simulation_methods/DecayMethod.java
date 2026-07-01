@@ -14,8 +14,8 @@ import org.jetbrains.annotations.Nullable;
 public class DecayMethod extends GroupableSimulationMethod {
     public final boolean dropsResources;
 
-    public DecayMethod(SimulationConfig config) {
-        super(config);
+    public DecayMethod(SimulationConfig config, Block block, boolean hasDependants) {
+        super(config, hasDependants);
         this.dropsResources = config.getBooleanOrDefault("drops_resources", true);
     }
 

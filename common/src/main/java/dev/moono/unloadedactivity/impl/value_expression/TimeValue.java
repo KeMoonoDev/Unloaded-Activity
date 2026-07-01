@@ -102,20 +102,20 @@ public class TimeValue<T> implements ValueExpression<T> {
             nextPair = this.list.get(0);
         }
 
-        long currentNextOddsSwitch = currentPair.getSecond().getNextValueSwitchDuration(context);
-        long nextOddsSwitch;
+        long currentNextProbabilitySwitch = currentPair.getSecond().getNextValueSwitchDuration(context);
+        long nextProbabilitySwitch;
 
         if (nextPair.getFirst() == currentPair.getFirst()) {
-            nextOddsSwitch = Long.MAX_VALUE;
+            nextProbabilitySwitch = Long.MAX_VALUE;
         } else {
-            nextOddsSwitch = nextPair.getFirst() - modCurrentTime;
-            if (nextOddsSwitch < 0) {
-                nextOddsSwitch += 24000;
+            nextProbabilitySwitch = nextPair.getFirst() - modCurrentTime;
+            if (nextProbabilitySwitch < 0) {
+                nextProbabilitySwitch += 24000;
             }
         }
 
 
-        return Math.min(currentNextOddsSwitch, nextOddsSwitch);
+        return Math.min(currentNextProbabilitySwitch, nextProbabilitySwitch);
     }
 
     @Override

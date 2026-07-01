@@ -15,8 +15,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class GrowTreeMethod extends SimulationMethod {
-    public GrowTreeMethod(SimulationConfig config) {
-        super(config);
+    public GrowTreeMethod(SimulationConfig config, Block block, boolean hasDependants) {
+        super(config, hasDependants);
     }
 
     @Override
@@ -30,10 +30,10 @@ public class GrowTreeMethod extends SimulationMethod {
     }
 
     @Override
-    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickProbability) {
         Block thisBlock = state.getBlock();
         if (thisBlock instanceof SaplingBlock saplingBlock) {
-            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, 1, randomPickOdds, false, random, groupSimulateData);
+            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this, 1, randomPickProbability);
 
             if (result.occurrences() == 0)
                 return DeferredBlockPlacer.empty();

@@ -293,8 +293,8 @@ public class TimeMachine {
             List<List<ActiveGroupSimulateData>> isolatedGroups = separateToIsolatedGroups(activeGroupDataMap);
 
             RandomSource random = level.getRandom();
-            float randomPickOdds = MathUtils.getRandomPickOdds(randomTickSpeed);
-            float precipitationPickOdds = MathUtils.getPrecipitationPickOdds(randomTickSpeed);
+            float randomPickProbability = MathUtils.getRandomPickProbability(randomTickSpeed);
+            float precipitationPickProbability = MathUtils.getPrecipitationPickProbability(randomTickSpeed);
 
             if (UnloadedActivity.config.debugLogs)
                 UnloadedActivity.LOGGER.info("Simulating " + isolatedGroups.size() + " isolated groups");
@@ -316,7 +316,7 @@ public class TimeMachine {
                     long maxProbabilityStepDuration = remainingCycles / Math.max(1, UnloadedActivity.config.minGroupTickIterations - totalIterations);
                     totalIterations++;
 
-                    long minNextOddsSwitchDuration = Long.MAX_VALUE;
+                    long minNextProbabilitySwitchDuration = Long.MAX_VALUE;
                     float maxProbability = 0F;
 
                     long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(simulationCurrentTime);
@@ -329,12 +329,12 @@ public class TimeMachine {
                         // For isActive to return true, there must be a simulationMethod present.
                         SimulationMethod simulationMethod = simulationData.getSimulationMethod().orElseThrow();
 
-                        float pickOdds;
+                        float pickProbability;
 
                         if (simulationMethod.isPrecipitation) {
-                            pickOdds = precipitationPickOdds;
+                            pickProbability = precipitationPickProbability;
                         } else {
-                            pickOdds = randomPickOdds;
+                            pickProbability = randomPickProbability;
                         }
 
                         BlockState state = simulationData.getState();
@@ -342,24 +342,24 @@ public class TimeMachine {
 
                         UpdatingContext context = UpdatingContext.of(level, state, pos, simulationCurrentTime, simulationData);
 
-                        Pair<Float, Long> oddsAndDuration = simulationData.updateAndGetOdds(nextWeatherSwitchDuration, context);
+                        Pair<Float, Long> oddsAndDuration = simulationData.updateAndGetProbability(nextWeatherSwitchDuration, context);
 
-                        minNextOddsSwitchDuration = Math.min(minNextOddsSwitchDuration, oddsAndDuration.getSecond());
+                        minNextProbabilitySwitchDuration = Math.min(minNextProbabilitySwitchDuration, oddsAndDuration.getSecond());
 
-                        float probability = oddsAndDuration.getFirst() * pickOdds;
+                        float probability = oddsAndDuration.getFirst() * pickProbability;
 
                         maxProbability = Math.max(probability, maxProbability);
                     }
 
                     if (maxProbability <= 0.0) {
-                        if (minNextOddsSwitchDuration >= remainingCycles) {
+                        if (minNextProbabilitySwitchDuration >= remainingCycles) {
                             break;
                         } else {
-                            remainingCycles -= minNextOddsSwitchDuration;
+                            remainingCycles -= minNextProbabilitySwitchDuration;
                             for (ActiveGroupSimulateData simulationData : group) {
                                 if (!simulationData.isActive)
                                     continue;
-                                simulationData.passTime(minNextOddsSwitchDuration);
+                                simulationData.passTime(minNextProbabilitySwitchDuration);
                             }
                             continue;
                         }
@@ -369,7 +369,7 @@ public class TimeMachine {
                     probabilityDuration = Math.min(maxProbabilityStepDuration, probabilityDuration);
                     probabilityDuration = Math.max(minProbabilityStepDuration, probabilityDuration);
 
-                    long simulationStepDuration = Math.min(Math.min(minNextOddsSwitchDuration, probabilityDuration), remainingCycles);
+                    long simulationStepDuration = Math.min(Math.min(minNextProbabilitySwitchDuration, probabilityDuration), remainingCycles);
 
                     ArrayList<Triple<BlockState, ActiveGroupSimulateData, Optional<GroupMemberInfo>>> pendingUpdateBlockInfo = new ArrayList<>();
 
@@ -387,19 +387,19 @@ public class TimeMachine {
                         BlockState state = simulationData.getState();
                         Block block = state.getBlock();
 
-                        float pickOdds;
+                        float pickProbability;
 
                         if (simulationMethod.isPrecipitation) {
-                            pickOdds = precipitationPickOdds;
+                            pickProbability = precipitationPickProbability;
                         } else {
-                            pickOdds = randomPickOdds;
+                            pickProbability = randomPickProbability;
                         }
 
                         int remainingUpdates = simulationData.getRemainingUpdates();
 
                         if (remainingUpdates > 0) {
-                            float totalOdds = simulationData.currentOdds * pickOdds;
-                            int occurrences = MathUtils.getOccurrencesBinomial(simulationStepDuration, totalOdds, remainingUpdates, random);
+                            float totalProbability = simulationData.currentProbability * pickProbability;
+                            int occurrences = MathUtils.getOccurrencesSimple(simulationStepDuration, totalProbability, remainingUpdates, random);
                             simulationData.addUpdateCount(occurrences);
                         }
 
@@ -411,31 +411,16 @@ public class TimeMachine {
 
                         int updateCount = simulationData.getCurrentUpdateCount();
 
-                        DeferredBlockPlacer newBlockStates = simulationMethod.getNewBlockStates(state, level, simulationData.position, OccurrencesAndTimings.fastDuration(updateCount, activeSimulatedTime), simulationData);
-
-                        if (newBlockStates.size() > 1) {
-                            throw new RuntimeException("Group simulation type must only return 1 or 0 new blockstates.");
-                        }
-
-                        if (newBlockStates.isEmpty()) {
-                            simulationData.isActive = false;
-                            continue;
-                        }
-
-                        DeferredBlockPlacer.BlockPlacementInfo newBlockData = newBlockStates.get(0);
-
-                        if (!newBlockData.blockPos().equals(simulationData.position)) {
-                            throw new RuntimeException("Group simulation type must not change its position.");
-                        }
+                        DeferredBlockPlacer.SingleBlockPlacement singleBlockPlacement = simulationMethod.getNewBlockState(state, level, simulationData.position, OccurrencesAndTimings.fastDuration(updateCount, activeSimulatedTime), simulationData);
 
                         simulationData.placeBlock = true;
 
-                        BlockState newBlockState = newBlockData.blockState();
+                        BlockState newBlockState = singleBlockPlacement.blockState();
                         Block newBlock = newBlockState.getBlock();
                         if (newBlock == block) {
                             simulationData.isActive = false;
                             pendingUpdateBlockInfo.add(Triple.of(newBlockState, simulationData, Optional.of(simulationData.getGroupMemberInfo())));
-                            simulationData.updateType = newBlockData.updateType();
+                            simulationData.updateType = singleBlockPlacement.updateType();
                             continue;
                         }
 
@@ -740,8 +725,8 @@ public class TimeMachine {
     }
 
     public static void simulateBlock(BlockPos pos, ServerLevel level, SimulatedTime simulatedTime, int randomTickSpeed, boolean allowPrecipitationTicks) {
-        float randomPickChance = MathUtils.getRandomPickOdds(randomTickSpeed);
-        float precipitationPickChance = MathUtils.getPrecipitationPickOdds(randomTickSpeed);
+        float randomPickChance = MathUtils.getRandomPickProbability(randomTickSpeed);
+        float precipitationPickChance = MathUtils.getPrecipitationPickProbability(randomTickSpeed);
 
         BlockState state = level.getBlockState(pos);
 
@@ -861,7 +846,7 @@ public class TimeMachine {
 
                     float pickChance = simulationMethod.isPrecipitation ? precipitationPickChance : randomPickChance;
 
-                    DeferredBlockPlacer blockPlacer = simulationMethod.simulate(state, level, pos, GameUtils.getRand(level), lastSimulatedTime, pickChance, propertiesWithDependents.contains(propertyName), null);
+                    DeferredBlockPlacer blockPlacer = simulationMethod.simulate(state, level, pos, GameUtils.getRand(level), lastSimulatedTime, pickChance);
 
                     if (blockPlacer == null) {
                         continueCheck = false;

@@ -6,6 +6,7 @@ import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.WorldWeatherForecast;
 import dev.moono.unloadedactivity.api.context.UpdatingContext;
+import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.UpdatingValueExpression;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -21,11 +22,11 @@ import static net.minecraft.util.Mth.sign;
 
 
 public class MathUtils {
-    public static float getRandomPickOdds(int randomTickSpeed) {
+    public static float getRandomPickProbability(int randomTickSpeed) {
         return (float) (1F-pow(1F - 1F / 4096F, randomTickSpeed));
     }
 
-    public static float getPrecipitationPickOdds(int randomTickSpeed) {
+    public static float getPrecipitationPickProbability(int randomTickSpeed) {
         #if MC_VER >= MC_1_20_2
         return (float) (1F-pow(1F - 1F / (48F * 256F), randomTickSpeed));
         #else
@@ -33,15 +34,36 @@ public class MathUtils {
         #endif
     }
 
-    public static OccurrencesAndTimings getOccurrences(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickOdds, boolean calculateDuration, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public static OccurrencesAndTimings getOccurrences(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, SimulationMethod simulationMethod, int maxOccurrences, float randomPickProbability) {
+        return getOccurrences(level, state, pos, simulatedTime, simulationMethod.advanceProbability, simulationMethod.requiresRain, maxOccurrences, randomPickProbability, simulationMethod.shouldCalculateDuration(state, level, pos), null);
+    }
+
+    public static OccurrencesAndTimings getOccurrences(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, SimulationMethod simulationMethod, int maxOccurrences, float randomPickProbability, boolean forceCalculateDuration) {
+        return getOccurrences(level, state, pos, simulatedTime, simulationMethod.advanceProbability, simulationMethod.requiresRain, maxOccurrences, randomPickProbability, forceCalculateDuration || simulationMethod.shouldCalculateDuration(state, level, pos), null);
+    }
+
+    public static OccurrencesAndTimings getOccurrences(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, SimulationMethod simulationMethod, int maxOccurrences, float randomPickProbability, boolean forceCalculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
+        return getOccurrences(level, state, pos, simulatedTime, simulationMethod.advanceProbability, simulationMethod.requiresRain, maxOccurrences, randomPickProbability, forceCalculateDuration || simulationMethod.shouldCalculateDuration(state, level, pos), groupSimulateData);
+    }
+
+    public static OccurrencesAndTimings getOccurrences(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickProbability) {
+        return getOccurrences(level, state, pos, simulatedTime, probability, requiresRain, maxOccurrences, randomPickProbability, false, null);
+    }
+
+    public static OccurrencesAndTimings getOccurrences(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickProbability, boolean calculateDuration) {
+        return getOccurrences(level, state, pos, simulatedTime, probability, requiresRain, maxOccurrences, randomPickProbability, calculateDuration, null);
+    }
+
+    public static OccurrencesAndTimings getOccurrences(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickProbability, boolean calculateDuration, @Nullable ActiveGroupSimulateData groupSimulateData) {
+        RandomSource random = GameUtils.getRand(level);
         if (calculateDuration) {
-            return getOccurrencesWithAccurateDuration(level, state, pos, simulatedTime, probability, requiresRain, maxOccurrences, randomPickOdds, random, groupSimulateData);
+            return getOccurrencesWithAccurateDuration(level, state, pos, simulatedTime, probability, requiresRain, maxOccurrences, randomPickProbability, random, groupSimulateData);
         } else {
-            return getOccurrencesWithFastDuration(level, state, pos, simulatedTime, probability, requiresRain, maxOccurrences, randomPickOdds, random, groupSimulateData);
+            return getOccurrencesWithFastDuration(level, state, pos, simulatedTime, probability, requiresRain, maxOccurrences, randomPickProbability, random, groupSimulateData);
         }
     }
 
-    public static OccurrencesAndTimings getOccurrencesWithFastDuration(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickOdds, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    private static OccurrencesAndTimings getOccurrencesWithFastDuration(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickProbability, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (maxOccurrences <= 0)
             return OccurrencesAndTimings.empty(simulatedTime);
 
@@ -64,21 +86,21 @@ public class MathUtils {
 
             UpdatingContext context = UpdatingContext.of(level, state, pos, currentTime, groupSimulateData);
 
-            long nextOddsSwitchDuration = probability.getNextValueSwitchDuration(context);
+            long nextProbabilitySwitchDuration = probability.getNextValueSwitchDuration(context);
             if (requiresRain || probability.canBeAffectedByWeather) {
                 long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
-                nextOddsSwitchDuration = Math.min(nextOddsSwitchDuration, nextWeatherSwitchDuration);
+                nextProbabilitySwitchDuration = Math.min(nextProbabilitySwitchDuration, nextWeatherSwitchDuration);
             }
 
-            long simulateForCycles = Math.min(nextOddsSwitchDuration, remainingTime);
+            long simulateForCycles = Math.min(nextProbabilitySwitchDuration, remainingTime);
 
             float odds = probability.evaluate(context).floatValue();
-            float totalOdds = odds * randomPickOdds;
+            float totalProbability = odds * randomPickProbability;
 
             if (UnloadedActivity.config.debugLogs)
                 UnloadedActivity.LOGGER.info("Simulating from " + currentTime + " to " + (currentTime + simulateForCycles) + " (difference: " + simulateForCycles + ") with odds " + odds);
 
-            int successesThisRound = getOccurrencesBinomial(simulateForCycles, totalOdds, maxOccurrences - successes, random);
+            int successesThisRound = getOccurrencesSimple(simulateForCycles, totalProbability, maxOccurrences - successes, random);
 
             successes += successesThisRound;
 
@@ -93,7 +115,7 @@ public class MathUtils {
         return OccurrencesAndTimings.fastDuration(successes, simulatedTime);
     }
 
-    public static OccurrencesAndTimings getOccurrencesWithAccurateDuration(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickOdds, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    private static OccurrencesAndTimings getOccurrencesWithAccurateDuration(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, UpdatingValueExpression<Number> probability, boolean requiresRain, int maxOccurrences, float randomPickProbability, RandomSource random, @Nullable ActiveGroupSimulateData groupSimulateData) {
         if (maxOccurrences <= 0)
             return OccurrencesAndTimings.empty(simulatedTime);
 
@@ -120,28 +142,28 @@ public class MathUtils {
 
             UpdatingContext context = UpdatingContext.of(level, state, pos, currentTime, groupSimulateData);
 
-            long nextOddsSwitchDuration = probability.getNextValueSwitchDuration(context);
+            long nextProbabilitySwitchDuration = probability.getNextValueSwitchDuration(context);
             if (requiresRain || probability.canBeAffectedByWeather) {
                 long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
-                nextOddsSwitchDuration = Math.min(nextOddsSwitchDuration, nextWeatherSwitchDuration);
+                nextProbabilitySwitchDuration = Math.min(nextProbabilitySwitchDuration, nextWeatherSwitchDuration);
             }
 
-            long simulatingTimeForOdds = Math.min(nextOddsSwitchDuration, remainingTime);
-            long availableTimeForOdds = simulatingTimeForOdds;
+            long simulatingTimeForProbability = Math.min(nextProbabilitySwitchDuration, remainingTime);
+            long availableTimeForProbability = simulatingTimeForProbability;
 
             float odds = probability.evaluate(context).floatValue();
-            float totalOdds = odds * randomPickOdds;
+            float totalProbability = odds * randomPickProbability;
 
             if (UnloadedActivity.config.debugLogs)
-                UnloadedActivity.LOGGER.info("Simulating from " + currentTime + " to " + (currentTime + availableTimeForOdds) + " (difference: " + availableTimeForOdds + ") with odds " + odds);
+                UnloadedActivity.LOGGER.info("Simulating from " + currentTime + " to " + (currentTime + availableTimeForProbability) + " (difference: " + availableTimeForProbability + ") with odds " + odds);
 
             long tempRemainingTime = remainingTime;
 
-            while (availableTimeForOdds > 0 && successes < maxOccurrences) {
-                long successDuration = sampleNegativeBinomial(1, totalOdds, random);
-                availableTimeForOdds -= successDuration;
+            while (availableTimeForProbability > 0 && successes < maxOccurrences) {
+                long successDuration = sampleNegativeBinomial(1, totalProbability, random);
+                availableTimeForProbability -= successDuration;
                 tempRemainingTime -= successDuration;
-                if (availableTimeForOdds >= 0) {
+                if (availableTimeForProbability >= 0) {
                     successes++;
                     remainingTimes.add(tempRemainingTime);
                 }
@@ -149,47 +171,46 @@ public class MathUtils {
 
             if (successes >= maxOccurrences) break;
 
-            remainingTime -= simulatingTimeForOdds;
+            remainingTime -= simulatingTimeForProbability;
         }
 
         return new OccurrencesAndTimings(successes, remainingTimes, simulatedTime.endTime());
 
     }
 
-    //41ms, 200 chunks
-    public static int getOccurrencesBinomial(long cycles, double odds, int maxOccurrences, RandomSource random) {
+    public static int getOccurrencesSimple(long ticksPassed, double totalProbability, int maxOccurrences, RandomSource random) {
 
-        if (odds <= 0)
+        if (totalProbability <= 0)
             return 0;
 
         if (maxOccurrences <= 0)
             return 0;
 
-        double invertedOdds = 1-odds;
+        double invertedProbability = 1-totalProbability;
 
         if (maxOccurrences == 1) {
-            return random.nextDouble() < 1 - pow(invertedOdds, cycles) ? 1 : 0;
+            return random.nextDouble() < 1 - pow(invertedProbability, ticksPassed) ? 1 : 0;
         }
 
         double choose = 1;
 
-        double totalProbability = 0;
+        double accumulatedProbability = 0;
 
         double randomDouble = random.nextDouble();
 
         for (int i = 0; i<maxOccurrences;i++) {
 
-            if (i == cycles) return i;
+            if (i == ticksPassed) return i;
 
             if (i != 0) {
-                choose *= (cycles - (i - 1.0))/i;
+                choose *= (ticksPassed - (i - 1.0))/i;
             }
 
-            double finalProbability = choose * pow(odds, i) * pow(invertedOdds, cycles-i); //Probability of it happening "i" times
+            double occurrenceProbability = choose * pow(totalProbability, i) * pow(invertedProbability, ticksPassed-i); //Probability of it happening "i" times
 
-            totalProbability += finalProbability;
+            accumulatedProbability += occurrenceProbability;
 
-            if (randomDouble < totalProbability) {
+            if (randomDouble < accumulatedProbability) {
                 return i;
             }
         }

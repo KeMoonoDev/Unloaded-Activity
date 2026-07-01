@@ -20,8 +20,8 @@ public class GrowFruitMethod extends SeparableSimulationMethod {
     public final Block stemBlock;
     public final Block fruitBlock;
 
-    public GrowFruitMethod(SimulationConfig config) {
-        super(config);
+    public GrowFruitMethod(SimulationConfig config, Block block, boolean hasDependants) {
+        super(config, hasDependants);
         this.stemBlock = config.getBlock("stem_block");
         this.fruitBlock = config.getBlock("fruit_block");
     }
@@ -37,7 +37,7 @@ public class GrowFruitMethod extends SeparableSimulationMethod {
     }
 
     @Override
-    public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings) {
         List<Direction> directions = Direction.Plane.HORIZONTAL.shuffledCopy(GameUtils.getRand(level));
 
         DeferredBlockPlacer blockPlacer = DeferredBlockPlacer.empty();

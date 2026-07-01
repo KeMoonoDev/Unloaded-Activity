@@ -4,10 +4,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.SimulationConfig;
+import dev.moono.unloadedactivity.api.SimulationMethodConstructor;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
+import net.minecraft.world.level.block.Block;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
-import java.util.function.Function;
 
 public class SimulationData {
 
@@ -16,7 +18,7 @@ public class SimulationData {
     public final boolean hasRandTicksWithoutGroup;
     public final boolean hasPrecTicksWithoutGroup;
 
-    public SimulationData(List<JsonObject> sortedData) {
+    public SimulationData(List<JsonObject> sortedData, Block block) {
         int startIndex = 0;
 
         for (int i = sortedData.size() - 1; i >= 0; i--) {
@@ -48,6 +50,8 @@ public class SimulationData {
                 mergingMethods.computeIfAbsent(entry.getKey(), ignored -> new ArrayList<>()).add(propertyObject);
             }
         }
+
+        HashMap<String, Pair<SimulationConfig, SimulationMethodConstructor>> mergedMethods = new HashMap<>();
 
         for (var entry : mergingMethods.entrySet()) {
             String key = entry.getKey();
@@ -82,13 +86,13 @@ public class SimulationData {
 
             var simulationMethodId = UnloadedActivity.parseId(simulationTypeUnparsed);
 
-            Optional<Function<SimulationConfig, SimulationMethod>> maybeSimulationMethodConstructor = UnloadedActivity.simulationMethodRegistry.get(simulationMethodId);
+            Optional<SimulationMethodConstructor> maybeSimulationMethodConstructor = UnloadedActivity.simulationMethodRegistry.get(simulationMethodId);
 
             if (maybeSimulationMethodConstructor.isEmpty()) {
                 throw new RuntimeException(simulationMethodId + " is not a valid simulation method.");
             }
 
-            Function<SimulationConfig, SimulationMethod> simulationMethodConstructor = maybeSimulationMethodConstructor.get();
+            SimulationMethodConstructor simulationMethodConstructor = maybeSimulationMethodConstructor.get();
 
             SimulationConfig simulationConfig = new SimulationConfig();
 
@@ -104,7 +108,25 @@ public class SimulationData {
                 simulationConfig.merge(methodObject);
             }
 
-            this.methodMap.put(key, simulationMethodConstructor.apply(simulationConfig));
+            mergedMethods.put(key, Pair.of(simulationConfig, simulationMethodConstructor));
+        }
+
+        for (var entry : mergedMethods.entrySet()) {
+            String key = entry.getKey();
+            var pair = entry.getValue();
+            SimulationConfig simulationConfig = pair.getLeft();
+            SimulationMethodConstructor simulationMethodConstructor = pair.getRight();
+
+            boolean hasDependents = false;
+            for (var pair2 : mergedMethods.values()) {
+                boolean isDependantOnCurrent = pair2.getLeft().getStringList("dependencies").contains(key);
+                if (isDependantOnCurrent) {
+                    hasDependents = true;
+                    break;
+                }
+            }
+
+            this.methodMap.put(key, simulationMethodConstructor.apply(simulationConfig, block, hasDependents));
         }
 
         for (var entry : this.methodMap.entrySet()) {

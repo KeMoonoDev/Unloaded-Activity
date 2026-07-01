@@ -12,8 +12,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class SeparableSimulationMethod extends SimulationMethod {
-    public SeparableSimulationMethod(SimulationConfig config) {
-        super(config);
+    public SeparableSimulationMethod(SimulationConfig config, boolean hasDependants) {
+        super(config, hasDependants);
     }
 
     @Override
@@ -23,23 +23,19 @@ public abstract class SeparableSimulationMethod extends SimulationMethod {
 
     public abstract int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos);
 
-    public abstract DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData);
+    public abstract DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings);
 
     @Override
-    public DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickProbability) {
         int updateCount = this.getMaxUpdateCount(state, level, pos);
-        boolean calculateDuration = hasDependents || this.shouldCalculateDuration(state, level, pos);
-
         if (updateCount <= 0)
             return DeferredBlockPlacer.empty();
 
-        long currentTime = GameUtils.getTime(level);
-
-        OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, updateCount, randomPickOdds, calculateDuration, random, groupSimulateData);
+        OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this, updateCount, randomPickProbability);
 
         if (result.occurrences() == 0)
             return DeferredBlockPlacer.empty();
 
-        return this.getNewBlockStates(state, level, pos, result, groupSimulateData);
+        return this.getNewBlockStates(state, level, pos, result);
     }
 }

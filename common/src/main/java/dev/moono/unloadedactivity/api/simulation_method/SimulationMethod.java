@@ -18,17 +18,20 @@ import java.util.List;
 public abstract class SimulationMethod {
     public final boolean isPrecipitation;
     public final boolean requiresRain;
+    public final boolean hasDependants;
 
     public final UpdatingValueExpression<Number> advanceProbability;
     public final List<FixedCondition> conditions;
     public final List<String> dependencies;
 
-    public SimulationMethod(SimulationConfig config) {
+    public SimulationMethod(SimulationConfig config, boolean hasDependants) {
         this.isPrecipitation = config.getBooleanOrDefault("is_precipitation", false);
         this.requiresRain = config.getBooleanOrDefault("requires_rain", this.isPrecipitation);
         this.advanceProbability = config.getUpdatingNumberExpression("advance_probability");
         this.conditions = config.getFixedConditionList("conditions");
         this.dependencies = config.getStringList("dependencies");
+
+        this.hasDependants = hasDependants;
     }
 
     public abstract boolean canDoMore(BlockState state, ServerLevel level, BlockPos pos);
@@ -36,7 +39,7 @@ public abstract class SimulationMethod {
     public abstract boolean isDependable();
 
     @Nullable
-    public abstract DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData);
+    public abstract DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickProbability);
 
     public boolean simulatesWithGroup() {
         return false;
@@ -61,6 +64,6 @@ public abstract class SimulationMethod {
     }
 
     public boolean shouldCalculateDuration(BlockState state, ServerLevel level, BlockPos pos) {
-        return false;
+        return this.hasDependants;
     }
 }

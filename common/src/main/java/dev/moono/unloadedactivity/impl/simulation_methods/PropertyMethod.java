@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity.impl.simulation_methods;
 
+import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
@@ -20,19 +21,30 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class PropertyMethod extends GroupableSimulationMethod {
-    public final String propertyName;
+    public final Property<?> property;
     public final int updateType;
     public final boolean updateNeighbors;
 
     @Nullable public final FixedValueExpression<Number> maxValue;
 
-    public PropertyMethod(SimulationConfig config) {
-        super(config);
-        this.propertyName = config.getString("property_name");
+    public PropertyMethod(SimulationConfig config, Block block, boolean hasDependants) {
+        super(config, hasDependants);
+        String propertyName = config.getString("property_name");
+
         this.updateType = config.getNumberOrDefault("update_type", Block.UPDATE_ALL).intValue();
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);
 
         this.maxValue = config.getFixedNumberExpressionNullable("max_value");
+
+        Optional<Property<?>> maybeProperty = GameUtils.getProperty(block.defaultBlockState(), propertyName);;
+
+        if (maybeProperty.isEmpty())
+            throw new RuntimeException("Block " + block + " does not have a property named " + propertyName);
+
+        this.property = maybeProperty.get();
+
+        if (!(property instanceof IntegerProperty) && !(property instanceof BooleanProperty))
+            throw new RuntimeException("Block " + block + " has the property named " + propertyName + ", but the property isn't an IntegerProperty or BooleanProperty.");
     }
 
     @Override
@@ -42,13 +54,6 @@ public class PropertyMethod extends GroupableSimulationMethod {
 
     @Override
     public int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos) {
-        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.propertyName);
-
-        if (maybeProperty.isEmpty())
-            return 0;
-
-        Property<?> property = maybeProperty.get();
-
         int propertyMax;
         int current;
         int updateCount;
@@ -60,7 +65,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
             propertyMax = 1;
             current = state.getValue(booleanProperty) ? 1 : 0;
         } else {
-            return 0;
+            throw new RuntimeException("Property should have been validated at this point.");
         }
 
         int max;
@@ -79,13 +84,6 @@ public class PropertyMethod extends GroupableSimulationMethod {
 
     @Override
     public DeferredBlockPlacer.SingleBlockPlacement getNewBlockState(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings, @Nullable ActiveGroupSimulateData groupSimulateData) {
-        Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, this.propertyName);
-
-        if (maybeProperty.isEmpty())
-            throw new RuntimeException("Property should have been validated at this point.");
-
-        Property<?> property = maybeProperty.get();
-
         int current;
 
         if (property instanceof IntegerProperty integerProperty) {
@@ -98,11 +96,6 @@ public class PropertyMethod extends GroupableSimulationMethod {
 
         int newPropertyValue = current + occurrencesAndTimings.occurrences();
 
-        if (property instanceof IntegerProperty integerProperty) {
-            state = state.setValue(integerProperty, newPropertyValue);
-        } else if (property instanceof BooleanProperty booleanProperty) {
-            state = state.setValue(booleanProperty, newPropertyValue > 0);
-        }
         if (property instanceof IntegerProperty integerProperty) {
             state = state.setValue(integerProperty, newPropertyValue);
         } else if (property instanceof BooleanProperty booleanProperty) {

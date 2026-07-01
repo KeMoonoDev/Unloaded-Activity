@@ -111,7 +111,7 @@ public class SimulationDataResource extends JsonResourcesCollector {
             sortedData.addAll(sortedBlockData);
 
             try {
-                COMPLETE_BLOCK_MAP.put(block, new SimulationData(sortedData));
+                COMPLETE_BLOCK_MAP.put(block, new SimulationData(sortedData, block));
             } catch (Exception e) {
                 UnloadedActivity.LOGGER.error("Failed to create SimulationData for " + blockId + ".\n" + e.getMessage());
             }

@@ -16,8 +16,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class GrowBambooMethod extends SimulationMethod {
     public final int maxHeight;
-    public GrowBambooMethod(SimulationConfig config) {
-        super(config);
+    public GrowBambooMethod(SimulationConfig config, Block block, boolean hasDependants) {
+        if (!(block instanceof BambooSaplingBlock) && !(block instanceof #if MC_VER >= MC_1_19_4 BambooStalkBlock #else BambooBlock #endif)) {
+            throw new RuntimeException("The block " + block + " cannot have this simulation method.");
+        }
+        super(config, hasDependants);
         this.maxHeight = config.getNumber("max_height").intValue();
     }
 
@@ -39,13 +42,19 @@ public class GrowBambooMethod extends SimulationMethod {
     }
 
     @Override
-    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickOdds, boolean hasDependents, @Nullable ActiveGroupSimulateData groupSimulateData) {
+    public boolean shouldCalculateDuration(BlockState state, ServerLevel level, BlockPos pos) {
+        if (state.getBlock() instanceof BambooSaplingBlock) return true;
+        return super.shouldCalculateDuration(state, level, pos);
+    }
+
+    @Override
+    public @Nullable DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickProbability) {
         if (maxHeight <= 1 || !level.isEmptyBlock(pos.above())) return null;
 
         Block thisBlock = state.getBlock();
         if (thisBlock instanceof BambooSaplingBlock bambooSaplingBlock) {
 
-            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, 1, randomPickOdds, true, random, groupSimulateData);
+            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this, 1, randomPickProbability, true);
 
             if (result.occurrences() != 0) {
                 bambooSaplingBlock.growBamboo(level, pos);
@@ -65,7 +74,7 @@ public class GrowBambooMethod extends SimulationMethod {
                         lastPos = pos.above(i);
                     }
 
-                    this.simulate(lastState, level, lastPos, random, finalTime, randomPickOdds, hasDependents, groupSimulateData);
+                    this.simulate(lastState, level, lastPos, random, finalTime, randomPickProbability);
                 }
             }
         } else if (thisBlock instanceof #if MC_VER >= MC_1_19_4 BambooStalkBlock #else BambooBlock #endif bambooBlock) {
@@ -77,7 +86,7 @@ public class GrowBambooMethod extends SimulationMethod {
             int heightDifference = maxHeight - height;
             int maxGrowth = this.countAirAboveUpToMax(level,pos, heightDifference);
 
-            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this.advanceProbability, this.requiresRain, maxGrowth, randomPickOdds, false, random, groupSimulateData);
+            OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this, maxGrowth, randomPickProbability, false);
 
             int totalGrowth = 0;
 

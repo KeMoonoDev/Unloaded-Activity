@@ -62,7 +62,7 @@ abstract public class SheepMixin extends Animal implements Shearable {
             return;
 
         RandomSource randomSource = this.getRandom();
-        int doesWantToEat = MathUtils.getOccurrencesBinomial(timeDifference / 3, 1.0f/1000.0f, 1, randomSource);
+        int doesWantToEat = MathUtils.getOccurrencesSimple(timeDifference / 3, 1.0f/1000.0f, 1, randomSource);
 
         if (doesWantToEat == 0) {
             return;

@@ -32,8 +32,8 @@ public class ActiveGroupSimulateData {
     public boolean blockIsReplaced;
     public int updateType;
 
-    public long nextOddsSwitchDuration;
-    public float currentOdds;
+    public long nextProbabilitySwitchDuration;
+    public float currentProbability;
 
     private @Nullable GroupableSimulationMethod simulationMethod;
     private GroupMemberInfo groupMemberInfo;
@@ -48,8 +48,8 @@ public class ActiveGroupSimulateData {
         this.maxUpdateCount = 0;
         this.placeBlock = false;
         this.updateType = Block.UPDATE_ALL;
-        this.nextOddsSwitchDuration = 0;
-        this.currentOdds = 0;
+        this.nextProbabilitySwitchDuration = 0;
+        this.currentProbability = 0;
 
         this.updateBlockInfo(blockState, simulationMethod, groupMemberInfo);
     }
@@ -78,31 +78,31 @@ public class ActiveGroupSimulateData {
         return blockState;
     }
 
-    public Pair<Float, Long> updateAndGetOdds(long nextWeatherSwitchDuration, UpdatingContext context) {
-        if (this.nextOddsSwitchDuration <= 0) {
+    public Pair<Float, Long> updateAndGetProbability(long nextWeatherSwitchDuration, UpdatingContext context) {
+        if (this.nextProbabilitySwitchDuration <= 0) {
             if (this.simulationMethod == null) {
-                this.nextOddsSwitchDuration = Long.MAX_VALUE;
-                this.currentOdds = 0;
-                return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
+                this.nextProbabilitySwitchDuration = Long.MAX_VALUE;
+                this.currentProbability = 0;
+                return Pair.of(this.currentProbability, this.nextProbabilitySwitchDuration);
             }
 
             if (this.simulationMethod.advanceProbability.canBeAffectedByTime) {
-                this.nextOddsSwitchDuration = this.simulationMethod.advanceProbability.getNextValueSwitchDuration(context);
+                this.nextProbabilitySwitchDuration = this.simulationMethod.advanceProbability.getNextValueSwitchDuration(context);
             } else {
-                this.nextOddsSwitchDuration = Long.MAX_VALUE;
+                this.nextProbabilitySwitchDuration = Long.MAX_VALUE;
             }
 
             if (this.simulationMethod.advanceProbability.canBeAffectedByWeather) {
-                this.nextOddsSwitchDuration = Math.min(this.nextOddsSwitchDuration, nextWeatherSwitchDuration);
+                this.nextProbabilitySwitchDuration = Math.min(this.nextProbabilitySwitchDuration, nextWeatherSwitchDuration);
             }
 
-            this.currentOdds = this.simulationMethod.advanceProbability.evaluate(context).floatValue();
+            this.currentProbability = this.simulationMethod.advanceProbability.evaluate(context).floatValue();
         }
-        return Pair.of(this.currentOdds, this.nextOddsSwitchDuration);
+        return Pair.of(this.currentProbability, this.nextProbabilitySwitchDuration);
     }
 
     public void passTime(long duration) {
-        this.nextOddsSwitchDuration -= duration;
+        this.nextProbabilitySwitchDuration -= duration;
     }
 
 
@@ -173,8 +173,8 @@ public class ActiveGroupSimulateData {
     private Integer groupEqualValueCount = null;
 
     public void invalidateAllCaches() {
-        this.nextOddsSwitchDuration = 0;
-        this.currentOdds = 0;
+        this.nextProbabilitySwitchDuration = 0;
+        this.currentProbability = 0;
         this.groupSum = null;
         this.groupHigherValueCount = null;
         this.groupLowerValueCount = null;
@@ -192,8 +192,8 @@ public class ActiveGroupSimulateData {
     }
 
     public void invalidateAndFixCaches(GroupMemberInfo oldMemberInfo, ActiveGroupSimulateData newGroupSimulateData) {
-        this.nextOddsSwitchDuration = 0;
-        this.currentOdds = 0;
+        this.nextProbabilitySwitchDuration = 0;
+        this.currentProbability = 0;
 
         if (this.isIgnored(newGroupSimulateData)) {
             return;

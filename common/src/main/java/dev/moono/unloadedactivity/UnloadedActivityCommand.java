@@ -163,8 +163,8 @@ public class UnloadedActivityCommand {
                                         try {
                                             long newAttempts = attempts > 0L ? attempts : random.nextIntBetweenInclusive(10_000, 100_000_000);
                                             int newMaxOccurrences = maxOccurrences > 0 ? maxOccurrences : random.nextIntBetweenInclusive(1, 100);
-                                            double newOdds = odds > 0.0 ? odds : random.nextDouble();
-                                            method.invoke(MathUtils.class, newAttempts, newOdds, newMaxOccurrences, random);
+                                            double newProbability = odds > 0.0 ? odds : random.nextDouble();
+                                            method.invoke(MathUtils.class, newAttempts, newProbability, newMaxOccurrences, random);
                                         } catch (IllegalAccessException e) {
                                             throw new RuntimeException(e);
                                         } catch (InvocationTargetException e) {

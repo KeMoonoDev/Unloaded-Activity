@@ -17,8 +17,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,20 +28,40 @@ import java.util.Optional;
 public class ReplaceMethod extends GroupableSimulationMethod {
     public final boolean dropsResources;
     public final RandomizedValueExpression<Block> blockReplacement;
-    public final Map<String, RandomizedValueExpression<Number>> setProperties;
+    public final List<Pair<Property<?>, RandomizedValueExpression<Number>>> setProperties;
     public final List<String> transferProperties;
 
     public final boolean cachedShouldCalculateDuration;
 
-    public ReplaceMethod(SimulationConfig config) {
-        super(config);
+    public ReplaceMethod(SimulationConfig config, Block block, boolean hasDependants) {
+        super(config, hasDependants);
+        Map<String, RandomizedValueExpression<Number>> setPropertiesNames = config.getRandomizedNumberExpressionMap("set_properties");
+
         this.dropsResources = config.getBooleanOrDefault("drops_resources", false);
         this.blockReplacement = config.getRandomizedBlockExpression("block_replacement");
-        this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
         this.transferProperties = config.getStringList("transfer_properties");
 
-        boolean replacementCanSimulate = this.blockReplacement.inner.getPossibleValues().anyMatch(block -> {
-            Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
+        ArrayList<Pair<Property<?>, RandomizedValueExpression<Number>>> convertedSetProperties = new ArrayList<>();
+        for (var entry : setPropertiesNames.entrySet()) {
+            String setPropertyName = entry.getKey();
+            Optional<Property<?>> maybeSetProperty = GameUtils.getProperty(block.defaultBlockState(), setPropertyName);;
+
+            if (maybeSetProperty.isEmpty())
+                throw new RuntimeException("Block " + block + " does not have a property named " + setPropertyName);
+
+            Property<?> setProperty = maybeSetProperty.get();
+
+            if (!(setProperty instanceof IntegerProperty) && !(setProperty instanceof BooleanProperty))
+                throw new RuntimeException("Block " + block + " has the property named " + setPropertyName + ", but the property isn't an IntegerProperty or BooleanProperty.");
+
+            convertedSetProperties.add(Pair.of(setProperty, entry.getValue()));
+        }
+
+        // Make it immutable
+        this.setProperties = List.copyOf(convertedSetProperties);
+
+        boolean replacementCanSimulate = this.blockReplacement.inner.getPossibleValues().anyMatch(possibleBlock -> {
+            Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(possibleBlock);
             if (maybeSimulationData.isEmpty()) return false;
             SimulationData simulationData = maybeSimulationData.get();
 
@@ -49,7 +71,7 @@ public class ReplaceMethod extends GroupableSimulationMethod {
         if (replacementCanSimulate) {
             this.cachedShouldCalculateDuration = true;
         } else {
-            this.cachedShouldCalculateDuration = this.setProperties.values().stream().anyMatch(valueExpression ->
+            this.cachedShouldCalculateDuration = this.setProperties.stream().map(Pair::getValue).anyMatch(valueExpression ->
                 valueExpression.canBeAffectedByTime || valueExpression.canBeAffectedByWeather
             );
         }
@@ -100,20 +122,17 @@ public class ReplaceMethod extends GroupableSimulationMethod {
                 newState = newState.setValue((Property) maybeNewProperty.get(), (Comparable)oldValue);
             }
         }
-        for (var entry : this.setProperties.entrySet()) {
-            String propertyName = entry.getKey();
-            RandomizedValueExpression<Number> propertyValue = entry.getValue();
-            Optional<Property<?>> maybeSetProperty = GameUtils.getProperty(newState, propertyName);
-            if (maybeSetProperty.isPresent()) {
-                Property<?> newSetProperty = maybeSetProperty.get();
-                if (newSetProperty instanceof BooleanProperty booleanProperty) {
-                    float value = propertyValue.evaluateRandomized(level, newState, pos, finishTime.currentTime()).floatValue();
-                    newState = newState.setValue(booleanProperty, value != 0);
-                }
-                if (newSetProperty instanceof IntegerProperty integerProperty) {
-                    int value = propertyValue.evaluateRandomized(level, newState, pos, finishTime.currentTime()).intValue();
-                    newState = newState.setValue(integerProperty, value);
-                }
+        for (var pair : this.setProperties) {
+            Property<?> setProperty = pair.getLeft();
+            RandomizedValueExpression<Number> propertyValue = pair.getRight();
+            if (setProperty instanceof BooleanProperty booleanProperty) {
+                float value = propertyValue.evaluateRandomized(level, newState, pos, finishTime.currentTime()).floatValue();
+                newState = newState.setValue(booleanProperty, value != 0);
+            } else if (setProperty instanceof IntegerProperty integerProperty) {
+                int value = propertyValue.evaluateRandomized(level, newState, pos, finishTime.currentTime()).intValue();
+                newState = newState.setValue(integerProperty, value);
+            } else {
+                throw new RuntimeException("Property should have been validated at this point.");
             }
         }
         return new DeferredBlockPlacer.SingleBlockPlacement(newState, finishTime);
