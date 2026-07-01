@@ -75,7 +75,7 @@ public class MathUtils {
         WorldWeatherForecast weatherData = level.getWeatherForecast();
 
         while (remainingTime > 0) {
-            long currentTime = simulatedTime.currentTime();
+            long currentTime = simulatedTime.endTime() - remainingTime;
             boolean isRaining = weatherData.getWeatherAtTime(currentTime);
 
             if (requiresRain && !isRaining) {
