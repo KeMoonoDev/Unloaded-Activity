@@ -1,11 +1,7 @@
 package dev.moono.unloadedactivity.impl.simulation_methods;
 
-#if MC_VER >= MC_1_21_11
-import net.minecraft.world.attribute.EnvironmentAttributes;
-#endif
-
 import dev.moono.unloadedactivity.*;
-import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.condition.FixedCondition;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
@@ -21,8 +17,11 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class SpeleothemMethod extends SimulationMethod {
     @Nullable public final CauldronFillConfig cauldronFillConfig;
+    public final List<ConvertBlockConfig> convertBlocks;
 
     public record CauldronFillConfig(int maxDistanceBetweenTipAndCauldron, float waterFillProbability, float lavaFillProbability) {
         public CauldronFillConfig(SimulationConfig config) {
@@ -43,10 +42,23 @@ public class SpeleothemMethod extends SimulationMethod {
         }
     }
 
+    public record ConvertBlockConfig(Block fromBlock, Block toBlock, float convertProbability, List<FixedCondition> conditions) {
+        public ConvertBlockConfig(SimulationConfig config) {
+            this(
+                config.getBlock("from_block"),
+                config.getBlock("to_block"),
+                config.getNumber("convert_probability").floatValue(),
+                config.getFixedConditionList("conditions")
+            );
+        }
+    }
+
     public SpeleothemMethod(SimulationConfig config, Block block, boolean hasDependants) {
         super(config, hasDependants);
         SimulationConfig cauldronFillConfig = config.getConfigNullable("cauldron_fill");
         this.cauldronFillConfig = cauldronFillConfig != null ? new CauldronFillConfig(cauldronFillConfig) : null;
+        List<SimulationConfig> convertBlocksConfig = config.getConfigList("convert_blocks");
+        this.convertBlocks = convertBlocksConfig.stream().map(ConvertBlockConfig::new).toList();
     }
 
     public int getMaxGrowthLength(#if MC_VER >= MC_26_2 SpeleothemBlock thisBlock #else PointedDripstoneBlock thisBlock #endif) {
@@ -193,24 +205,29 @@ public class SpeleothemMethod extends SimulationMethod {
             }
         }
 
-        if (this.cauldronFillConfig != null) {
-            // todo seperate this into a different config
-            boolean ultraWarm = #if MC_VER >= MC_1_21_11
-                level.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, pos)
-            #else
-                level.dimensionType().ultraWarm()
-            #endif;
+        for (ConvertBlockConfig convertBlockConfig : this.convertBlocks) {
+            if (!liquidState.is(convertBlockConfig.fromBlock)) continue;
 
-            if (liquidState.is(Blocks.MUD) && !ultraWarm) {
-                float totalDripProbability = this.cauldronFillConfig.waterFillProbability * randomPickProbability;
-                int dripOccurrences = MathUtils.getOccurrencesSimple(simulatedTime.remainingTime(), totalDripProbability, 1, random);
-                if (dripOccurrences != 0) {
-                    BlockState clay = Blocks.CLAY.defaultBlockState();
-                    level.setBlockAndUpdate(pos.above(2), clay);
-                    Block.pushEntitiesUp(liquidState, clay, level, pos.above(2));
+            boolean isValid = true;
+            for (FixedCondition condition : convertBlockConfig.conditions) {
+                if (!condition.isValidFixed(level, state, pos)) {
+                    isValid = false;
+                    break;
                 }
             }
 
+            if (!isValid) continue;
+
+            float totalDripProbability = convertBlockConfig.convertProbability * randomPickProbability;
+            int dripOccurrences = MathUtils.getOccurrencesSimple(simulatedTime.remainingTime(), totalDripProbability, 1, random);
+            if (dripOccurrences != 0) {
+                BlockState newBlock = convertBlockConfig.toBlock.defaultBlockState();
+                level.setBlockAndUpdate(pos.above(2), newBlock);
+                Block.pushEntitiesUp(liquidState, newBlock, level, pos.above(2));
+            }
+        }
+
+        if (this.cauldronFillConfig != null) {
             if (cauldronPos != null && totalUpperDripGrowth >= successesUntilReachCauldron) {
                 BlockState cauldronState = level.getBlockState(cauldronPos);
                 if (cauldronState.getBlock() instanceof AbstractCauldronBlock cauldronBlock) {

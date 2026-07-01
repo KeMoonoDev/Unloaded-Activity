@@ -141,8 +141,13 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         );
 
         registry.register(
-            UnloadedActivity.id("should_freeze"),
-            new ShouldFreezeValue()
+                UnloadedActivity.id("should_freeze"),
+                new ShouldFreezeValue()
+        );
+
+        registry.register(
+                UnloadedActivity.id("water_evaporates"),
+                new WaterEvaporatesValue()
         );
 
         registry.register(
