@@ -1,14 +1,14 @@
-# `PropertyMethod`
+# `unloadedactivity:property`
 
-## Implementation Info
+## Implementation Details
 
 When using this SimulationMethod, it is gonna increase the value of the target property. It will use the property whose name matches what you set in the `property_name` field. If the property is an IntegerProperty, it will increase it for every successful trial. If it's a BooleanProperty, there will only be a maximum of 1 successful trial, which will turn its value from false to true.
 
-| Trait | Value | Description |
+| Implements | Value | Description |
 | - | - | - |
-| <nobr>Property ID<nobr> | <nobr>`unloadedactivity:property`<nobr> | Set the [`simulation_method` property](#simulation_method) to `"unloadedactivity:property"` or just `"property"` to use this `SimulationMethod`. |
-| <nobr>Dependable?<nobr> | ✅ | You are able to set this as a dependency for another `SimulationMethod`. The other `SimulationMethod` will be able to run once this `SimulationMethod` reaches its max value. |
-| <nobr>Groupable?<nobr> | ✅ | You are able to set this as a dependency for another `SimulationMethod`. The other `SimulationMethod` will be able to run once this `SimulationMethod` reaches its max value. |
+| <nobr>Method identifier<nobr> | <nobr>`unloadedactivity:property`<nobr> | Set the [`simulation_method` property](#simulation_method) to `"unloadedactivity:property"` or just `"property"` to use this `SimulationMethod`. |
+| <nobr>Dependable?<nobr> | ✅ | You are able to use this `SimulationMethod` as a dependency on another `SimulationMethod`. |
+| <nobr>Groupable?<nobr> | ✅ | You are able to use this `SimulationMethod` inside of group simulations. |
 
 ## Properties
 

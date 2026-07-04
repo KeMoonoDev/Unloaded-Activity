@@ -3,7 +3,8 @@
 !!! note warning "Cannot be assigned"
     This `SimulationMethod` is abstract. Some `SimulationMethod`s may build upon this.
 
-This SimulationMethod allows blocks to simulate together at the same time. This is needed for simulating stuff like ice freezing, or grass growing, where it only grows from the edges.
+This SimulationMethod allows blocks to simulate together at the same time. This is needed for simulating stuff like ice freezing, or grass growing, where it only grows from the edges and slowly grows inwards.
+If you want to use this, you may want to look at how to create a `GroupInfo`.
 
 ## Properties
 

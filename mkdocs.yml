@@ -46,10 +46,76 @@ nav:
       - Config options: players/config.md
   - For developers:
       - Introduction: developers/index.md
+      - Things that exist and how to use them:
+        - SimulationData: developers/things/simulation_data.md
+        - SimulationMethods: developers/things/simulation_methods.md
+        - Conditions: developers/things/conditions.md
+        - ValueExpressions: developers/things/value_expressions.md
+        - NumberFetchers: developers/things/number_fetchers.md
+        - GroupInfo: developers/things/group_info.md
+        - ActiveGroupSimulateData: developers/things/active_group_simulate_data.md
+      - SimulationMethod Implementation Details:
+        - Method Identifier: developers/impl_info/method_identifier.md
+        - Dependable: developers/impl_info/dependable.md
+        - Groupable: developers/impl_info/groupable.md
       - Using SimulationMethods: developers/simulation_methods.md
-      - Abstract SimulationMethods:
-        - Base SimulationMethod: developers/abstract_simulation_methods/base_simulation_method.md
-        - SeparableSimulationMethod: developers/abstract_simulation_methods/separable_simulation_method.md
-        - GroupableSimulationMethod: developers/abstract_simulation_methods/groupable_simulation_method.md
+      - Available NumberFetchers:
+        - growth_speed: developers/available_number_fetchers/growth_speed.md
+        - available_space_for_gourd: developers/available_number_fetchers/available_space_for_gourd.md
+        - grass_can_stay_alive: developers/available_number_fetchers/grass_can_stay_alive.md
+        - grass_can_grow: developers/available_number_fetchers/grass_can_grow.md
+        - max_snow_height: developers/available_number_fetchers/max_snow_height.md
+        - is_upper_door: developers/available_number_fetchers/is_upper_door.md
+        - is_lower_door: developers/available_number_fetchers/is_lower_door.md
+        - block_brightness: developers/available_number_fetchers/block_brightness.md
+        - block_brightness_above: developers/available_number_fetchers/block_brightness_above.md
+        - raw_brightness: developers/available_number_fetchers/raw_brightness.md
+        - raw_brightness_above: developers/available_number_fetchers/raw_brightness_above.md
+        - local_brightness: developers/available_number_fetchers/local_brightness.md
+        - local_brightness_above: developers/available_number_fetchers/local_brightness_above.md
+        - should_freeze: developers/available_number_fetchers/should_freeze.md
+        - water_evaporates: developers/available_number_fetchers/water_evaporates.md
+        - should_snow: developers/available_number_fetchers/should_snow.md
+        - random: developers/available_number_fetchers/random.md
+        - is_solid: developers/available_number_fetchers/is_solid.md
+        - is_solid_above: developers/available_number_fetchers/is_solid_above.md
+        - is_solid_below: developers/available_number_fetchers/is_solid_below.md
+        - solid_neighbors: developers/available_number_fetchers/solid_neighbors.md
+        - solid_neighbors_above: developers/available_number_fetchers/solid_neighbors_above.md
+        - solid_neighbors_below: developers/available_number_fetchers/solid_neighbors_below.md
+        - is_block;?: developers/available_number_fetchers/is_block.md
+        - is_block_above;?: developers/available_number_fetchers/is_block_above.md
+        - is_block_below;?: developers/available_number_fetchers/is_block_below.md
+        - block_neighbors;?: developers/available_number_fetchers/block_neighbors.md
+        - block_neighbors_above;?: developers/available_number_fetchers/block_neighbors_above.md
+        - block_neighbors_below;?: developers/available_number_fetchers/block_neighbors_below.md
+        - is_tag;?: developers/available_number_fetchers/is_tag.md
+        - is_tag_above;?: developers/available_number_fetchers/is_tag_above.md
+        - is_tag_below;?: developers/available_number_fetchers/is_tag_below.md
+        - tag_neighbors;?: developers/available_number_fetchers/tag_neighbors.md
+        - tag_neighbors_above;?: developers/available_number_fetchers/tag_neighbors_above.md
+        - tag_neighbors_below;?: developers/available_number_fetchers/tag_neighbors_below.md
+        - is_fluid;?: developers/available_number_fetchers/is_fluid.md
+        - is_fluid_above;?: developers/available_number_fetchers/is_fluid_above.md
+        - is_fluid_below;?: developers/available_number_fetchers/is_fluid_below.md
+        - fluid_neighbors;?: developers/available_number_fetchers/fluid_neighbors.md
+        - fluid_neighbors_above;?: developers/available_number_fetchers/fluid_neighbors_above.md
+        - fluid_neighbors_below;?: developers/available_number_fetchers/fluid_neighbors_below.md
+        - is_precipitation;?: developers/available_number_fetchers/is_precipitation.md
+        - property;?: developers/available_number_fetchers/property.md
+        - provided;?: developers/available_number_fetchers/provided.md
       - Available SimulationMethods:
-        - PropertyMethod: developers/available_simulation_methods/property_method.md
+        - Base SimulationMethod: developers/available_simulation_methods/base_simulation_method.md
+        - SeparableSimulationMethod: developers/available_simulation_methods/separable_simulation_method.md
+        - GroupableSimulationMethod: developers/available_simulation_methods/groupable_simulation_method.md
+        - property: developers/available_simulation_methods/property.md
+        - max_property_growth: developers/available_simulation_methods/max_property_growth.md
+        - increment_property_growth: developers/available_simulation_methods/increment_property_growth.md
+        - decay: developers/available_simulation_methods/decay.md
+        - replace: developers/available_simulation_methods/replace.md
+        - hatch: developers/available_simulation_methods/hatch.md
+        - budding: developers/available_simulation_methods/budding.md
+        - grow_tree: developers/available_simulation_methods/grow_tree.md
+        - grow_speleothem: developers/available_simulation_methods/grow_speleothem.md
+        - grow_fruit: developers/available_simulation_methods/grow_fruit.md
+        - grow_bamboo: developers/available_simulation_methods/grow_bamboo.md
