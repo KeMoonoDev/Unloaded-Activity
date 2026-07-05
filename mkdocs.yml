@@ -58,7 +58,6 @@ nav:
         - Method Identifier: developers/impl_info/method_identifier.md
         - Dependable: developers/impl_info/dependable.md
         - Groupable: developers/impl_info/groupable.md
-      - Using SimulationMethods: developers/simulation_methods.md
       - Available NumberFetchers:
         - growth_speed: developers/available_number_fetchers/growth_speed.md
         - available_space_for_gourd: developers/available_number_fetchers/available_space_for_gourd.md
