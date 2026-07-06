@@ -49,6 +49,21 @@ nav:
       - Things that exist and how to use them:
         - SimulationData: developers/things/simulation_data.md
         - SimulationMethods: developers/things/simulation_methods.md
+        - Available SimulationMethods:
+          - Base SimulationMethod: developers/things/available_simulation_methods/base_simulation_method.md
+          - SeparableSimulationMethod: developers/things/available_simulation_methods/separable_simulation_method.md
+          - GroupableSimulationMethod: developers/things/available_simulation_methods/groupable_simulation_method.md
+          - property: developers/things/available_simulation_methods/property.md
+          - max_property_growth: developers/things/available_simulation_methods/max_property_growth.md
+          - increment_property_growth: developers/things/available_simulation_methods/increment_property_growth.md
+          - decay: developers/things/available_simulation_methods/decay.md
+          - replace: developers/things/available_simulation_methods/replace.md
+          - hatch: developers/things/available_simulation_methods/hatch.md
+          - budding: developers/things/available_simulation_methods/budding.md
+          - grow_tree: developers/things/available_simulation_methods/grow_tree.md
+          - grow_speleothem: developers/things/available_simulation_methods/grow_speleothem.md
+          - grow_fruit: developers/things/available_simulation_methods/grow_fruit.md
+          - grow_bamboo: developers/things/available_simulation_methods/grow_bamboo.md
         - Conditions: developers/things/conditions.md
         - ValueExpressions: developers/things/value_expressions.md
         - NumberFetchers: developers/things/number_fetchers.md
@@ -99,18 +114,3 @@ nav:
         - is_precipitation;?: developers/available_number_fetchers/is_precipitation.md
         - property;?: developers/available_number_fetchers/property.md
         - provided;?: developers/available_number_fetchers/provided.md
-      - Available SimulationMethods:
-        - Base SimulationMethod: developers/available_simulation_methods/base_simulation_method.md
-        - SeparableSimulationMethod: developers/available_simulation_methods/separable_simulation_method.md
-        - GroupableSimulationMethod: developers/available_simulation_methods/groupable_simulation_method.md
-        - property: developers/available_simulation_methods/property.md
-        - max_property_growth: developers/available_simulation_methods/max_property_growth.md
-        - increment_property_growth: developers/available_simulation_methods/increment_property_growth.md
-        - decay: developers/available_simulation_methods/decay.md
-        - replace: developers/available_simulation_methods/replace.md
-        - hatch: developers/available_simulation_methods/hatch.md
-        - budding: developers/available_simulation_methods/budding.md
-        - grow_tree: developers/available_simulation_methods/grow_tree.md
-        - grow_speleothem: developers/available_simulation_methods/grow_speleothem.md
-        - grow_fruit: developers/available_simulation_methods/grow_fruit.md
-        - grow_bamboo: developers/available_simulation_methods/grow_bamboo.md
