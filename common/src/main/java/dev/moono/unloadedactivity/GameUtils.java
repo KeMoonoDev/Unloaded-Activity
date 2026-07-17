@@ -83,7 +83,15 @@ public class GameUtils {
 
     public static long getTime(Level level) {
         #if MC_VER >= MC_26_1_2
-        return level.getDefaultClockTime();
+        if (level.dimensionType().defaultClock().isEmpty()) {
+            if (UnloadedActivity.config.fallbackToOverworldTime) {
+                return level.getOverworldClockTime();
+            } else {
+                return 0L;
+            }
+        } else {
+            return level.getDefaultClockTime();
+        }
         #else
         return level.getDayTime();
         #endif

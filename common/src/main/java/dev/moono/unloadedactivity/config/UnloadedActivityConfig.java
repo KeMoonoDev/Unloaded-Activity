@@ -258,6 +258,14 @@ public class UnloadedActivityConfig {
     }
 
     public UnloadedActivityConfig() {
+        #if MC_VER >= MC_26_1_2
+        registerBoolean(
+                "fallbackToOverworldTime", fallbackToOverworldTime,
+                unused -> fallbackToOverworldTime,
+                val -> fallbackToOverworldTime = val
+        );
+        #endif
+
         registerInt(
                 "tickDifferenceThreshold", tickDifferenceThreshold, 1, Integer.MAX_VALUE,
                 unused -> tickDifferenceThreshold,
@@ -413,6 +421,9 @@ public class UnloadedActivityConfig {
 
 
     //General
+    #if MC_VER >= MC_26_1_2
+    public boolean fallbackToOverworldTime = true;
+    #endif
     public int tickDifferenceThreshold = 100;
     public int maxNegativeBinomialAttempts = 20;
     public boolean debugLogs = false;
