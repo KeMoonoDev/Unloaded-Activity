@@ -3,8 +3,10 @@
     "simulation_method": "property",
     "property_name": "hatch",
     "advance_probability": {
-      "21061": 1,
-      "21905": 0.002
+      "timeline": {
+        "21061": 1,
+        "21905": 0.002
+      }
     },
     "update_type":"update_clients",
     "conditions": [
@@ -18,8 +20,10 @@
   "final_hatch": {
     "simulation_method": "hatch",
     "advance_probability": {
-      "21061": 1,
-      "21905": 0.002
+      "timeline": {
+        "21061": 1,
+        "21905": 0.002
+      }
     },
     "dependencies": [
       "hatch"

@@ -133,28 +133,65 @@ public interface ValueExpression<T> {
 
             }
 
+            T timelineResult = map.get("timeline");
 
-            ArrayList<Pair<Long, ValueExpression<Number>>> list = new ArrayList<>();
-            for (Iterator<Pair<T, T>> it = map.entries().iterator(); it.hasNext(); ) {
-                var pair = it.next();
-                var stringKeyResult = ops.getStringValue(pair.getFirst());
-                if (stringKeyResult.error().isPresent()) {
-                    throw new RuntimeException(stringKeyResult.error().get().message());
+            if (timelineResult != null) {
+                var timelineMapResult =  ops.getMap(timelineResult);
+
+                if (timelineMapResult.error().isPresent())
+                    throw new RuntimeException(timelineMapResult.error().get().message());
+
+                MapLike<T> timelineMap = timelineMapResult.result().get();
+
+                T periodLengthT = map.get("period_length");
+
+                long periodLength;
+
+                if (periodLengthT == null) {
+                    periodLength = 24000;
+                } else {
+                    var result = ops.getNumberValue(periodLengthT);
+                    if (result.error().isPresent())
+                        throw new RuntimeException(result.error().get().message());
+                    periodLength = result.result().get().longValue();
                 }
-                String stringKey = stringKeyResult.result().get();
-                try {
-                    long number = Long.parseLong(stringKey);
-                    list.add(Pair.of(number, parseNumber(ops, pair.getSecond())));
-                } catch(NumberFormatException e){
-                    throw new RuntimeException("Probability value has no valid operator key, but also doesn't only contain integer keys.");
+
+                T useDimensionFixedTimeT = map.get("use_dimension_fixed_time");
+
+                boolean useDimensionFixedTime;
+
+                if (useDimensionFixedTimeT == null) {
+                    useDimensionFixedTime = true;
+                } else {
+                    var result = ops.getBooleanValue(useDimensionFixedTimeT);
+                    if (result.error().isPresent())
+                        throw new RuntimeException(result.error().get().message());
+                    useDimensionFixedTime = result.result().get();
                 }
-            }
-            if (list.isEmpty()) {
-                throw new RuntimeException("Probability value has no keys.");
-            }
 
-            return new TimeValue<>(list);
+                ArrayList<Pair<Long, ValueExpression<Number>>> list = new ArrayList<>();
 
+                for (Iterator<Pair<T, T>> it = timelineMap.entries().iterator(); it.hasNext(); ) {
+                    var pair = it.next();
+                    var stringKeyResult = ops.getStringValue(pair.getFirst());
+                    if (stringKeyResult.error().isPresent()) {
+                        throw new RuntimeException(stringKeyResult.error().get().message());
+                    }
+                    String stringKey = stringKeyResult.result().get();
+                    try {
+                        long number = Long.parseLong(stringKey);
+                        list.add(Pair.of(number, parseNumber(ops, pair.getSecond())));
+                    } catch(NumberFormatException e){
+                        throw new RuntimeException("Timeline does contains key values that can't be parsed as a Long.");
+                    }
+                }
+
+                if (list.isEmpty()) {
+                    throw new RuntimeException("Timeline is empty.");
+                }
+
+                return new TimelineValue<>(list, periodLength, useDimensionFixedTime);
+            }
         }
 
         throw new RuntimeException("Invalid value");
@@ -190,27 +227,65 @@ public interface ValueExpression<T> {
             }
 
 
-            ArrayList<Pair<Long, ValueExpression<String>>> list = new ArrayList<>();
-            for (Iterator<Pair<T, T>> it = map.entries().iterator(); it.hasNext(); ) {
-                var pair = it.next();
-                var stringKeyResult = ops.getStringValue(pair.getFirst());
-                if (stringKeyResult.error().isPresent()) {
-                    throw new RuntimeException(stringKeyResult.error().get().message());
-                }
-                String stringKey = stringKeyResult.result().get();
-                try {
-                    long number = Long.parseLong(stringKey);
-                    list.add(Pair.of(number, parseString(ops, pair.getSecond())));
-                } catch(NumberFormatException e){
-                    throw new RuntimeException("Probability value has no valid operator key, but also doesn't only contain integer keys.");
-                }
-            }
-            if (list.isEmpty()) {
-                throw new RuntimeException("Probability value has no keys.");
-            }
+            T timelineResult = map.get("timeline");
 
-            return new TimeValue<>(list);
+            if (timelineResult != null) {
+                var timelineMapResult =  ops.getMap(timelineResult);
 
+                if (timelineMapResult.error().isPresent())
+                    throw new RuntimeException(timelineMapResult.error().get().message());
+
+                MapLike<T> timelineMap = timelineMapResult.result().get();
+
+                T periodLengthT = map.get("period_length");
+
+                long periodLength;
+
+                if (periodLengthT == null) {
+                    periodLength = 24000;
+                } else {
+                    var result = ops.getNumberValue(periodLengthT);
+                    if (result.error().isPresent())
+                        throw new RuntimeException(result.error().get().message());
+                    periodLength = result.result().get().longValue();
+                }
+
+                T useDimensionFixedTimeT = map.get("use_dimension_fixed_time");
+
+                boolean useDimensionFixedTime;
+
+                if (useDimensionFixedTimeT == null) {
+                    useDimensionFixedTime = true;
+                } else {
+                    var result = ops.getBooleanValue(useDimensionFixedTimeT);
+                    if (result.error().isPresent())
+                        throw new RuntimeException(result.error().get().message());
+                    useDimensionFixedTime = result.result().get();
+                }
+
+                ArrayList<Pair<Long, ValueExpression<String>>> list = new ArrayList<>();
+
+                for (Iterator<Pair<T, T>> it = timelineMap.entries().iterator(); it.hasNext(); ) {
+                    var pair = it.next();
+                    var stringKeyResult = ops.getStringValue(pair.getFirst());
+                    if (stringKeyResult.error().isPresent()) {
+                        throw new RuntimeException(stringKeyResult.error().get().message());
+                    }
+                    String stringKey = stringKeyResult.result().get();
+                    try {
+                        long number = Long.parseLong(stringKey);
+                        list.add(Pair.of(number, parseString(ops, pair.getSecond())));
+                    } catch(NumberFormatException e){
+                        throw new RuntimeException("Timeline does contains key values that can't be parsed as a Long.");
+                    }
+                }
+
+                if (list.isEmpty()) {
+                    throw new RuntimeException("Timeline is empty.");
+                }
+
+                return new TimelineValue<>(list, periodLength, useDimensionFixedTime);
+            }
         }
 
         throw new RuntimeException("Invalid value");

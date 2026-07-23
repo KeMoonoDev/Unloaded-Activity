@@ -10,11 +10,16 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class TimeValue<T> implements ValueExpression<T> {
+public class TimelineValue<T> implements ValueExpression<T> {
     private final List<Pair<Long, ValueExpression<T>>> list;
-    public TimeValue(List<Pair<Long, ValueExpression<T>>> list) {
+    private final long periodLength;
+    private final boolean useDimensionFixedTime;
+
+    public TimelineValue(List<Pair<Long, ValueExpression<T>>> list, long periodLength, boolean useDimensionFixedTime) {
         list.sort(Comparator.comparing(Pair::getFirst));
         this.list = list;
+        this.periodLength = periodLength;
+        this.useDimensionFixedTime = useDimensionFixedTime;
     }
 
     @Override
@@ -22,8 +27,24 @@ public class TimeValue<T> implements ValueExpression<T> {
         if (this.list.isEmpty())
             return null;
 
-        long length = 24000;
-        long modCurrentTime = Math.floorMod(context.getCurrentTime(), length);
+        long modCurrentTime;
+
+        if (this.useDimensionFixedTime) {
+            #if MC_VER >= MC_1_21_11
+            long currentTime;
+            if (context.getLevel().dimensionType().hasFixedTime()) {
+                currentTime = 0;
+                // TODO make sure that in the game it also uses 0 for fixed time dimensions.
+            } else {
+                currentTime = context.getCurrentTime();
+            }
+            #else
+            long currentTime = context.getLevel().dimensionType().fixedTime().orElse(context.getCurrentTime());
+            #endif
+            modCurrentTime = Math.floorMod(currentTime, periodLength);
+        } else {
+            modCurrentTime = Math.floorMod(context.getCurrentTime(), periodLength);
+        }
 
         var currentPair = this.list.get(this.list.size() - 1);
 
@@ -75,16 +96,18 @@ public class TimeValue<T> implements ValueExpression<T> {
         for (var pair : list) {
             newList.add(pair.mapSecond((tCalculateValue -> tCalculateValue.map(mapFunction))));
         }
-        return new TimeValue<>(newList);
+        return new TimelineValue<>(newList, periodLength, useDimensionFixedTime);
     }
 
     @Override
     public long getNextValueSwitchDuration(ExpressionContext context) {
+        if (this.useDimensionFixedTime && context.getLevel().dimensionType().hasFixedTime())
+            return Long.MAX_VALUE;
+
         if (this.list.isEmpty())
             return Long.MAX_VALUE;
 
-        long length = 24000;
-        long modCurrentTime = Math.floorMod(context.getCurrentTime(), length);
+        long modCurrentTime = Math.floorMod(context.getCurrentTime(), periodLength);
 
         var currentPair = this.list.get(this.list.size() - 1);
         Pair<Long, ValueExpression<T>> nextPair = null;
@@ -124,7 +147,7 @@ public class TimeValue<T> implements ValueExpression<T> {
         for (var pair : this.list) {
             newList.add(Pair.of(pair.getFirst(), pair.getSecond().replicate()));
         }
-        return new TimeValue<>(newList);
+        return new TimelineValue<>(newList, periodLength, useDimensionFixedTime);
     }
 
     @Override
