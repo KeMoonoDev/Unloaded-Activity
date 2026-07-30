@@ -39,7 +39,10 @@
       ],
       "bloom_probability": {
         "predicate": {
-          "check": "custom/height",
+          "check": {
+            "fetcher_id": "provided",
+            "value": "height"
+          },
           "comparison": "greater_or_equal",
           "value": 3
         },

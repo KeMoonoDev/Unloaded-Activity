@@ -21,23 +21,11 @@
     },
     "minecraft:grass_block": {
       "value": 1,
-      "conditions": [
-        {
-          "check": "grass_can_stay_alive",
-          "comparison": "equal",
-          "value": true
-        }
-      ]
+      "conditions": ["grass_can_stay_alive"]
     },
     "minecraft:mycelium": {
       "value": 2,
-      "conditions": [
-        {
-          "check": "grass_can_stay_alive",
-          "comparison": "equal",
-          "value": true
-        }
-      ]
+      "conditions": ["grass_can_stay_alive"]
     }
   },
   "group_size_penalty": 1.5,

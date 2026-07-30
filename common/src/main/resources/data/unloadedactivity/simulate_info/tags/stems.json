@@ -7,11 +7,7 @@
         "comparison": "greater_or_equal",
         "value": 9
       },
-      {
-        "check": "available_space_for_gourd",
-        "comparison": "greater_than",
-        "value": 0
-      }
+      "available_space_for_gourd"
     ],
     "dependencies": [
       "age"

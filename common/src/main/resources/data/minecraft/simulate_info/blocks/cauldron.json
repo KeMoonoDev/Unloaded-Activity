@@ -4,46 +4,26 @@
     "simulation_method": "replace",
     "conditions": [
       {
-        "check": {
-          "value1": "is_snow_precipitation",
-          "operator": "+",
-          "value2": "is_rain_precipitation"
-        },
-        "comparison": "greater_than",
-        "value": 0
+        "value1": "is_snow_precipitation",
+        "operator": "+",
+        "value2": "is_rain_precipitation"
       }
     ],
     "block_replacement": {
-      "predicate": {
-        "check": "is_rain_precipitation",
-        "comparison": "equal",
-        "value": true
-      },
+      "predicate": "is_rain_precipitation",
       "success": "minecraft:water_cauldron",
       "fail": {
-        "predicate": {
-          "check": "is_snow_precipitation",
-          "comparison": "equal",
-          "value": true
-        },
+        "predicate": "is_snow_precipitation",
         "success": "minecraft:powder_snow_cauldron",
         "fail": "minecraft:air"
       }
     },
     "drops_resources": false,
     "advance_probability": {
-      "predicate": {
-        "check": "is_rain_precipitation",
-        "comparison": "equal",
-        "value": true
-      },
+      "predicate": "is_rain_precipitation",
       "success": 0.05,
       "fail": {
-        "predicate": {
-          "check": "is_snow_precipitation",
-          "comparison": "equal",
-          "value": true
-        },
+        "predicate": "is_snow_precipitation",
         "success": 0.1,
         "fail": 0
       }

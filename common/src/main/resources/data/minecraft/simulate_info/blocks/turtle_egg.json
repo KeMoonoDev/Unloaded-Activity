@@ -9,13 +9,7 @@
       }
     },
     "update_type":"update_clients",
-    "conditions": [
-      {
-        "check": "is_sand_below",
-        "comparison": "equal",
-        "value": true
-      }
-    ]
+    "conditions": ["is_sand_below"]
   },
   "final_hatch": {
     "simulation_method": "hatch",
@@ -29,14 +23,11 @@
       "hatch"
     ],
     "hatch_entity": "minecraft:turtle",
-    "hatch_count": "property/eggs",
+    "hatch_count": {
+      "fetcher_id": "property",
+      "property_name": "eggs"
+    },
     "starting_age": -24000,
-    "conditions": [
-      {
-        "check": "is_sand_below",
-        "comparison": "equal",
-        "value": true
-      }
-    ]
+    "conditions": ["is_sand_below"]
   }
 }

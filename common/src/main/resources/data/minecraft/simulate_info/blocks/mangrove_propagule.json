@@ -6,7 +6,10 @@
     "update_type":"update_clients",
     "conditions": [
       {
-        "check": "property/hanging",
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "hanging"
+        },
         "comparison": "equal",
         "value": true
       }
@@ -15,7 +18,10 @@
   "stage": {
     "conditions": [
       {
-        "check": "property/hanging",
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "hanging"
+        },
         "comparison": "equal",
         "value": false
       }
@@ -25,7 +31,10 @@
   "grow_tree": {
     "conditions": [
       {
-        "check": "property/hanging",
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "hanging"
+        },
         "comparison": "equal",
         "value": false
       }

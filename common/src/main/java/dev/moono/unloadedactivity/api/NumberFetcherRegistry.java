@@ -1,49 +1,26 @@
 package dev.moono.unloadedactivity.api;
 
-import dev.moono.unloadedactivity.api.number_fetcher.NumberFetcher;
-import dev.moono.unloadedactivity.api.number_fetcher.NumberFetcherFactory;
+import com.google.gson.JsonObject;
 import dev.moono.unloadedactivity.api.value_expression.ValueExpression;
 import net.minecraft.resources.*;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class NumberFetcherRegistry {
-    private final HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, ValueExpression<Number>> numberFetchers = new HashMap<>();
+    private final HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Function<JsonObject, ValueExpression<Number>>> numberFetchers = new HashMap<>();
     private final HashMap<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, Number> numbers = new HashMap<>();
-    private final ArrayList<NumberFetcherFactory> dynamicNumberFetchers = new ArrayList<>();
 
     public void register(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, ValueExpression<Number> value) {
-        numberFetchers.put(id, value);
+        this.register(id, unused -> value);
+    }
+
+    public void register(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, Function<JsonObject, ValueExpression<Number>> factory) {
+        numberFetchers.put(id, factory);
     }
 
     public void registerNumber(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, Number number) {
         numbers.put(id, number);
-    }
-
-    public void registerDynamic(String namespace, Predicate<String> matches, Function<String, NumberFetcher> factory) {
-        registerDynamic(new NumberFetcherFactory() {
-            @Override
-            public String namespace() {
-                return namespace;
-            }
-
-            @Override
-            public boolean matches(String path) {
-                return matches.test(path);
-            }
-
-            @Override
-            public NumberFetcher create(String path) {
-                return factory.apply(path);
-            }
-        });
-    }
-
-    public void registerDynamic(NumberFetcherFactory factory) {
-        dynamicNumberFetchers.add(factory);
     }
 
     public Optional<Number> getNumber(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
@@ -51,25 +28,12 @@ public class NumberFetcherRegistry {
     }
 
     public Optional<ValueExpression<Number>> resolve(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
-        ValueExpression<Number> fetcher = numberFetchers.get(id);
-        if (fetcher != null) return Optional.of(fetcher);
-
-        return Optional.ofNullable(resolveDynamicFetcher(id));
+        return this.resolve(id, new JsonObject());
     }
 
-    @Nullable
-    private NumberFetcher resolveDynamicFetcher(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id) {
-        for (var dynamicNumberFetcher : dynamicNumberFetchers) {
-            if (!dynamicNumberFetcher.namespace().equals(id.getNamespace())) {
-                continue;
-            }
-
-            if (!dynamicNumberFetcher.matches(id.getPath())) {
-                continue;
-            }
-
-            return dynamicNumberFetcher.create(id.getPath());
-        }
-        return null;
+    public Optional<ValueExpression<Number>> resolve(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif id, JsonObject data) {
+        Function<JsonObject, ValueExpression<Number>> fetcherFactory = numberFetchers.get(id);
+        if (fetcherFactory != null) return Optional.of(fetcherFactory.apply(data));
+        return Optional.empty();
     }
 }

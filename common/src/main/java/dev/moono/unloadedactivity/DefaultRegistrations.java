@@ -160,22 +160,14 @@ public class DefaultRegistrations implements UnloadedActivityApi {
             new RandomValue()
         );
 
-        registry.registerDynamic(
-                UnloadedActivity.MOD_ID,
-                s -> s.startsWith("property/"),
-                s -> {
-                    String propertyName = s.substring("property/".length());
-                    return new PropertyValue(propertyName);
-                }
+        registry.register(
+            UnloadedActivity.id("property"),
+            data -> new PropertyValue(data.get("property_name").getAsString())
         );
 
-        registry.registerDynamic(
-                UnloadedActivity.MOD_ID,
-                s -> s.startsWith("custom/"),
-                s -> {
-                    String valueKey = s.substring("custom/".length());
-                    return new CustomValue(valueKey);
-                }
+        registry.register(
+            UnloadedActivity.id("provided"),
+            data -> new CustomValue(data.get("value").getAsString())
         );
 
         registry.registerNumber(UnloadedActivity.id("update_clients"), Block.UPDATE_CLIENTS);

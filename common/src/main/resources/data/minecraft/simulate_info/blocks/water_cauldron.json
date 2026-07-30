@@ -3,13 +3,7 @@
     "is_precipitation": true,
     "simulation_method": "property",
     "property_name": "level",
-    "conditions": [
-      {
-        "check": "is_rain_precipitation",
-        "comparison": "equal",
-        "value": true
-      }
-    ],
+    "conditions": ["is_rain_precipitation"],
     "advance_probability": 0.05
   }
 }

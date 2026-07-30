@@ -1,18 +1,19 @@
 package dev.moono.unloadedactivity.api.value_expression;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapLike;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.impl.Comparison;
 import dev.moono.unloadedactivity.api.condition.Condition;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.impl.value_expression.*;
 import dev.moono.unloadedactivity.impl.Operator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -45,69 +46,90 @@ public interface ValueExpression<T> {
 
     <U> ValueExpression<U> map(Function<T, U> mapFunction);
 
-    static <T> ValueExpression<Number> parseNumber(DynamicOps<T> ops, T input) {
+    static @NotNull ValueExpression<Number> parseNumber(JsonElement input) {
+        ValueExpression<Number> result = parseNumberNullable(input);
+        if (result == null)
+            throw new RuntimeException("Couldn't identify number expression type.");
+        return result;
+    }
 
-        var numberValue = ops.getNumberValue(input);
-        if (numberValue.result().isPresent()) {
-            return new SimpleValue<>(numberValue.result().get().floatValue());
-        }
+    static @Nullable ValueExpression<Number> parseNumberNullable(JsonElement input) {
 
-        var booleanValue = ops.getBooleanValue(input);
-        if (booleanValue.result().isPresent()) {
-            return new SimpleValue<>(booleanValue.result().get() ? 1 : 0);
-        }
+        if (input.isJsonPrimitive()) {
+            JsonPrimitive jsonPrimitive = input.getAsJsonPrimitive();
 
-        var stringValue = ops.getStringValue(input);
-        if (stringValue.result().isPresent()) {
-            String fetcherIdUnparsed = stringValue.result().get();
-
-            if (fetcherIdUnparsed.equals("super")) {
-                return new SuperValue<>();
+            if (jsonPrimitive.isNumber()) {
+                return new SimpleValue<>(jsonPrimitive.getAsNumber().floatValue());
             }
 
-            var fetcherId = UnloadedActivity.parseId(fetcherIdUnparsed);
-
-            Optional<ValueExpression<Number>> resolvedFetcher = UnloadedActivity.numberFetcherRegistry.resolve(fetcherId);
-
-            if (resolvedFetcher.isPresent()) {
-                return resolvedFetcher.get();
+            if (jsonPrimitive.isBoolean()) {
+                return new SimpleValue<>(jsonPrimitive.getAsBoolean() ? 1 : 0);
             }
 
-            throw new RuntimeException(fetcherId + " is not a valid number fetcher.");
+            if (jsonPrimitive.isString()) {
+                String fetcherIdUnparsed = jsonPrimitive.getAsString();
+
+                if (fetcherIdUnparsed.equals("super")) {
+                    return new SuperValue<>();
+                }
+
+                var fetcherId = UnloadedActivity.parseId(fetcherIdUnparsed);
+
+                Optional<ValueExpression<Number>> resolvedFetcher = UnloadedActivity.numberFetcherRegistry.resolve(fetcherId);
+
+                if (resolvedFetcher.isPresent()) {
+                    return resolvedFetcher.get();
+                }
+
+                throw new RuntimeException(fetcherId + " is not a valid number fetcher.");
+            }
         }
 
-        var mapValue = ops.getMap(input);
-        if (mapValue.result().isPresent()) {
-            MapLike<T> map = mapValue.result().get();
+        if (input.isJsonObject()) {
+            JsonObject jsonObject = input.getAsJsonObject();
 
-            DataResult<String> operatorResult = ops.getStringValue(map.get("operator"));
-            if (operatorResult.result().isPresent()) {
-                String operatorValue = operatorResult.result().get();
-                T oneValue = map.get("value");
-                T value1 = map.get("value1");
-                T value2 = map.get("value2");
+            JsonElement fetcherIdUnparsed = jsonObject.get("fetcher_id");
+            if (fetcherIdUnparsed != null) {
+                var fetcherId = UnloadedActivity.parseId(fetcherIdUnparsed.getAsString());
+
+                Optional<ValueExpression<Number>> resolvedFetcher = UnloadedActivity.numberFetcherRegistry.resolve(fetcherId, jsonObject);
+
+                if (resolvedFetcher.isPresent()) {
+                    return resolvedFetcher.get();
+                }
+
+                throw new RuntimeException(fetcherId + " is not a valid number fetcher.");
+            }
+
+            JsonElement operatorUnparsed = jsonObject.get("operator");
+            if (operatorUnparsed != null) {
+                String operatorValue = operatorUnparsed.getAsString();
+
+                JsonElement oneValue = jsonObject.get("value");
+                JsonElement value1 = jsonObject.get("value1");
+                JsonElement value2 = jsonObject.get("value2");
 
                 switch (operatorValue.toLowerCase()) {
                     case "+" -> {
-                        return new NumberOperatorValue(Operator.ADD, parseNumber(ops, value1), parseNumber(ops, value2));
+                        return new NumberOperatorValue(Operator.ADD, parseNumber(value1), parseNumber(value2));
                     }
                     case "-" -> {
-                        return new NumberOperatorValue(Operator.SUB, parseNumber(ops, value1), parseNumber(ops, value2));
+                        return new NumberOperatorValue(Operator.SUB, parseNumber(value1), parseNumber(value2));
                     }
                     case "/" -> {
-                        return new NumberOperatorValue(Operator.DIV, parseNumber(ops, value1), parseNumber(ops, value2));
+                        return new NumberOperatorValue(Operator.DIV, parseNumber(value1), parseNumber(value2));
                     }
                     case "*" -> {
-                        return new NumberOperatorValue(Operator.MUL, parseNumber(ops, value1), parseNumber(ops, value2));
+                        return new NumberOperatorValue(Operator.MUL, parseNumber(value1), parseNumber(value2));
                     }
                     case "^" -> {
-                        return new NumberOperatorValue(Operator.POW, parseNumber(ops, value1), parseNumber(ops, value2));
+                        return new NumberOperatorValue(Operator.POW, parseNumber(value1), parseNumber(value2));
                     }
                     case "^2" -> {
-                        return new NumberOperatorValue(Operator.POW2, parseNumber(ops, oneValue));
+                        return new NumberOperatorValue(Operator.POW2, parseNumber(oneValue));
                     }
                     case "floor" -> {
-                        return new NumberOperatorValue(Operator.FLOOR, parseNumber(ops, oneValue));
+                        return new NumberOperatorValue(Operator.FLOOR, parseNumber(oneValue));
                     }
                 }
 
@@ -115,72 +137,50 @@ public interface ValueExpression<T> {
 
             }
 
-            T predicateResult = map.get("predicate");
+            JsonElement predicateUnparsed = jsonObject.get("predicate");
 
-            if (predicateResult != null) {
-                DataResult<Condition> conditionResult = Condition.parse(ops, predicateResult);
+            if (predicateUnparsed != null) {
+                Condition condition = Condition.parse(predicateUnparsed);
 
-                if (conditionResult.result().isEmpty()) {
-                    throw new RuntimeException("Failed to parse predicate: " + conditionResult.error().get().message());
-                }
+                JsonElement trueValue = jsonObject.get("success");
+                JsonElement falseValue = jsonObject.get("fail");
 
-                Condition condition = conditionResult.result().get();
-
-                T trueValue = map.get("success");
-                T falseValue = map.get("fail");
-
-                return new ConditionalValue<>(condition, parseNumber(ops, trueValue), parseNumber(ops, falseValue));
+                return new ConditionalValue<>(condition, parseNumber(trueValue), parseNumber(falseValue));
 
             }
 
-            T timelineResult = map.get("timeline");
+            JsonElement timelineUnparsed = jsonObject.get("timeline");
 
-            if (timelineResult != null) {
-                var timelineMapResult =  ops.getMap(timelineResult);
+            if (timelineUnparsed != null) {
+                JsonObject timelineMapResult = timelineUnparsed.getAsJsonObject();;
 
-                if (timelineMapResult.error().isPresent())
-                    throw new RuntimeException(timelineMapResult.error().get().message());
-
-                MapLike<T> timelineMap = timelineMapResult.result().get();
-
-                T periodLengthT = map.get("period_length");
+                JsonElement periodLengthUnparsed = jsonObject.get("period_length");
 
                 long periodLength;
 
-                if (periodLengthT == null) {
+                if (periodLengthUnparsed == null) {
                     periodLength = 24000;
                 } else {
-                    var result = ops.getNumberValue(periodLengthT);
-                    if (result.error().isPresent())
-                        throw new RuntimeException(result.error().get().message());
-                    periodLength = result.result().get().longValue();
+                    periodLength = periodLengthUnparsed.getAsLong();
                 }
 
-                T useDimensionFixedTimeT = map.get("use_dimension_fixed_time");
+                JsonElement useDimensionFixedTimeUnparsed = jsonObject.get("use_dimension_fixed_time");
 
                 boolean useDimensionFixedTime;
 
-                if (useDimensionFixedTimeT == null) {
+                if (useDimensionFixedTimeUnparsed == null) {
                     useDimensionFixedTime = true;
                 } else {
-                    var result = ops.getBooleanValue(useDimensionFixedTimeT);
-                    if (result.error().isPresent())
-                        throw new RuntimeException(result.error().get().message());
-                    useDimensionFixedTime = result.result().get();
+                    useDimensionFixedTime = useDimensionFixedTimeUnparsed.getAsBoolean();
                 }
 
                 ArrayList<Pair<Long, ValueExpression<Number>>> list = new ArrayList<>();
 
-                for (Iterator<Pair<T, T>> it = timelineMap.entries().iterator(); it.hasNext(); ) {
-                    var pair = it.next();
-                    var stringKeyResult = ops.getStringValue(pair.getFirst());
-                    if (stringKeyResult.error().isPresent()) {
-                        throw new RuntimeException(stringKeyResult.error().get().message());
-                    }
-                    String stringKey = stringKeyResult.result().get();
+                for (var entry: timelineMapResult.entrySet()) {
+                    String key = entry.getKey();
                     try {
-                        long number = Long.parseLong(stringKey);
-                        list.add(Pair.of(number, parseNumber(ops, pair.getSecond())));
+                        long number = Long.parseLong(key);
+                        list.add(Pair.of(number, parseNumber(entry.getValue())));
                     } catch(NumberFormatException e){
                         throw new RuntimeException("Timeline does contains key values that can't be parsed as a Long.");
                     }
@@ -194,87 +194,72 @@ public interface ValueExpression<T> {
             }
         }
 
-        throw new RuntimeException("Invalid value");
+        return null;
     }
 
-    static <T> ValueExpression<String> parseString(DynamicOps<T> ops, T input) {
+    static @NotNull ValueExpression<String> parseString(JsonElement input) {
+        ValueExpression<String> result = parseStringNullable(input);
+        if (result == null)
+            throw new RuntimeException("Couldn't identify string expression type.");
+        return result;
+    }
 
-        var stringValue = ops.getStringValue(input);
-        if (stringValue.result().isPresent()) {
-            return new SimpleValue<>(stringValue.result().get());
+    static @Nullable ValueExpression<String> parseStringNullable(JsonElement input) {
+
+        if (input.isJsonPrimitive()) {
+            JsonPrimitive jsonPrimitive = input.getAsJsonPrimitive();
+
+            if (jsonPrimitive.isString())
+                return new SimpleValue<>(jsonPrimitive.getAsString());
         }
 
-        var mapValue = ops.getMap(input);
-        if (mapValue.result().isPresent()) {
-            MapLike<T> map = mapValue.result().get();
+        if (input.isJsonObject()) {
+            JsonObject jsonObject = input.getAsJsonObject();
 
-            T predicateResult = map.get("predicate");
+            JsonElement predicateUnparsed = jsonObject.get("predicate");
 
-            if (predicateResult != null) {
-                DataResult<Condition> conditionResult = Condition.parse(ops, predicateResult);
+            if (predicateUnparsed != null) {
+                Condition condition = Condition.parse(predicateUnparsed);
 
-                if (conditionResult.result().isEmpty()) {
-                    throw new RuntimeException("Failed to parse predicate: " + conditionResult.error().get().message());
-                }
+                JsonElement trueValue = jsonObject.get("success");
+                JsonElement falseValue = jsonObject.get("fail");
 
-                Condition condition = conditionResult.result().get();
-
-                T trueValue = map.get("success");
-                T falseValue = map.get("fail");
-
-                return new ConditionalValue<>(condition, parseString(ops, trueValue), parseString(ops, falseValue));
+                return new ConditionalValue<>(condition, parseString(trueValue), parseString(falseValue));
 
             }
 
+            JsonElement timelineUnparsed = jsonObject.get("timeline");
 
-            T timelineResult = map.get("timeline");
+            if (timelineUnparsed != null) {
+                JsonObject timelineMapResult = timelineUnparsed.getAsJsonObject();;
 
-            if (timelineResult != null) {
-                var timelineMapResult =  ops.getMap(timelineResult);
-
-                if (timelineMapResult.error().isPresent())
-                    throw new RuntimeException(timelineMapResult.error().get().message());
-
-                MapLike<T> timelineMap = timelineMapResult.result().get();
-
-                T periodLengthT = map.get("period_length");
+                JsonElement periodLengthUnparsed = jsonObject.get("period_length");
 
                 long periodLength;
 
-                if (periodLengthT == null) {
+                if (periodLengthUnparsed == null) {
                     periodLength = 24000;
                 } else {
-                    var result = ops.getNumberValue(periodLengthT);
-                    if (result.error().isPresent())
-                        throw new RuntimeException(result.error().get().message());
-                    periodLength = result.result().get().longValue();
+                    periodLength = periodLengthUnparsed.getAsLong();
                 }
 
-                T useDimensionFixedTimeT = map.get("use_dimension_fixed_time");
+                JsonElement useDimensionFixedTimeUnparsed = jsonObject.get("use_dimension_fixed_time");
 
                 boolean useDimensionFixedTime;
 
-                if (useDimensionFixedTimeT == null) {
+                if (useDimensionFixedTimeUnparsed == null) {
                     useDimensionFixedTime = true;
                 } else {
-                    var result = ops.getBooleanValue(useDimensionFixedTimeT);
-                    if (result.error().isPresent())
-                        throw new RuntimeException(result.error().get().message());
-                    useDimensionFixedTime = result.result().get();
+                    useDimensionFixedTime = useDimensionFixedTimeUnparsed.getAsBoolean();
                 }
 
                 ArrayList<Pair<Long, ValueExpression<String>>> list = new ArrayList<>();
 
-                for (Iterator<Pair<T, T>> it = timelineMap.entries().iterator(); it.hasNext(); ) {
-                    var pair = it.next();
-                    var stringKeyResult = ops.getStringValue(pair.getFirst());
-                    if (stringKeyResult.error().isPresent()) {
-                        throw new RuntimeException(stringKeyResult.error().get().message());
-                    }
-                    String stringKey = stringKeyResult.result().get();
+                for (var entry: timelineMapResult.entrySet()) {
+                    String key = entry.getKey();
                     try {
-                        long number = Long.parseLong(stringKey);
-                        list.add(Pair.of(number, parseString(ops, pair.getSecond())));
+                        long number = Long.parseLong(key);
+                        list.add(Pair.of(number, parseString(entry.getValue())));
                     } catch(NumberFormatException e){
                         throw new RuntimeException("Timeline does contains key values that can't be parsed as a Long.");
                     }
@@ -288,6 +273,6 @@ public interface ValueExpression<T> {
             }
         }
 
-        throw new RuntimeException("Invalid value");
+        return null;
     }
 }

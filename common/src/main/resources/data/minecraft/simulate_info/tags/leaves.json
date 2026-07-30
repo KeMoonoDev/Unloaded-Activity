@@ -3,12 +3,18 @@
     "simulation_method": "decay",
     "conditions": [
       {
-        "check": "property/persistent",
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "persistent"
+        },
         "comparison": "not_equal",
         "value": true
       },
       {
-        "check": "property/distance",
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "distance"
+        },
         "comparison": "equal",
         "value": 7
       }

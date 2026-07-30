@@ -1,16 +1,14 @@
 package dev.moono.unloadedactivity.api.condition;
 
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapLike;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.api.value_expression.ValueExpression;
 import dev.moono.unloadedactivity.impl.Comparison;
+import dev.moono.unloadedactivity.impl.value_expression.SimpleValue;
 
 import java.util.Optional;
-
-import static dev.moono.unloadedactivity.GameUtils.returnError;
 
 public record Condition (ValueExpression<Number> value1, ValueExpression<Number> value2, Comparison comparison) {
     public boolean isValid(ExpressionContext context) {
@@ -43,33 +41,38 @@ public record Condition (ValueExpression<Number> value1, ValueExpression<Number>
         );
     }
 
-    public static <T> DataResult<Condition> parse(DynamicOps<T> ops, T input) {
-        var mapValue = ops.getMap(input);
-        if (mapValue.result().isPresent()) {
-            MapLike<T> map = mapValue.result().get();
+    public static Condition parse(JsonElement jsonElement) {
+        if (jsonElement.isJsonObject()) {
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
 
-            DataResult<String> comparisonResult = ops.getStringValue(map.get("comparison"));
-            if (comparisonResult.error().isPresent()) {
-                return returnError(comparisonResult);
+            JsonElement comparisonUnparsed = jsonObject.get("comparison");
+
+            if (comparisonUnparsed != null) {
+                String comparisonString = comparisonUnparsed.getAsString();
+                Optional<Comparison> maybeComparison = Comparison.fromString(comparisonString);
+
+                if (maybeComparison.isEmpty()) {
+                    throw new RuntimeException(comparisonString + " is not a valid comparison.");
+                }
+
+                Comparison comparison = maybeComparison.get();
+
+                JsonElement checkUnparsed = jsonObject.get("check");
+                ValueExpression<Number> check = ValueExpression.parseNumber(checkUnparsed);
+
+                JsonElement valueUnparsed = jsonObject.get("value");
+                ValueExpression<Number> value = ValueExpression.parseNumber(valueUnparsed);
+
+                return new Condition(check, value, comparison);
             }
-            String comparisonString = comparisonResult.result().get();
-            Optional<Comparison> maybeComparison = Comparison.fromString(comparisonString);
-
-            if (maybeComparison.isEmpty()) {
-                throw new RuntimeException(comparisonString + " is not a valid comparison.");
-            }
-
-            Comparison comparison = maybeComparison.get();
-
-            T checkValue = map.get("check");
-            ValueExpression<Number> checkCalculateValue = ValueExpression.parseNumber(ops, checkValue);
-
-            T valueValue = map.get("value");
-            ValueExpression<Number> valueCalculateValue = ValueExpression.parseNumber(ops, valueValue);
-
-            return DataResult.success(new Condition(checkCalculateValue, valueCalculateValue, comparison));
         }
 
-        throw new RuntimeException("Invalid condition");
+        ValueExpression<Number> numberExpression = ValueExpression.parseNumberNullable(jsonElement);
+
+        if (numberExpression != null)
+            // TODO make Condition an interface and make a NonZeroCondition class to maybe save on performance
+            return new Condition(numberExpression, new SimpleValue<>(0), Comparison.NE);
+
+        throw new RuntimeException("Couldn't identify condition type.");
     }
 }

@@ -4,13 +4,12 @@
     "requires_rain": false,
     "simulation_method": "replace",
     "conditions": [
+      "should_freeze",
       {
-        "check": "should_freeze",
-        "comparison": "equal",
-        "value": true
-      },
-      {
-        "check": "property/level",
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "level"
+        },
         "comparison": "equal",
         "value": 0
       }

@@ -54,15 +54,6 @@ public abstract class JsonResourcesCollector extends SimplePreparableReloadListe
                     if (!parsed.isJsonObject()) {
                         UnloadedActivity.LOGGER.error("Data file '{}' from '{}' didn't return a JsonObject. It will be ignored.", id, location);
                     }
-
-                    JsonObject jsonObject = parsed.getAsJsonObject();
-
-                    JsonElement priority = jsonObject.get("priority");
-
-                    if (priority != null && (!priority.isJsonPrimitive() || !priority.getAsJsonPrimitive().isNumber())) {
-                        UnloadedActivity.LOGGER.error("Data file '{}' from '{}' defines the field \"priority\" as something that is not a number or null. It will be defaulted to 1000.", id, location);
-                    }
-
                     result.computeIfAbsent(id, ignored -> new ArrayList<>()).add(parsed.getAsJsonObject());
                 } catch (IllegalArgumentException | IOException | JsonParseException e) {
                     UnloadedActivity.LOGGER.error("Couldn't parse data file '{}' from '{}'", id, location, e);

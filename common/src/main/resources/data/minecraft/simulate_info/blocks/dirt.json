@@ -21,11 +21,7 @@
         "comparison": "greater_or_equal",
         "value": 9
       },
-      {
-        "check": "grass_can_grow",
-        "comparison": "equal",
-        "value": true
-      }
+      "grass_can_grow"
     ],
     "advance_probability": {
       "predicate": {

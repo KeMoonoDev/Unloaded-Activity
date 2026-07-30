@@ -85,8 +85,7 @@ public enum FieldType {
     FIXED_NUMBER_EXPRESSION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            ValueExpression<Number> numberExpression = ValueExpression.parseNumber(ops, input);
+            ValueExpression<Number> numberExpression = ValueExpression.parseNumber(input);
 
             if (superData != null) {
                 FixedValueExpression<Number> castedSuper = (FixedValueExpression<Number>)superData;
@@ -99,8 +98,7 @@ public enum FieldType {
     UPDATING_NUMBER_EXPRESSION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            ValueExpression<Number> numberExpression = ValueExpression.parseNumber(ops, input);
+            ValueExpression<Number> numberExpression = ValueExpression.parseNumber(input);
 
             if (numberExpression.isRandom())
                 throw new RuntimeException("Number expression is not updating. The result can be random.");
@@ -116,8 +114,7 @@ public enum FieldType {
     RANDOMIZED_NUMBER_EXPRESSION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            ValueExpression<Number> numberExpression = ValueExpression.parseNumber(ops, input);
+            ValueExpression<Number> numberExpression = ValueExpression.parseNumber(input);
 
             if (superData != null) {
                 RandomizedValueExpression<Number> castedSuper = (RandomizedValueExpression<Number>)superData;
@@ -130,8 +127,7 @@ public enum FieldType {
     FIXED_BLOCK_EXPRESSION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            ValueExpression<String> stringExpression = ValueExpression.parseString(ops, input);
+            ValueExpression<String> stringExpression = ValueExpression.parseString(input);
 
             ValueExpression<Block> blockExpression = stringExpression.map(stringId -> {
                 if (stringId == null) return null;
@@ -156,8 +152,7 @@ public enum FieldType {
     UPDATING_BLOCK_EXPRESSION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            ValueExpression<String> stringExpression = ValueExpression.parseString(ops, input);
+            ValueExpression<String> stringExpression = ValueExpression.parseString(input);
 
             ValueExpression<Block> blockExpression = stringExpression.map(stringId -> {
                 if (stringId == null) return null;
@@ -182,8 +177,7 @@ public enum FieldType {
     RANDOMIZED_BLOCK_EXPRESSION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            ValueExpression<String> stringExpression = ValueExpression.parseString(ops, input);
+            ValueExpression<String> stringExpression = ValueExpression.parseString(input);
 
             ValueExpression<Block> blockExpression = stringExpression.map(stringId -> {
                 if (stringId == null) return null;
@@ -208,27 +202,21 @@ public enum FieldType {
     FIXED_CONDITION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            Condition condition = Condition.parse(ops, input).getOrThrow(#if MC_VER < MC_1_20_6 false, err -> {} #endif);
-
+            Condition condition = Condition.parse(input);
             return new FixedCondition(condition);
         }
     },
     UPDATING_CONDITION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            Condition condition = Condition.parse(ops, input).getOrThrow(#if MC_VER < MC_1_20_6 false, err -> {} #endif);
-
+            Condition condition = Condition.parse(input);
             return new UpdatingCondition(condition);
         }
     },
     RANDOMIZED_CONDITION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
-            JsonOps ops = JsonOps.INSTANCE;
-            Condition condition = Condition.parse(ops, input).getOrThrow(#if MC_VER < MC_1_20_6 false, err -> {} #endif);
-
+            Condition condition = Condition.parse(input);
             return new RandomizedCondition(condition);
         }
     },
@@ -236,7 +224,7 @@ public enum FieldType {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
             if (!input.isJsonObject()) {
-                throw new RuntimeException("Config wasn't a JsonObject.");
+                throw new RuntimeException("Config needs to be a JsonObject.");
             }
             SimulationConfig finalConfig = superData == null ? new SimulationConfig() : (SimulationConfig)superData;
             finalConfig.merge(input.getAsJsonObject());

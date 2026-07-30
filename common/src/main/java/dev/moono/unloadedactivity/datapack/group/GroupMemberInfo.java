@@ -6,10 +6,10 @@ import net.minecraft.core.Vec3i;
 import java.util.List;
 
 public class GroupMemberInfo {
-    public float value;
-    public GroupInfo groupInfo;
-    public List<Vec3i> ignoredOffsets;
-    public List<FixedCondition> conditions;
+    public final float value;
+    public final GroupInfo groupInfo;
+    public final List<Vec3i> ignoredOffsets;
+    public final List<FixedCondition> conditions;
 
     public GroupMemberInfo(IncompleteGroupMemberInfo incomplete, GroupInfo groupInfo) {
         if (incomplete.value == null)

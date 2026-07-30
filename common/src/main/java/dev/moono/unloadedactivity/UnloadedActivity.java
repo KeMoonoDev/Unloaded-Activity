@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
 import dev.moono.unloadedactivity.api.UnloadedActivityApi;
+import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
 import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import dev.moono.unloadedactivity.config.BlockOrTag;
 import dev.moono.unloadedactivity.config.UnloadedActivityConfig;
@@ -124,7 +125,11 @@ public class UnloadedActivity {
     }
 
     public static void dataPackReloaded(boolean success) {
-        if (success) SimulationDataResource.buildAllSimulationData();
+        if (success) {
+            SimulationDataResource.buildAllSimulationData();
+            GroupInfoResource.buildAllGroupInfos();
+        }
         SimulationDataResource.clearAllRawSimulationData();
+        GroupInfoResource.clearAllRawGroupInfos();
     }
 }

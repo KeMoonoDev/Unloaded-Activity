@@ -57,8 +57,6 @@ public class SimulationDataResource extends JsonResourcesCollector {
             TAG_MAP.putAll(objects);
             UnloadedActivity.LOGGER.info("Tag entries: " + TAG_MAP.keySet());
         }
-
-        COMPLETE_BLOCK_MAP.clear();
     }
 
     public static void clearAllSimulationData() {

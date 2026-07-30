@@ -3,13 +3,7 @@
     "is_precipitation": true,
     "simulation_method": "property",
     "property_name": "layers",
-    "conditions": [
-      {
-        "check": "should_snow",
-        "comparison": "equal",
-        "value": true
-      }
-    ],
+    "conditions": ["should_snow"],
     "advance_probability": 1,
     "max_value": "max_snow_height"
   },
