@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity;
 
+import com.google.gson.JsonElement;
 import dev.moono.unloadedactivity.api.NumberFetcherRegistry;
 import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
 import dev.moono.unloadedactivity.api.UnloadedActivityApi;
@@ -8,9 +9,13 @@ import dev.moono.unloadedactivity.impl.simulation_methods.*;
 import net.minecraft.core.Vec3i;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 public class DefaultRegistrations implements UnloadedActivityApi {
     @Override
@@ -51,103 +56,13 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         );
 
         registry.register(
-            UnloadedActivity.id("has_lava_neighbors_above"),
-            new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA), new Vec3i(0, 1, 0))
+            UnloadedActivity.id("should_freeze"),
+            new ShouldFreezeValue()
         );
 
         registry.register(
-            UnloadedActivity.id("has_lava_neighbors"),
-            new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA))
-        );
-
-        registry.register(
-            UnloadedActivity.id("has_lava_neighbors_below"),
-            new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA), new Vec3i(0, -1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("has_solid_neighbors_above"),
-            new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid(), new Vec3i(0, 1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("has_solid_neighbors"),
-            new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid())
-        );
-
-        registry.register(
-            UnloadedActivity.id("has_solid_neighbors_below"),
-            new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid(), new Vec3i(0, -1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("is_sand_below"),
-            new IsBlockMatchValue(b -> b.is(BlockTags.SAND), new Vec3i(0, -1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("is_sand_above"),
-            new IsBlockMatchValue(b -> b.is(BlockTags.SAND), new Vec3i(0, 1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("is_snow_below"),
-            new IsBlockMatchValue(b -> b.is(BlockTags.SNOW), new Vec3i(0, -1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("is_snow_above"),
-            new IsBlockMatchValue(b -> b.is(BlockTags.SNOW), new Vec3i(0, 1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("block_brightness"),
-            new BlockBrightnessValue()
-        );
-
-        registry.register(
-            UnloadedActivity.id("block_brightness_above"),
-            new BlockBrightnessValue(new Vec3i(0, 1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("raw_brightness"),
-            new RawBrightnessValue()
-        );
-
-        registry.register(
-            UnloadedActivity.id("raw_brightness_above"),
-            new RawBrightnessValue(new Vec3i(0, 1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("local_brightness"),
-            new LocalBrightnessValue()
-        );
-
-        registry.register(
-            UnloadedActivity.id("local_brightness_above"),
-            new LocalBrightnessValue(new Vec3i(0, 1, 0))
-        );
-
-        registry.register(
-            UnloadedActivity.id("is_snow_precipitation"),
-            new IsPrecipitationValue(Biome.Precipitation.SNOW)
-        );
-
-        registry.register(
-            UnloadedActivity.id("is_rain_precipitation"),
-            new IsPrecipitationValue(Biome.Precipitation.RAIN)
-        );
-
-        registry.register(
-                UnloadedActivity.id("should_freeze"),
-                new ShouldFreezeValue()
-        );
-
-        registry.register(
-                UnloadedActivity.id("water_evaporates"),
-                new WaterEvaporatesValue()
+            UnloadedActivity.id("water_evaporates"),
+            new WaterEvaporatesValue()
         );
 
         registry.register(
@@ -161,8 +76,116 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         );
 
         registry.register(
+            UnloadedActivity.id("is_precipitation"),
+            data -> {
+                JsonElement unparsedPrecipitationName = data.get("precipitation");
+                if (unparsedPrecipitationName == null)
+                    throw new RuntimeException("Required field \"precipitation\" is missing.");
+
+                String precipitationName = unparsedPrecipitationName.getAsString();
+                for (Biome.Precipitation precipitation : Biome.Precipitation.values()) {
+                    if (precipitation.getSerializedName().equals(precipitationName)) {
+                        return new IsPrecipitationValue(precipitation);
+                    }
+                }
+                StringBuilder errorMessage = new StringBuilder("Failed to find precipitation with name \"" + precipitationName + "\". Currently available precipitations are: ");
+                for (Biome.Precipitation precipitation : Biome.Precipitation.values()) {
+                    if (precipitation == Biome.Precipitation.NONE) continue;
+                    errorMessage.append("\"").append(precipitation.getSerializedName()).append("\", ");
+                }
+                errorMessage.append("and \"").append(Biome.Precipitation.NONE.getSerializedName()).append("\".");
+                throw new RuntimeException(errorMessage.toString());
+            }
+        );
+
+
+        registry.register(
+            UnloadedActivity.id("has_lava_neighbors"),
+            data -> {
+                JsonElement offsetUnparsed = data.get("offset");
+                if (offsetUnparsed == null) return new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA));
+                return new IsBlockNeighborsMatchValue(b -> b.getFluidState().is(FluidTags.LAVA), GameUtils.parseOffset(offsetUnparsed));
+            }
+        );
+
+
+        registry.register(
+            UnloadedActivity.id("has_solid_neighbors"),
+            data -> {
+                JsonElement offsetUnparsed = data.get("offset");
+                if (offsetUnparsed == null) return new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid());
+                return new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid(), GameUtils.parseOffset(offsetUnparsed));
+            }
+        );
+
+        registry.register(
+            UnloadedActivity.id("has_tag"),
+            data -> {
+                JsonElement tagNameUnparsed = data.get("tag");
+                if (tagNameUnparsed == null)
+                    throw new RuntimeException("Required field \"tag\" is missing.");
+
+                var tagId = GameUtils.parseId(tagNameUnparsed.getAsString());
+
+                JsonElement offsetUnparsed = data.get("offset");
+                if (offsetUnparsed == null) return new IsBlockMatchValue(b -> GameUtils.getBlockTags(b).anyMatch(tagKey -> tagKey.location().equals(tagId)));
+                return new IsBlockMatchValue(b -> GameUtils.getBlockTags(b).anyMatch(tagKey -> tagKey.location().equals(tagId)), GameUtils.parseOffset(offsetUnparsed));
+            }
+        );
+
+        registry.register(
+            UnloadedActivity.id("is_block"),
+            data -> {
+                JsonElement blockNameUnparsed = data.get("block");
+                if (blockNameUnparsed == null)
+                    throw new RuntimeException("Required field \"block\" is missing.");
+
+                var blockId = GameUtils.parseId(blockNameUnparsed.getAsString());
+                Block block = GameUtils.getBlock(blockId);
+
+                if (block == null) throw new RuntimeException("\""+blockId+"\" is not a valid block.");
+
+                JsonElement offsetUnparsed = data.get("offset");
+                if (offsetUnparsed == null) return new IsBlockMatchValue(b -> b.getBlock() == block);
+                return new IsBlockMatchValue(b -> b.getBlock() == block, GameUtils.parseOffset(offsetUnparsed));
+            }
+        );
+
+        registry.register(
+            UnloadedActivity.id("block_brightness"),
+            data -> {
+                JsonElement offsetUnparsed = data.get("offset");
+                if (offsetUnparsed == null) return new BlockBrightnessValue();
+                return new BlockBrightnessValue(GameUtils.parseOffset(offsetUnparsed));
+            }
+        );
+
+        registry.register(
+            UnloadedActivity.id("raw_brightness"),
+            data -> {
+                JsonElement offsetUnparsed = data.get("offset");
+                if (offsetUnparsed == null) return new RawBrightnessValue();
+                return new RawBrightnessValue(GameUtils.parseOffset(offsetUnparsed));
+            }
+        );
+
+        registry.register(
+            UnloadedActivity.id("local_brightness"),
+            data -> {
+                JsonElement offsetUnparsed = data.get("offset");
+                if (offsetUnparsed == null) return new LocalBrightnessValue();
+                return new LocalBrightnessValue(GameUtils.parseOffset(offsetUnparsed));
+            }
+        );
+
+        registry.register(
             UnloadedActivity.id("property"),
-            data -> new PropertyValue(data.get("property_name").getAsString())
+            data -> {
+                JsonElement unparsedPropertyName = data.get("property_name");
+                if (unparsedPropertyName == null)
+                    throw new RuntimeException("Required field \"property_name\" is missing.");
+                return new PropertyValue(unparsedPropertyName.getAsString());
+            }
         );
 
         registry.register(

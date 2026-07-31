@@ -6,7 +6,10 @@
 
     "conditions": [
       {
-        "check": "raw_brightness_above",
+        "check": {
+          "fetcher_id": "raw_brightness",
+          "offset": "above"
+        },
         "comparison": "greater_or_equal",
         "value": 9
       }
@@ -14,7 +17,10 @@
 
     "advance_probability": {
       "predicate": {
-        "check": "local_brightness_above",
+        "check": {
+          "fetcher_id": "local_brightness",
+          "offset": "above"
+        },
         "comparison": "greater_or_equal",
         "value": 9
       },
@@ -27,7 +33,10 @@
     "simulation_method": "grow_tree",
     "conditions": [
       {
-        "check": "raw_brightness_above",
+        "check": {
+          "fetcher_id": "raw_brightness",
+          "offset": "above"
+        },
         "comparison": "greater_or_equal",
         "value": 9
       }
@@ -38,7 +47,10 @@
     "advance_probability":
 {
   "predicate": {
-    "check": "local_brightness_above",
+    "check": {
+      "fetcher_id": "local_brightness",
+      "offset": "above"
+    },
     "comparison": "greater_or_equal",
     "value": 9
   },

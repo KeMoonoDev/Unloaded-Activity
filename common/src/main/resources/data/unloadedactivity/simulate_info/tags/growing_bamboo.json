@@ -5,7 +5,10 @@
     "advance_probability": 0.333333333333333333,
     "conditions": [
       {
-        "check": "raw_brightness_above",
+        "check": {
+          "fetcher_id": "raw_brightness",
+          "offset": "above"
+        },
         "comparison": "greater_or_equal",
         "value": 9
       }

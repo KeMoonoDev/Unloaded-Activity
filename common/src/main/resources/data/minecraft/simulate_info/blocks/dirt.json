@@ -13,11 +13,18 @@
       "fail": "minecraft:grass_block"
     },
     "set_properties":{
-      "snowy": "is_snow_above"
+      "snowy": {
+        "fetcher_id": "has_tag",
+        "tag": "minecraft:snow",
+        "offset": "above"
+      }
     },
     "conditions": [
       {
-        "check": "raw_brightness_above",
+        "check": {
+          "fetcher_id": "raw_brightness",
+          "offset": "above"
+        },
         "comparison": "greater_or_equal",
         "value": 9
       },
@@ -25,7 +32,10 @@
     ],
     "advance_probability": {
       "predicate": {
-        "check": "local_brightness_above",
+        "check": {
+          "fetcher_id": "local_brightness",
+          "offset": "above"
+        },
         "comparison": "greater_or_equal",
         "value": 9
       },

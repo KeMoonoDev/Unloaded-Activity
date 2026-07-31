@@ -3,7 +3,12 @@
     "is_precipitation": true,
     "simulation_method": "property",
     "property_name": "level",
-    "conditions": ["is_rain_precipitation"],
+    "conditions": [
+      {
+        "fetcher_id": "is_precipitation",
+        "precipitation": "rain"
+      }
+    ],
     "advance_probability": 0.05
   }
 }

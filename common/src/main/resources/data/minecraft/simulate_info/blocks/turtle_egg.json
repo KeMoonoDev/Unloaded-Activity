@@ -9,7 +9,13 @@
       }
     },
     "update_type":"update_clients",
-    "conditions": ["is_sand_below"]
+    "conditions": [
+      {
+        "fetcher_id": "has_tag",
+        "tag": "minecraft:sand",
+        "offset": "below"
+      }
+    ]
   },
   "final_hatch": {
     "simulation_method": "hatch",
@@ -28,6 +34,12 @@
       "property_name": "eggs"
     },
     "starting_age": -24000,
-    "conditions": ["is_sand_below"]
+    "conditions": [
+      {
+        "fetcher_id": "has_tag",
+        "tag": "minecraft:sand",
+        "offset": "below"
+      }
+    ]
   }
 }

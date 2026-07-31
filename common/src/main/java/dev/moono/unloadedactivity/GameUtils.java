@@ -12,10 +12,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Registry;
 #endif
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
@@ -37,6 +41,34 @@ import java.util.stream.Stream;
 /// A bunch of functions that are used frequently with version specific logic.
 /// Separated into here to reduce clutter elsewhere.
 public class GameUtils {
+    public static Vec3i parseOffset(JsonElement offset) {
+        if (offset.isJsonPrimitive()) {
+            JsonPrimitive jsonPrimitive = offset.getAsJsonPrimitive();
+            if (jsonPrimitive.isString()) {
+                String stringOffset = jsonPrimitive.getAsString();
+                if (stringOffset.startsWith("above")) {
+                    String countString = stringOffset.substring("above".length());
+                    if (countString.isEmpty()) return new Vec3i(0, 1, 0);
+                    return new Vec3i(0, Integer.parseInt(countString), 0);
+                }
+
+                if (stringOffset.startsWith("below")) {
+                    String countString = stringOffset.substring("below".length());
+                    if (countString.isEmpty()) return new Vec3i(0, -1, 0);
+                    return new Vec3i(0, -Integer.parseInt(countString), 0);
+                }
+
+                throw new RuntimeException("\""+stringOffset+"\" is not a valid offset.");
+            }
+        }
+
+        var vec3iResult = Vec3i.CODEC.decode(JsonOps.INSTANCE, offset);
+        if (vec3iResult.error().isPresent())
+            throw new RuntimeException(vec3iResult.error().get().message());
+
+        return vec3iResult.result().get().getFirst();
+    }
+
     public static DefaultedRegistry<EntityType<?>> getEntityTypeRegistry() {
         #if MC_VER >= MC_1_19_4
         return BuiltInRegistries.ENTITY_TYPE;
@@ -70,6 +102,10 @@ public class GameUtils {
 
     public static Stream<TagKey<Block>> getBlockTags(Block block) {
         return block.defaultBlockState() #if MC_VER >= MC_26_1_2 .tags() #else .getTags() #endif;
+    }
+
+    public static Stream<TagKey<Block>> getBlockTags(BlockState blockState) {
+        return blockState #if MC_VER >= MC_26_1_2 .tags() #else .getTags() #endif;
     }
 
     @Nullable

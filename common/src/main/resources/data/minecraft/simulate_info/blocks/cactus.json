@@ -27,12 +27,18 @@
       "bloom_block": "minecraft:cactus_flower",
       "conditions": [
         {
-          "check": "has_solid_neighbors_above",
+          "check": {
+            "fetcher_id": "has_solid_neighbors",
+            "offset": "above"
+          },
           "comparison": "equal",
           "value": false
         },
         {
-          "check": "has_lava_neighbors_above",
+          "check": {
+            "fetcher_id": "has_lava_neighbors",
+            "offset": "above"
+          },
           "comparison": "equal",
           "value": false
         }
