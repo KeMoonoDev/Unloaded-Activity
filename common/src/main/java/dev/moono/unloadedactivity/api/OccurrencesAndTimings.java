@@ -12,8 +12,15 @@ public record OccurrencesAndTimings(int occurrences, List<Long> remainingTimes, 
     }
 
     public SimulatedTime getTimeAtOccurrence(int occurrence) {
-        // todo interpolate the remaining time if occurrences is larger than remainingTimes size.
-        if (occurrence >= remainingTimes.size()) return new SimulatedTime(0, this.endTime());
+        if (occurrence >= remainingTimes.size()) {
+            if (occurrence >= occurrences) return new SimulatedTime(0, this.endTime());
+            int missingOccurrences = occurrences - remainingTimes.size();
+            int whichMissingOccurrenceToUse = occurrence - remainingTimes.size();
+            long lastRemainingTime = remainingTimes.get(remainingTimes.size() - 1);
+            long occurrenceSize = lastRemainingTime / (missingOccurrences + 1);
+            long multiply = missingOccurrences - whichMissingOccurrenceToUse;
+            return new SimulatedTime(occurrenceSize * multiply, this.endTime());
+        }
         return new SimulatedTime(remainingTimes.get(occurrence), this.endTime());
     }
 
