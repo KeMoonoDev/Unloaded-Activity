@@ -196,8 +196,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
 
                 // Sick and twisted workaround.
                 Object oldValue = state.getValue(maybeOldProperty.get());
-                Object valueFromNew = newState.getValue(maybeNewProperty.get());
-                if (oldValue.getClass().isInstance(valueFromNew)) {
+                if (maybeNewProperty.get().getPossibleValues().contains(oldValue)) {
                     newState = newState.setValue((Property)maybeNewProperty.get(), (Comparable)oldValue);
                 }
             }
