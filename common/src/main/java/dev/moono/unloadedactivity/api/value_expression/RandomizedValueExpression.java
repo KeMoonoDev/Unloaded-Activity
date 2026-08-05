@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.api.value_expression;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.api.context.RandomizedContext;
 import net.minecraft.core.BlockPos;
@@ -26,19 +27,19 @@ public class RandomizedValueExpression<T> {
         return inner.evaluate((ExpressionContext) context);
     }
 
-    public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return inner.evaluate(ExpressionContext.randomized(level, state, pos, currentTime, numberMap, activeGroupSimulateData));
+    public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return inner.evaluate(ExpressionContext.randomized(level, state, pos, simulatedTime, numberMap, activeGroupSimulateData));
     }
 
-    public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap) {
-        return inner.evaluate(ExpressionContext.randomized(level, state, pos, currentTime, numberMap, null));
+    public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap) {
+        return inner.evaluate(ExpressionContext.randomized(level, state, pos, simulatedTime, numberMap, null));
     }
 
-    public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return inner.evaluate(ExpressionContext.randomized(level, state, pos, currentTime, Map.of(), activeGroupSimulateData));
+    public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return inner.evaluate(ExpressionContext.randomized(level, state, pos, simulatedTime, Map.of(), activeGroupSimulateData));
     }
 
-    public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime) {
-        return inner.evaluate(ExpressionContext.randomized(level, state, pos, currentTime, Map.of(), null));
+    public T evaluateRandomized(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime) {
+        return inner.evaluate(ExpressionContext.randomized(level, state, pos, simulatedTime, Map.of(), null));
     }
 }

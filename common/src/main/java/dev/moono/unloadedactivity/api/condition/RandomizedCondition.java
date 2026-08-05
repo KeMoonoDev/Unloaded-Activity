@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.api.condition;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.api.context.RandomizedContext;
 import net.minecraft.core.BlockPos;
@@ -27,19 +28,19 @@ public class RandomizedCondition {
         return inner.isValid((ExpressionContext)context);
     }
 
-    public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return inner.isValid(ExpressionContext.randomized(level, state, pos, currentTime, numberMap, activeGroupSimulateData));
+    public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return inner.isValid(ExpressionContext.randomized(level, state, pos, simulatedTime, numberMap, activeGroupSimulateData));
     }
 
-    public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap) {
-        return inner.isValid(ExpressionContext.randomized(level, state, pos, currentTime, numberMap, null));
+    public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap) {
+        return inner.isValid(ExpressionContext.randomized(level, state, pos, simulatedTime, numberMap, null));
     }
 
-    public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return inner.isValid(ExpressionContext.randomized(level, state, pos, currentTime, Map.of(), activeGroupSimulateData));
+    public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return inner.isValid(ExpressionContext.randomized(level, state, pos, simulatedTime, Map.of(), activeGroupSimulateData));
     }
 
-    public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, long currentTime) {
-        return inner.isValid(ExpressionContext.randomized(level, state, pos, currentTime, Map.of(), null));
+    public boolean isValidRandomized(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime) {
+        return inner.isValid(ExpressionContext.randomized(level, state, pos, simulatedTime, Map.of(), null));
     }
 }

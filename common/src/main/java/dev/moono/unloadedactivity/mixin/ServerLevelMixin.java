@@ -1,15 +1,8 @@
 package dev.moono.unloadedactivity.mixin;
 
-#if MC_VER >= MC_1_21_5
-import net.minecraft.world.level.saveddata.SavedDataType;
-#elif MC_VER >= MC_1_20_2
-import net.minecraft.world.level.saveddata.SavedData;
-#endif
-
-#if MC_VER >= MC_1_20_2
-import net.minecraft.util.datafix.DataFixTypes;
-#endif
 #if MC_VER >= MC_1_19_4
+import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
+import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
 import net.minecraft.core.RegistryAccess;
 #endif
 
@@ -20,11 +13,7 @@ import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.SimulatedTime;
-import dev.moono.unloadedactivity.api.WorldWeatherForecast;
-import dev.moono.unloadedactivity.interfaces.WorldForecastGetter;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -38,13 +27,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-
-import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
 
 
 @Mixin(value = ServerLevel.class, priority = 1001)
-public abstract class ServerLevelMixin extends Level implements WorldGenLevel, WorldForecastGetter {
+public abstract class ServerLevelMixin extends Level implements WorldGenLevel {
 	#if MC_VER >= MC_1_21_3
 	protected ServerLevelMixin(WritableLevelData writableLevelData, ResourceKey<Level> resourceKey, RegistryAccess registryAccess, Holder<DimensionType> holder, boolean bl, boolean bl2, long l, int i) {
 		super(writableLevelData, resourceKey, registryAccess, holder, bl, bl2, l, i);
@@ -76,23 +62,32 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 		if (this.isClientSide())
 			return;
 
-		long lastTick = chunk.getLastTick();
-		long currentTime = GameUtils.getTime(this);
+		long currentTick = GameUtils.getTime(this);
+		long currentMs = System.currentTimeMillis();
 
-		if (lastTick != 0) {
-			if (!TimeMachine.isChunkIndexed(chunk)) {
-				return;
+		SimulatedTime simulatedTime = SimulatedTime.PLACEHOLDER;
+
+		if (UnloadedActivity.config.useSystemTime) {
+			long lastMs = chunk.getLastMs();
+			if (lastMs > 0) {
+				simulatedTime = SimulatedTime.fromLastMs(lastMs, currentTick, currentMs);
 			}
+		} else {
+			long lastTick = chunk.getLastTick();
+			if (lastTick > 0) {
+				simulatedTime = SimulatedTime.fromLastTick(lastTick, currentTick, currentMs);
+			}
+		}
 
-			long timeDifference = Math.max(currentTime - lastTick, 0);
+		if (simulatedTime.remainingTicks() > 0) {
+			if (!TimeMachine.isChunkIndexed(chunk)) return;
 
-			int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
+			int tickDifferenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
 
-			if (timeDifference > differenceThreshold) {
+			if (simulatedTime.remainingTicks() > tickDifferenceThreshold) {
 				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier()) {
 					++updateCount;
 					int groupUpdateBudget = UnloadedActivity.config.maxGroupUpdatesPerTick - groupUpdateCount;
-					SimulatedTime simulatedTime = new SimulatedTime(timeDifference, currentTime);
 					Pair<Integer, Boolean> result = TimeMachine.simulateChunk(this.getLevel(), chunk, simulatedTime, randomTickSpeed, groupUpdateBudget);
 					groupUpdateCount += result.getFirst();
 					boolean simulatedAllGroups = result.getSecond();
@@ -107,7 +102,8 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 			}
 		}
 
-		chunk.setLastTick(currentTime);
+		chunk.setLastTick(currentTick);
+		chunk.setLastMs(currentMs);
 	}
 
 	@Unique
@@ -123,59 +119,16 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel, W
 
 	@Inject(method = "tick", at = @At(value = "TAIL", target = "net/minecraft/server/level/ServerLevel.tickTime ()V"))
 	private void finishTickTime(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-		WorldWeatherForecast weatherInfo = this.getWeatherForecast();
-		weatherInfo.updateValues(this);
-	}
-
-	#if MC_VER >= MC_1_21_5
-	@Unique
-	private static final SavedDataType<WorldWeatherForecast> type = new SavedDataType<>(
-	        #if MC_VER >= MC_26_1_2
-			UnloadedActivity.id("weather_list"),
-			#else
-			MOD_ID,
-			#endif
-	        #if MC_VER >= MC_1_21_11
-            WorldWeatherForecast::new,
-            WorldWeatherForecast.CODEC,
-            #else
-			(ctx) -> new WorldWeatherForecast(),
-			(ctx) -> {
-				return CompoundTag.CODEC.xmap(
-                        WorldWeatherForecast::load,
-						weatherData -> weatherData.save(new CompoundTag())
-				);
-			},
-            #endif
-			DataFixTypes.LEVEL
-	);
-	#elif MC_VER >= MC_1_20_2
-	@Unique
-	private static final SavedData.Factory<WorldWeatherForecast> type = new SavedData.Factory<>(
-			WorldWeatherForecast::new,
-			WorldWeatherForecast::load,
-			net.minecraft.util.datafix.DataFixTypes.LEVEL
-	);
-	#endif
-
-	@Override
-	public WorldWeatherForecast getWeatherForecast() {
-		return this.getLevel().getDataStorage().computeIfAbsent(
-			#if MC_VER >= MC_1_20_2
-			type
-			#else
-                WorldWeatherForecast::load,
-                WorldWeatherForecast::new
-			#endif
-			#if MC_VER < MC_1_21_5
-			, MOD_ID
-			#endif
-		);
+		WeatherTickHistory weatherTickHistory = GameUtils.getWeatherTickHistory(this.getLevel());
+		weatherTickHistory.updateValues(GameUtils.getTime(this), this.isRaining());
+		WeatherMsHistory weatherMsHistory = GameUtils.getWeatherMsHistory(this.getLevel());
+		weatherMsHistory.updateValues(System.currentTimeMillis(), this.isRaining());
 	}
 
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void createState(CallbackInfo ci) {
-		this.getWeatherForecast();
+		GameUtils.getWeatherTickHistory(this.getLevel());
+		GameUtils.getWeatherMsHistory(this.getLevel());
 	}
 }
 

@@ -4,7 +4,7 @@ package dev.moono.unloadedactivity;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
-import dev.moono.unloadedactivity.api.WorldWeatherForecast;
+import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
 import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.UpdatingValueExpression;
@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static java.lang.Math.*;
 import static net.minecraft.util.Mth.sign;
@@ -69,38 +68,34 @@ public class MathUtils {
 
         int successes = 0;
 
-        long startingAvailableTime = simulatedTime.remainingTime();
-        long remainingTime = startingAvailableTime;
+        SimulatedTime activeSimulatedTime = simulatedTime;
 
-        WorldWeatherForecast weatherData = level.getWeatherForecast();
-
-        while (remainingTime > 0) {
-            long currentTime = simulatedTime.endTime() - remainingTime;
-            boolean isRaining = weatherData.getWeatherAtTime(currentTime);
+        while (activeSimulatedTime.remainingTicks() > 0) {
+            boolean isRaining = GameUtils.isRainingAtTime(level, activeSimulatedTime);
 
             if (requiresRain && !isRaining) {
-                long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
-                remainingTime -= nextWeatherSwitchDuration;
+                long nextWeatherSwitchTickDuration = GameUtils.nextWeatherSwitchTickDuration(level, activeSimulatedTime);
+                activeSimulatedTime = activeSimulatedTime.passTicks(nextWeatherSwitchTickDuration);
                 continue;
             }
 
-            UpdatingContext context = UpdatingContext.of(level, state, pos, currentTime, groupSimulateData);
+            UpdatingContext context = UpdatingContext.of(level, state, pos, activeSimulatedTime, groupSimulateData);
 
-            long nextProbabilitySwitchDuration = probability.getNextValueSwitchDuration(context);
+            long nextProbabilitySwitchTickDuration = probability.getNextValueSwitchDuration(context);
             if (requiresRain || probability.canBeAffectedByWeather) {
-                long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
-                nextProbabilitySwitchDuration = Math.min(nextProbabilitySwitchDuration, nextWeatherSwitchDuration);
+                long nextWeatherSwitchTickDuration = GameUtils.nextWeatherSwitchTickDuration(level, activeSimulatedTime);
+                nextProbabilitySwitchTickDuration = Math.min(nextProbabilitySwitchTickDuration, nextWeatherSwitchTickDuration);
             }
 
-            long simulateForCycles = Math.min(nextProbabilitySwitchDuration, remainingTime);
+            long simulateForTicks = Math.min(nextProbabilitySwitchTickDuration, activeSimulatedTime.remainingTicks());
 
             float odds = probability.evaluate(context).floatValue();
             float totalProbability = odds * randomPickProbability;
 
             if (UnloadedActivity.config.debugLogs)
-                UnloadedActivity.LOGGER.info("Simulating from " + currentTime + " to " + (currentTime + simulateForCycles) + " (difference: " + simulateForCycles + ") with odds " + odds);
+                UnloadedActivity.LOGGER.info("Simulating from " + activeSimulatedTime.currentTick() + " to " + (activeSimulatedTime.currentTick() + simulateForTicks) + " (difference: " + simulateForTicks + ") with odds " + odds);
 
-            int successesThisRound = getOccurrencesSimple(simulateForCycles, totalProbability, maxOccurrences - successes, random);
+            int successesThisRound = getOccurrencesSimple(simulateForTicks, totalProbability, maxOccurrences - successes, random);
 
             successes += successesThisRound;
 
@@ -109,7 +104,7 @@ public class MathUtils {
                 return OccurrencesAndTimings.fastDuration(successes, simulatedTime);
             }
 
-            remainingTime -= simulateForCycles;
+            activeSimulatedTime = activeSimulatedTime.passTicks(simulateForTicks);
         }
 
         return OccurrencesAndTimings.fastDuration(successes, simulatedTime);
@@ -119,51 +114,47 @@ public class MathUtils {
         if (maxOccurrences <= 0)
             return OccurrencesAndTimings.empty(simulatedTime);
 
-        long startingAvailableTime = simulatedTime.remainingTime();
-        long remainingTime = startingAvailableTime;
+        SimulatedTime activeSimulatedTime = simulatedTime;
 
         ArrayList<Long> remainingTimes = new ArrayList<>();
-        remainingTimes.add(remainingTime);
+        remainingTimes.add(activeSimulatedTime.remainingTicks());
 
 
         int successes = 0;
 
-        WorldWeatherForecast weatherData = level.getWeatherForecast();
-
-        while (remainingTime > 0) {
-            long currentTime = simulatedTime.endTime() - remainingTime;
-            boolean isRaining = weatherData.getWeatherAtTime(currentTime);
+        while (activeSimulatedTime.remainingTicks() > 0) {
+            boolean isRaining = GameUtils.isRainingAtTime(level, activeSimulatedTime);
 
             if (requiresRain && !isRaining) {
-                long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
-                remainingTime -= nextWeatherSwitchDuration;
+                long nextWeatherSwitchTickDuration = GameUtils.nextWeatherSwitchTickDuration(level, activeSimulatedTime);
+                activeSimulatedTime = activeSimulatedTime.passTicks(nextWeatherSwitchTickDuration);
                 continue;
             }
 
-            UpdatingContext context = UpdatingContext.of(level, state, pos, currentTime, groupSimulateData);
+            UpdatingContext context = UpdatingContext.of(level, state, pos, activeSimulatedTime, groupSimulateData);
 
-            long nextProbabilitySwitchDuration = probability.getNextValueSwitchDuration(context);
+            long nextProbabilitySwitchTickDuration = probability.getNextValueSwitchDuration(context);
             if (requiresRain || probability.canBeAffectedByWeather) {
-                long nextWeatherSwitchDuration = weatherData.getNextWeatherChangeDuration(currentTime);
-                nextProbabilitySwitchDuration = Math.min(nextProbabilitySwitchDuration, nextWeatherSwitchDuration);
+                long nextWeatherSwitchTickDuration = GameUtils.nextWeatherSwitchTickDuration(level, activeSimulatedTime);
+                nextProbabilitySwitchTickDuration = Math.min(nextProbabilitySwitchTickDuration, nextWeatherSwitchTickDuration);
             }
 
-            long simulatingTimeForProbability = Math.min(nextProbabilitySwitchDuration, remainingTime);
-            long availableTimeForProbability = simulatingTimeForProbability;
+            long simulatingTicksForProbability = Math.min(nextProbabilitySwitchTickDuration, activeSimulatedTime.remainingTicks());
+            long availableTicksForProbability = simulatingTicksForProbability;
 
             float odds = probability.evaluate(context).floatValue();
             float totalProbability = odds * randomPickProbability;
 
             if (UnloadedActivity.config.debugLogs)
-                UnloadedActivity.LOGGER.info("Simulating from " + currentTime + " to " + (currentTime + availableTimeForProbability) + " (difference: " + availableTimeForProbability + ") with odds " + odds);
+                UnloadedActivity.LOGGER.info("Simulating from " + activeSimulatedTime.currentTick() + " to " + (activeSimulatedTime.currentTick() + simulatingTicksForProbability) + " (difference: " + simulatingTicksForProbability + ") with odds " + odds);
 
-            long tempRemainingTime = remainingTime;
+            long tempRemainingTime = activeSimulatedTime.remainingTicks();
 
-            while (availableTimeForProbability > 0 && successes < maxOccurrences) {
+            while (availableTicksForProbability > 0 && successes < maxOccurrences) {
                 long successDuration = sampleNegativeBinomial(1, totalProbability, random);
-                availableTimeForProbability -= successDuration;
+                availableTicksForProbability -= successDuration;
                 tempRemainingTime -= successDuration;
-                if (availableTimeForProbability >= 0) {
+                if (availableTicksForProbability >= 0) {
                     successes++;
                     remainingTimes.add(tempRemainingTime);
                 }
@@ -171,11 +162,10 @@ public class MathUtils {
 
             if (successes >= maxOccurrences) break;
 
-            remainingTime -= simulatingTimeForProbability;
+            activeSimulatedTime = activeSimulatedTime.passTicks(simulatingTicksForProbability);
         }
 
-        return new OccurrencesAndTimings(successes, remainingTimes, simulatedTime.endTime());
-
+        return new OccurrencesAndTimings(successes, remainingTimes, simulatedTime.endTick(), simulatedTime.endMs());
     }
 
     public static int getOccurrencesSimple(long ticksPassed, double totalProbability, int maxOccurrences, RandomSource random) {

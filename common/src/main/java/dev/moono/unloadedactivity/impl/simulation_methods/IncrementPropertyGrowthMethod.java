@@ -175,10 +175,9 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
         }
 
         SimulatedTime finalTime = occurrencesAndTimings.getFinalTime();
-        long finishedAtTime = finalTime.currentTime();
 
         if (this.bottomBlockReplacement != null) {
-            Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishedAtTime);
+            Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finalTime);
             BlockState newState = newBlock.defaultBlockState();
 
             for (String propertyName : this.transferProperties) {
@@ -218,7 +217,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             boolean isFinal = i+1 == occurrences;
 
             if (this.bottomBlockReplacement != null && !isFinal) {
-                Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finishedAtTime);
+                Block newBlock = this.bottomBlockReplacement.evaluateRandomized(level, state, pos, finalTime);
                 state = newBlock.defaultBlockState();
             } else {
                 int newValue = current + (i + 1);
@@ -241,10 +240,10 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
                 Property<?> setProperty = maybeProperty.get();
 
                 if (setProperty instanceof BooleanProperty booleanProperty) {
-                    float value = propertyValue.evaluateRandomized(level, state, pos, finishedAtTime).floatValue();
+                    float value = propertyValue.evaluateRandomized(level, state, pos, finalTime).floatValue();
                     state = state.setValue(booleanProperty, value != 0);
                 } else if (setProperty instanceof IntegerProperty integerProperty) {
-                    int value = propertyValue.evaluateRandomized(level, state, pos, finishedAtTime).intValue();
+                    int value = propertyValue.evaluateRandomized(level, state, pos, finalTime).intValue();
                     state = state.setValue(integerProperty, value);
                 }
             }

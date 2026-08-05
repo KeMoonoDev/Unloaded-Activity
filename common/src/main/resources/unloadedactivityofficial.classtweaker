@@ -5,7 +5,6 @@ inject-interface net/minecraft/world/level/block/entity/BlockEntity dev/moono/un
 inject-interface net/minecraft/world/level/block/entity/BlockEntity dev/moono/unloadedactivity/interfaces/BlockEntityTimeData
 inject-interface net/minecraft/world/entity/Entity dev/moono/unloadedactivity/interfaces/SimulateEntity
 inject-interface net/minecraft/world/level/chunk/ChunkAccess dev/moono/unloadedactivity/interfaces/ChunkTimeData
-inject-interface net/minecraft/server/level/ServerLevel dev/moono/unloadedactivity/interfaces/WorldForecastGetter
 inject-interface net/minecraft/server/MinecraftServer dev/moono/unloadedactivity/interfaces/ChunkIndexQueue
 
 # Needed to check for valid gourd positions.

@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.api.context;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -13,19 +14,19 @@ import java.util.Map;
 public abstract class RandomizedContext extends UpdatingContext {
     public abstract RandomSource getRandomSource();
 
-    public static RandomizedContext of(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return ExpressionContext.randomized(level, state, pos, currentTime, numberMap, activeGroupSimulateData);
+    public static RandomizedContext of(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return ExpressionContext.randomized(level, state, pos, simulatedTime, numberMap, activeGroupSimulateData);
     }
 
-    public static RandomizedContext of(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap) {
-        return ExpressionContext.randomized(level, state, pos, currentTime, numberMap, null);
+    public static RandomizedContext of(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap) {
+        return ExpressionContext.randomized(level, state, pos, simulatedTime, numberMap, null);
     }
 
-    public static RandomizedContext of(ServerLevel level, BlockState state, BlockPos pos, long currentTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return ExpressionContext.randomized(level, state, pos, currentTime, Map.of(), activeGroupSimulateData);
+    public static RandomizedContext of(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return ExpressionContext.randomized(level, state, pos, simulatedTime, Map.of(), activeGroupSimulateData);
     }
 
-    public static RandomizedContext of(ServerLevel level, BlockState state, BlockPos pos, long currentTime) {
-        return ExpressionContext.randomized(level, state, pos, currentTime, Map.of(), null);
+    public static RandomizedContext of(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime) {
+        return ExpressionContext.randomized(level, state, pos, simulatedTime, Map.of(), null);
     }
 }

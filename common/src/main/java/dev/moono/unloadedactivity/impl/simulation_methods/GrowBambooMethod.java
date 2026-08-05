@@ -62,7 +62,7 @@ public class GrowBambooMethod extends SimulationMethod {
 
                 SimulatedTime finalTime = result.getFinalTime();
 
-                if (finalTime.remainingTime() > 0) {
+                if (finalTime.remainingTicks() > 0) {
                     BlockState lastState = level.getBlockState(pos);
                     BlockPos lastPos = pos;
                     Block searchBlock = lastState.getBlock();

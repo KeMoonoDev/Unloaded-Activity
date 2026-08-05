@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.api.value_expression;
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
 import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import net.minecraft.core.BlockPos;
@@ -21,39 +22,39 @@ public class UpdatingValueExpression<T> extends RandomizedValueExpression<T> {
         return inner.evaluate((ExpressionContext) context);
     }
 
-    public T evaluateUpdating(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return inner.evaluate(ExpressionContext.updating(level, state, pos, currentTime, numberMap, activeGroupSimulateData));
+    public T evaluateUpdating(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return inner.evaluate(ExpressionContext.updating(level, state, pos, simulatedTime, numberMap, activeGroupSimulateData));
     }
 
-    public T evaluateUpdating(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap) {
-        return inner.evaluate(ExpressionContext.updating(level, state, pos, currentTime, numberMap, null));
+    public T evaluateUpdating(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap) {
+        return inner.evaluate(ExpressionContext.updating(level, state, pos, simulatedTime, numberMap, null));
     }
 
-    public T evaluateUpdating(ServerLevel level, BlockState state, BlockPos pos, long currentTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return inner.evaluate(ExpressionContext.updating(level, state, pos, currentTime, Map.of(), activeGroupSimulateData));
+    public T evaluateUpdating(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return inner.evaluate(ExpressionContext.updating(level, state, pos, simulatedTime, Map.of(), activeGroupSimulateData));
     }
 
-    public T evaluateUpdating(ServerLevel level, BlockState state, BlockPos pos, long currentTime) {
-        return inner.evaluate(ExpressionContext.updating(level, state, pos, currentTime, Map.of(), null));
+    public T evaluateUpdating(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime) {
+        return inner.evaluate(ExpressionContext.updating(level, state, pos, simulatedTime, Map.of(), null));
     }
 
     public long getNextValueSwitchDuration(UpdatingContext context) {
         return inner.getNextValueSwitchDuration((ExpressionContext)context);
     }
 
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return inner.getNextValueSwitchDuration(ExpressionContext.updating(level, state, pos, currentTime, numberMap, activeGroupSimulateData));
+    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return inner.getNextValueSwitchDuration(ExpressionContext.updating(level, state, pos, simulatedTime, numberMap, activeGroupSimulateData));
     }
 
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, Map<String, Number> numberMap) {
-        return inner.getNextValueSwitchDuration(ExpressionContext.updating(level, state, pos, currentTime, numberMap, null));
+    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, Map<String, Number> numberMap) {
+        return inner.getNextValueSwitchDuration(ExpressionContext.updating(level, state, pos, simulatedTime, numberMap, null));
     }
 
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
-        return inner.getNextValueSwitchDuration(ExpressionContext.updating(level, state, pos, currentTime, Map.of(), activeGroupSimulateData));
+    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime, @Nullable ActiveGroupSimulateData activeGroupSimulateData) {
+        return inner.getNextValueSwitchDuration(ExpressionContext.updating(level, state, pos, simulatedTime, Map.of(), activeGroupSimulateData));
     }
 
-    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, long currentTime) {
-        return inner.getNextValueSwitchDuration(ExpressionContext.updating(level, state, pos, currentTime, Map.of(), null));
+    public long getNextValueSwitchDuration(ServerLevel level, BlockState state, BlockPos pos, SimulatedTime simulatedTime) {
+        return inner.getNextValueSwitchDuration(ExpressionContext.updating(level, state, pos, simulatedTime, Map.of(), null));
     }
 }

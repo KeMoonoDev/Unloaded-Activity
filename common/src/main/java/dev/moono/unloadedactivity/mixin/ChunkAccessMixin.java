@@ -15,6 +15,10 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     @Unique
     private long lastTick = 0;
 
+    // Last time the chunk was ticked, but it's using the time from the system clock.
+    @Unique
+    private long lastMs = 0;
+
     // If the simulationVersion mismatches with the version in the mod then simulationBlocks will be reset.
     // This is so that if one version of the mod doesn't support a specific block but the next one does,
     // the block will get included once simulationBlocks is reset.
@@ -37,6 +41,16 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     @Override
     public void setLastTick(long tick) {
         this.lastTick = tick;
+    }
+
+    @Override
+    public long getLastMs() {
+        return this.lastMs;
+    }
+
+    @Override
+    public void setLastMs(long ms) {
+        this.lastMs = ms;
     }
 
     @Override

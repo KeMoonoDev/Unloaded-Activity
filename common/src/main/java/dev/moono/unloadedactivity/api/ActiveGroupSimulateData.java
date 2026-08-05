@@ -101,8 +101,8 @@ public class ActiveGroupSimulateData {
         return Pair.of(this.currentProbability, this.nextProbabilitySwitchDuration);
     }
 
-    public void passTime(long duration) {
-        this.nextProbabilitySwitchDuration -= duration;
+    public void passTicks(long ticks) {
+        this.nextProbabilitySwitchDuration -= ticks;
     }
 
 

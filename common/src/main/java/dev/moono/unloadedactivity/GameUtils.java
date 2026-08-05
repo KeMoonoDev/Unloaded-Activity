@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -16,6 +17,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import dev.moono.unloadedactivity.api.SimulatedTime;
+import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
+import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Direction;
@@ -37,6 +41,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
 
 /// A bunch of functions that are used frequently with version specific logic.
 /// Separated into here to reduce clutter elsewhere.
@@ -67,6 +73,51 @@ public class GameUtils {
             throw new RuntimeException(vec3iResult.error().get().message());
 
         return vec3iResult.result().get().getFirst();
+    }
+
+    public static WeatherMsHistory getWeatherMsHistory(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(
+        #if MC_VER >= MC_1_20_2
+                WeatherMsHistory.type
+        #else
+            WeatherMsHistory::load,
+            WeatherMsHistory::new
+        #endif
+        #if MC_VER < MC_1_21_5
+        , MOD_ID
+        #endif
+        );
+    }
+
+    public static WeatherTickHistory getWeatherTickHistory(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(
+        #if MC_VER >= MC_1_20_2
+            WeatherTickHistory.type
+        #else
+            WeatherTickHistory::load,
+            WeatherTickHistory::new
+        #endif
+        #if MC_VER < MC_1_21_5
+        , MOD_ID
+        #endif
+        );
+    }
+
+    public static WeatherHistory getWeatherHistory(ServerLevel level) {
+        return UnloadedActivity.config.useSystemTime ? getWeatherMsHistory(level) : getWeatherTickHistory(level);
+    }
+
+    public static boolean isRainingAtTime(ServerLevel level, SimulatedTime simulatedTime) {
+        long currentTime = UnloadedActivity.config.useSystemTime ? simulatedTime.currentMs() : simulatedTime.currentTick();
+        if (currentTime <= 0) return false;
+        return getWeatherHistory(level).getWeatherAtTime(currentTime);
+    }
+
+    public static long nextWeatherSwitchTickDuration(ServerLevel level, SimulatedTime simulatedTime) {
+        long currentTime = UnloadedActivity.config.useSystemTime ? simulatedTime.currentMs() : simulatedTime.currentTick();
+        long changeDuration = getWeatherHistory(level).getNextWeatherChangeDuration(currentTime);
+        if (changeDuration >= Long.MAX_VALUE - 50) return changeDuration;
+        return UnloadedActivity.config.useSystemTime ? (changeDuration + 49) / 50 : changeDuration;
     }
 
     public static DefaultedRegistry<EntityType<?>> getEntityTypeRegistry() {

@@ -265,6 +265,11 @@ public class UnloadedActivityConfig {
                 val -> fallbackToOverworldTime = val
         );
         #endif
+        registerBoolean(
+            "useSystemTime", useSystemTime,
+            unused -> useSystemTime,
+            val -> useSystemTime = val
+        );
 
         registerInt(
                 "tickDifferenceThreshold", tickDifferenceThreshold, 1, Integer.MAX_VALUE,
@@ -424,6 +429,7 @@ public class UnloadedActivityConfig {
     #if MC_VER >= MC_26_1_2
     public boolean fallbackToOverworldTime = true;
     #endif
+    public boolean useSystemTime = false;
     public int tickDifferenceThreshold = 100;
     public int maxNegativeBinomialAttempts = 20;
     public boolean debugLogs = false;

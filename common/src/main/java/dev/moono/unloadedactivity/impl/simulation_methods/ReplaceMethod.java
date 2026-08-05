@@ -80,9 +80,8 @@ public class ReplaceMethod extends GroupableSimulationMethod {
         }
 
         SimulatedTime finishTime = occurrencesAndTimings.getFinalTime();
-        long finishedAtTime = finishTime.currentTime();
 
-        Block blockReplacement = this.blockReplacement.evaluateRandomized(level, state, pos, finishTime.currentTime(), Map.of(), groupSimulateData);
+        Block blockReplacement = this.blockReplacement.evaluateRandomized(level, state, pos, finishTime, Map.of(), groupSimulateData);
         BlockState newState = blockReplacement.defaultBlockState();
         for (String propertyName : this.transferProperties) {
             Optional<Property<?>> maybeNewProperty = GameUtils.getProperty(newState, propertyName);
@@ -113,10 +112,10 @@ public class ReplaceMethod extends GroupableSimulationMethod {
             Property<?> setProperty = maybeProperty.get();
 
             if (setProperty instanceof BooleanProperty booleanProperty) {
-                float value = propertyValue.evaluateRandomized(level, newState, pos, finishedAtTime).floatValue();
+                float value = propertyValue.evaluateRandomized(level, newState, pos, finishTime).floatValue();
                 newState = newState.setValue(booleanProperty, value != 0);
             } else if (setProperty instanceof IntegerProperty integerProperty) {
-                int value = propertyValue.evaluateRandomized(level, newState, pos, finishedAtTime).intValue();
+                int value = propertyValue.evaluateRandomized(level, newState, pos, finishTime).intValue();
                 newState = newState.setValue(integerProperty, value);
             }
         }

@@ -167,6 +167,8 @@ public abstract class ChunkSerializerMixin {
     @Unique
     private long lastTick = 0;
     @Unique
+    private long lastMs = 0;
+    @Unique
     private long ver = 0;
     @Unique
     private long[] simBlocks = {};
@@ -180,6 +182,7 @@ public abstract class ChunkSerializerMixin {
         CompoundTag chunkData = new CompoundTag();
 
         chunkData.putLong("last_tick", lastTick);
+        chunkData.putLong("last_ms", lastMs);
         chunkData.putLong("ver", ver);
         chunkData.putLongArray("sim_blocks", simBlocks);
 
@@ -190,6 +193,7 @@ public abstract class ChunkSerializerMixin {
 
             groupData.putLongArray("positions", groupChunkIndex.getPositions().stream().mapToLong(l -> l).toArray());
             groupData.putLong("last_tick", groupChunkIndex.getLastTick(lastTick));
+            groupData.putLong("last_ms", groupChunkIndex.getLastTick(lastMs));
 
             groupsData.put(groupId.toString(), groupData);
         }
@@ -205,6 +209,7 @@ public abstract class ChunkSerializerMixin {
         ChunkAccess chunk = (protoChunkTemp instanceof ImposterProtoChunk imposterChunk) ? imposterChunk.getWrapped() : protoChunkTemp;
 
         chunk.setLastTick(lastTick);
+        chunk.setLastMs(lastMs);
         chunk.setSimulationVersion(ver);
         chunk.setSimulationBlocks(simBlocks);
         chunk.setGroupIndexes(groupIndexes);
@@ -221,6 +226,7 @@ public abstract class ChunkSerializerMixin {
         ChunkSerializerMixin serializedChunk = (ChunkSerializerMixin) (Object) cir.getReturnValue();
         if (serializedChunk != null) {
             serializedChunk.lastTick = chunk.getLastTick();
+            serializedChunk.lastMs = chunk.getLastMs();
             serializedChunk.ver = chunk.getSimulationVersion();
             serializedChunk.simBlocks = chunk.getSimulationBlocks().stream().mapToLong(l -> l).toArray();
             serializedChunk.groupIndexes = chunk.getGroupIndexes();
@@ -250,6 +256,7 @@ public abstract class ChunkSerializerMixin {
             serializedChunk.needsSaving = true;
         } else {
             serializedChunk.lastTick = chunkData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            serializedChunk.lastMs = chunkData.getLong("last_ms")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.ver = chunkData.getLong("ver")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.simBlocks = chunkData.getLongArray("sim_blocks")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif;
 
@@ -269,9 +276,10 @@ public abstract class ChunkSerializerMixin {
 
                 CompoundTag groupData = groupsData.getCompound(key)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
 
-                long groupLastTicked = groupData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(serializedChunk.lastTick)#endif;
+                long groupLastTick = groupData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(serializedChunk.lastTick)#endif;
+                long groupLastMs = groupData.getLong("last_ms")#if MC_VER >= MC_1_21_5 .orElse(serializedChunk.lastMs)#endif;
 
-                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastTicked, groupId);
+                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastTick, groupLastMs, groupId);
                 groupChunkIndex.setPositions(groupData.getLongArray("positions")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif);
 
                 groupIndexes.add(groupChunkIndex);

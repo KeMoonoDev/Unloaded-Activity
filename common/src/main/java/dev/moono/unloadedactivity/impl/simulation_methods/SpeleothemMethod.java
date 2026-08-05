@@ -219,7 +219,7 @@ public class SpeleothemMethod extends SimulationMethod {
             if (!isValid) continue;
 
             float totalDripProbability = convertBlockConfig.convertProbability * randomPickProbability;
-            int dripOccurrences = MathUtils.getOccurrencesSimple(simulatedTime.remainingTime(), totalDripProbability, 1, random);
+            int dripOccurrences = MathUtils.getOccurrencesSimple(simulatedTime.remainingTicks(), totalDripProbability, 1, random);
             if (dripOccurrences != 0) {
                 BlockState newBlock = convertBlockConfig.toBlock.defaultBlockState();
                 level.setBlockAndUpdate(pos.above(2), newBlock);
@@ -237,7 +237,7 @@ public class SpeleothemMethod extends SimulationMethod {
 
                         SimulatedTime newTime = upperResult.getTimeAtOccurrence(successesUntilReachCauldron);
 
-                        int dripOccurrences = MathUtils.getOccurrencesSimple(newTime.remainingTime(), totalDripProbability, LayeredCauldronBlock.MAX_FILL_LEVEL, random);
+                        int dripOccurrences = MathUtils.getOccurrencesSimple(newTime.remainingTicks(), totalDripProbability, LayeredCauldronBlock.MAX_FILL_LEVEL, random);
                         while (dripOccurrences > 0) {
                             --dripOccurrences;
                             cauldronBlock.receiveStalactiteDrip(cauldronState, level, cauldronPos, dripstoneFluid);

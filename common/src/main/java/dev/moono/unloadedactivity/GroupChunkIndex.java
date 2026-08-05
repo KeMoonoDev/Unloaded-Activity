@@ -30,14 +30,23 @@ import java.util.Optional;
 public class GroupChunkIndex {
     private ArrayList<Long> positions;
     private long lastTick;
+    private long lastMs;
     public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId;
 
     public long getLastTick(long lastSimulationTick) {
         return Math.max(lastSimulationTick, lastTick);
     }
 
-    public void setLastTick(long currentTime) {
-        this.lastTick = currentTime;
+    public void setLastTick(long currentTick) {
+        this.lastTick = currentTick;
+    }
+
+    public long getLastMs(long lastSimulationMs) {
+        return Math.max(lastSimulationMs, lastMs);
+    }
+
+    public void setLastMs(long currentMs) {
+        this.lastMs = currentMs;
     }
 
     public void setPositions(long[] positions) {
@@ -128,9 +137,10 @@ public class GroupChunkIndex {
         return blockInfoList;
     }
 
-    public GroupChunkIndex(ArrayList<Long> positions, long lastTicked, #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
+    public GroupChunkIndex(ArrayList<Long> positions, long lastTick, long lastMs, #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
         this.positions = positions;
-        this.lastTick = lastTicked;
+        this.lastTick = lastTick;
+        this.lastMs = lastMs;
         this.groupId = groupId;
     }
 }

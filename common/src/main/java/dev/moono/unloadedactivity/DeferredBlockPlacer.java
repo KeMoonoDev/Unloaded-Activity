@@ -44,7 +44,7 @@ public class DeferredBlockPlacer {
 
     private void sortListIfNeeded() {
         if (isSorted) return;
-        blockPlacements.sort(Comparator.comparingLong((blockPlacement -> blockPlacement.placedAtTime.currentTime())));
+        blockPlacements.sort(Comparator.comparingLong((blockPlacement -> blockPlacement.placedAtTime.currentTick())));
         isSorted = true;
     }
 
