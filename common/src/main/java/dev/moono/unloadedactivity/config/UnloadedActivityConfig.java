@@ -265,10 +265,17 @@ public class UnloadedActivityConfig {
                 val -> fallbackToOverworldTime = val
         );
         #endif
+
         registerBoolean(
             "useSystemTime", useSystemTime,
             unused -> useSystemTime,
             val -> useSystemTime = val
+        );
+
+        registerFloat(
+                "unloadedSimulationSpeed", unloadedSimulationSpeed, 0, 1,
+                unused -> unloadedSimulationSpeed,
+                val -> unloadedSimulationSpeed = val
         );
 
         registerInt(
@@ -430,6 +437,7 @@ public class UnloadedActivityConfig {
     public boolean fallbackToOverworldTime = true;
     #endif
     public boolean useSystemTime = false;
+    public float unloadedSimulationSpeed = 1.0f;
     public int tickDifferenceThreshold = 100;
     public int maxNegativeBinomialAttempts = 20;
     public boolean debugLogs = false;

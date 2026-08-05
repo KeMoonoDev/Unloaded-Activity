@@ -22,14 +22,16 @@ import static net.minecraft.util.Mth.sign;
 
 public class MathUtils {
     public static float getRandomPickProbability(int randomTickSpeed) {
-        return (float) (1F-pow(1F - 1F / 4096F, randomTickSpeed));
+        float multiplier = UnloadedActivity.config.unloadedSimulationSpeed;
+        return (float) (1F-pow(1F - 1F / 4096F, randomTickSpeed)) * multiplier;
     }
 
     public static float getPrecipitationPickProbability(int randomTickSpeed) {
+        float multiplier = UnloadedActivity.config.unloadedSimulationSpeed;
         #if MC_VER >= MC_1_20_2
-        return (float) (1F-pow(1F - 1F / (48F * 256F), randomTickSpeed));
+        return (float) (1F-pow(1F - 1F / (48F * 256F), randomTickSpeed)) * multiplier;
         #else
-        return 1F/4096F;
+        return 1F/4096F * multiplier;
         #endif
     }
 
