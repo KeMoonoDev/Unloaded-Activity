@@ -1,8 +1,6 @@
 package dev.moono.unloadedactivity.mixin;
 
 #if MC_VER >= MC_1_19_4
-import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
-import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
 import net.minecraft.core.RegistryAccess;
 #endif
 
@@ -13,7 +11,10 @@ import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.SimulatedTime;
+import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
+import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -27,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 
 @Mixin(value = ServerLevel.class, priority = 1001)

@@ -1,7 +1,6 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -18,6 +17,7 @@ import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.moono.unloadedactivity.api.SimulatedTime;
+import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
 import net.minecraft.core.BlockPos;
@@ -84,7 +84,7 @@ public class GameUtils {
             WeatherMsHistory::new
         #endif
         #if MC_VER < MC_1_21_5
-        , MOD_ID
+        , MOD_ID + "-" + WeatherMsHistory.DATA_NAME
         #endif
         );
     }
@@ -98,7 +98,7 @@ public class GameUtils {
             WeatherTickHistory::new
         #endif
         #if MC_VER < MC_1_21_5
-        , MOD_ID
+        , MOD_ID + "-" + WeatherTickHistory.DATA_NAME
         #endif
         );
     }

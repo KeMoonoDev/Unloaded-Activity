@@ -84,16 +84,16 @@ public class DefaultRegistrations implements UnloadedActivityApi {
 
                 String precipitationName = unparsedPrecipitationName.getAsString();
                 for (Biome.Precipitation precipitation : Biome.Precipitation.values()) {
-                    if (precipitation.getSerializedName().equals(precipitationName)) {
+                    if (precipitation.name().equals(precipitationName)) {
                         return new IsPrecipitationValue(precipitation);
                     }
                 }
                 StringBuilder errorMessage = new StringBuilder("Failed to find precipitation with name \"" + precipitationName + "\". Currently available precipitations are: ");
                 for (Biome.Precipitation precipitation : Biome.Precipitation.values()) {
                     if (precipitation == Biome.Precipitation.NONE) continue;
-                    errorMessage.append("\"").append(precipitation.getSerializedName()).append("\", ");
+                    errorMessage.append("\"").append(precipitation.name()).append("\", ");
                 }
-                errorMessage.append("and \"").append(Biome.Precipitation.NONE.getSerializedName()).append("\".");
+                errorMessage.append("and \"").append(Biome.Precipitation.NONE.name()).append("\".");
                 throw new RuntimeException(errorMessage.toString());
             }
         );

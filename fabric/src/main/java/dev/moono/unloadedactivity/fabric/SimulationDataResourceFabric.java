@@ -4,7 +4,7 @@ package dev.moono.unloadedactivity.fabric;
 @Deprecated
 public class SimulationDataResourceFabric {}
 #else
-import dev.moono.unloadedactivity.datapack.SimulationDataResource;
+import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 

@@ -10,20 +10,27 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.util.datafix.DataFixTypes;
 #endif
 
+import net.minecraft.core.HolderLookup;
+
 import com.mojang.serialization.Codec;
 import dev.moono.unloadedactivity.UnloadedActivity;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.LongStream;
 
+import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
+
 public class WeatherMsHistory extends WeatherHistory {
-    private static final String DATA_NAME = "weather_list_ms";
+    public static final String DATA_NAME = "weather_list_ms";
 
     #if MC_VER >= MC_1_21_11
     public static final Codec<WeatherMsHistory> CODEC = Codec.LONG_STREAM.xmap(
             WeatherMsHistory::new,
             WeatherMsHistory::getWeatherStream
     );
+    #endif
 
     public WeatherMsHistory() {
         super();
@@ -40,14 +47,13 @@ public class WeatherMsHistory extends WeatherHistory {
     public LongStream getWeatherStream() {
         return this.getWeatherList().stream().mapToLong((v) -> v);
     }
-    #endif
 
     #if MC_VER >= MC_1_21_5
     public static final SavedDataType<WeatherMsHistory> type = new SavedDataType<>(
 			#if MC_VER >= MC_26_1_2
             UnloadedActivity.id(DATA_NAME),
 			#else
-			MOD_ID,
+            MOD_ID + "-" + WeatherMsHistory.DATA_NAME,
 			#endif
 			#if MC_VER >= MC_1_21_11
             WeatherMsHistory::new,
@@ -64,8 +70,7 @@ public class WeatherMsHistory extends WeatherHistory {
             DataFixTypes.LEVEL
     );
     #elif MC_VER >= MC_1_20_2
-    @Unique
-    private static final SavedData.Factory<WeatherMsHistory> type = new SavedData.Factory<>(
+    public static final SavedData.Factory<WeatherMsHistory> type = new SavedData.Factory<>(
             WeatherMsHistory::new,
             WeatherMsHistory::load,
             net.minecraft.util.datafix.DataFixTypes.LEVEL
@@ -86,9 +91,9 @@ public class WeatherMsHistory extends WeatherHistory {
     #endif
     {
         #if MC_VER >= MC_1_21_5
-        nbt.putLongArray(DATA_NAME, this.weatherList.stream().mapToLong(l -> l).toArray());
+        nbt.putLongArray(DATA_NAME, this.getWeatherStream().toArray());
         #else
-        nbt.putLongArray(DATA_NAME, this.weatherList);
+        nbt.putLongArray(DATA_NAME, this.getWeatherList());
         #endif
         return nbt;
     }

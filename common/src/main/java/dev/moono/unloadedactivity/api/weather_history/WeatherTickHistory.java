@@ -10,20 +10,27 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.util.datafix.DataFixTypes;
 #endif
 
+import net.minecraft.core.HolderLookup;
+
 import com.mojang.serialization.Codec;
 import dev.moono.unloadedactivity.UnloadedActivity;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.LongStream;
 
+import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
+
 public class WeatherTickHistory extends WeatherHistory {
-    private static final String DATA_NAME = "weather_list";
+    public static final String DATA_NAME = "weather_list";
 
     #if MC_VER >= MC_1_21_11
     public static final Codec<WeatherTickHistory> CODEC = Codec.LONG_STREAM.xmap(
             WeatherTickHistory::new,
             WeatherTickHistory::getWeatherStream
     );
+    #endif
 
     public WeatherTickHistory() {
         super();
@@ -40,18 +47,17 @@ public class WeatherTickHistory extends WeatherHistory {
     public LongStream getWeatherStream() {
         return this.getWeatherList().stream().mapToLong((v) -> v);
     }
-    #endif
 
     #if MC_VER >= MC_1_21_5
     public static final SavedDataType<WeatherTickHistory> type = new SavedDataType<>(
 			#if MC_VER >= MC_26_1_2
             UnloadedActivity.id(DATA_NAME),
 			#else
-			MOD_ID,
+            MOD_ID + "-" + WeatherMsHistory.DATA_NAME,
 			#endif
 			#if MC_VER >= MC_1_21_11
             WeatherTickHistory::new,
-            CODEC,
+            WeatherTickHistory.CODEC,
 			#else
 			(ctx) -> new WeatherTickHistory(),
 			(ctx) -> {
@@ -64,8 +70,7 @@ public class WeatherTickHistory extends WeatherHistory {
             DataFixTypes.LEVEL
     );
     #elif MC_VER >= MC_1_20_2
-    @Unique
-    private static final SavedData.Factory<WeatherTickHistory> type = new SavedData.Factory<>(
+    public static final SavedData.Factory<WeatherTickHistory> type = new SavedData.Factory<>(
             WeatherTickHistory::new,
             WeatherTickHistory::load,
             net.minecraft.util.datafix.DataFixTypes.LEVEL
@@ -86,9 +91,9 @@ public class WeatherTickHistory extends WeatherHistory {
     #endif
     {
         #if MC_VER >= MC_1_21_5
-        nbt.putLongArray(DATA_NAME, this.weatherList.stream().mapToLong(l -> l).toArray());
+        nbt.putLongArray(DATA_NAME, this.getWeatherStream().toArray());
         #else
-        nbt.putLongArray(DATA_NAME, this.weatherList);
+        nbt.putLongArray(DATA_NAME, this.getWeatherList());
         #endif
         return nbt;
     }

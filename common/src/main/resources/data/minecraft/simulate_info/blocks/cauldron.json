@@ -6,25 +6,25 @@
       {
         "value1": {
           "fetcher_id": "is_precipitation",
-          "precipitation": "snow"
+          "precipitation": "SNOW"
         },
         "operator": "+",
         "value2": {
           "fetcher_id": "is_precipitation",
-          "precipitation": "rain"
+          "precipitation": "RAIN"
         }
       }
     ],
     "block_replacement": {
       "predicate": {
         "fetcher_id": "is_precipitation",
-        "precipitation": "rain"
+        "precipitation": "RAIN"
       },
       "success": "minecraft:water_cauldron",
       "fail": {
         "predicate": {
           "fetcher_id": "is_precipitation",
-          "precipitation": "snow"
+          "precipitation": "SNOW"
         },
         "success": "minecraft:powder_snow_cauldron",
         "fail": "minecraft:air"
@@ -34,13 +34,13 @@
     "advance_probability": {
       "predicate": {
         "fetcher_id": "is_precipitation",
-        "precipitation": "rain"
+        "precipitation": "RAIN"
       },
       "success": 0.05,
       "fail": {
         "predicate": {
           "fetcher_id": "is_precipitation",
-          "precipitation": "snow"
+          "precipitation": "SNOW"
         },
         "success": 0.1,
         "fail": 0

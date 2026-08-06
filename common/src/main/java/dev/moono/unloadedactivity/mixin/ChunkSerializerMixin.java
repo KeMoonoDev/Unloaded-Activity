@@ -55,8 +55,10 @@ public abstract class ChunkSerializerMixin {
         CompoundTag chunkData = new CompoundTag();
 
         long chunkLastTick = chunk.getLastTick();
+        long chunkLastMs = chunk.getLastMs();
 
         chunkData.putLong("last_tick", chunkLastTick);
+        chunkData.putLong("last_ms", chunkLastMs);
         chunkData.putLong("ver", chunk.getSimulationVersion());
         chunkData.putLongArray("sim_blocks", chunk.getSimulationBlocks());
 
@@ -67,6 +69,7 @@ public abstract class ChunkSerializerMixin {
 
             groupData.putLongArray("positions", groupChunkIndex.getPositions());
             groupData.putLong("last_tick", groupChunkIndex.getLastTick(chunkLastTick));
+            groupData.putLong("last_ms", groupChunkIndex.getLastMs(chunkLastMs));
 
             groupsData.put(groupId.toString(), groupData);
         }
@@ -97,6 +100,7 @@ public abstract class ChunkSerializerMixin {
             protoChunk.setUnsaved(true);
         } else {
             protoChunk.setLastTick(chunkData.getLong("last_tick"));
+            protoChunk.setLastMs(chunkData.getLong("last_ms"));
             protoChunk.setSimulationVersion(chunkData.getLong("ver"));
             protoChunk.setSimulationBlocks(chunkData.getLongArray("sim_blocks"));
 
@@ -112,9 +116,10 @@ public abstract class ChunkSerializerMixin {
 
                 CompoundTag groupData = groupsData.getCompound(groupKey);
 
-                long groupLastTicked = groupData.getLong("last_tick");
+                long groupLastTick = groupData.getLong("last_tick");
+                long groupLastMs = groupData.getLong("last_ms");
 
-                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastTicked, groupId);
+                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastTick, groupLastMs, groupId);
                 groupChunkIndex.setPositions(groupData.getLongArray("positions"));
 
                 groupIndexes.add(groupChunkIndex);
@@ -154,6 +159,7 @@ public abstract class ChunkSerializerMixin {
         if (protoChunk.getLastTick() == 0) {
             protoChunk.setUnsaved(true);
             protoChunk.setLastTick(level.getDayTime());
+            protoChunk.setLastMs(System.currentTimeMillis());
         }
     }
 }
@@ -216,6 +222,7 @@ public abstract class ChunkSerializerMixin {
         if (lastTick == 0) {
             chunk.markUnsaved();
             chunk.setLastTick(GameUtils.getTime(level));
+            chunk.setLastMs(System.currentTimeMillis());
         } else if (needsSaving) {
             chunk.markUnsaved();
         }

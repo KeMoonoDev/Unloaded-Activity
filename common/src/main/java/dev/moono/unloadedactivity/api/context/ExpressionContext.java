@@ -1,14 +1,13 @@
 package dev.moono.unloadedactivity.api.context;
 
 #if MC_VER >= MC_1_21_11
-import dev.moono.unloadedactivity.UnloadedActivity;
-import dev.moono.unloadedactivity.api.SimulatedTime;
 import net.minecraft.world.level.gamerules.GameRules;
 #else
 import net.minecraft.world.level.GameRules;
 #endif
 
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.GameUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;

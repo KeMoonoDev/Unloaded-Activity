@@ -4,8 +4,7 @@ package dev.moono.unloadedactivity.fabric;
 @Deprecated
 public class GroupInfoResourceFabric {}
 #else
-import dev.moono.unloadedactivity.datapack.GroupInfoResource;
-import dev.moono.unloadedactivity.datapack.SimulationDataResource;
+import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 

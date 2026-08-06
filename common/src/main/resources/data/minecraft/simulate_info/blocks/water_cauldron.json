@@ -6,7 +6,7 @@
     "conditions": [
       {
         "fetcher_id": "is_precipitation",
-        "precipitation": "rain"
+        "precipitation": "RAIN"
       }
     ],
     "advance_probability": 0.05
