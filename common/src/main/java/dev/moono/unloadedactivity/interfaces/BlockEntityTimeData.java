@@ -1,7 +1,11 @@
 package dev.moono.unloadedactivity.interfaces;
 
 public interface BlockEntityTimeData {
-    default long getLastTick() {return 0;}
+    long getLastTick();
 
-    default void setLastTick(long tick) {}
+    void setLastTick(long tick);
+
+    long getLastMs();
+
+    void setLastMs(long ms);
 }

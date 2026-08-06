@@ -37,20 +37,28 @@ public abstract class BoundTickingBlockEntityMixin<T extends BlockEntity> {
         Level level = blockEntity.getLevel();
 
         if (level instanceof ServerLevel serverLevel) {
-            long lastTick = blockEntity.getLastTick();
+            long currentTick = GameUtils.getTime(serverLevel);
+            long currentMs = System.currentTimeMillis();
 
-            long currentTime = GameUtils.getTime(serverLevel);
+            long tickDifference = 0;
 
-            if (lastTick != 0) {
-
-                long timeDifference = max(currentTime - lastTick,0);
-
-                int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
-
-                if (timeDifference > differenceThreshold)
-                    TimeMachine.simulateBlockEntity(blockEntity, timeDifference);
+            if (UnloadedActivity.config.useSystemTime) {
+                long lastMs = blockEntity.getLastMs();
+                if (lastMs > 0) tickDifference = Math.max(currentMs - lastMs, 0) / 50;
+            } else {
+                long lastTick = blockEntity.getLastTick();
+                if (lastTick > 0) tickDifference = max(currentTick - lastTick,0);
             }
-            this.blockEntity.setLastTick(currentTime);
+
+            int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
+
+            if (tickDifference > differenceThreshold) {
+                double multiplier = UnloadedActivity.config.unloadedSimulationSpeed;
+                TimeMachine.simulateBlockEntity(blockEntity, (long)(tickDifference * multiplier));
+            }
+
+            this.blockEntity.setLastTick(currentTick);
+            this.blockEntity.setLastMs(currentMs);
         }
     }
 }

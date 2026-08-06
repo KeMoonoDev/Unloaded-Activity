@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity.mixin;
 
 import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.interfaces.SimulateEntity;
 import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.UnloadedActivity;
@@ -34,6 +35,8 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 
     @Unique
     private long lastTick = 0;
+    @Unique
+    private long lastMs = 0;
 
     @Shadow public Level level;
     @Inject(at = @At("HEAD"), method = "tick")
@@ -41,18 +44,30 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
         if (level.isClientSide())
             return;
 
-        long currentTime = GameUtils.getTime(level);
+        long currentTick = GameUtils.getTime(level);
+        long currentMs = System.currentTimeMillis();
 
-        if (this.lastTick != 0) {
+        long tickDifference = 0;
 
-            long timeDifference = max(currentTime - this.lastTick,0);
-
-            int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
-
-            if (timeDifference > differenceThreshold)
-                TimeMachine.simulateEntity((Entity)(Object)this, timeDifference);
+        if (UnloadedActivity.config.useSystemTime) {
+            if (lastMs > 0) {
+                tickDifference = Math.max(currentMs - lastMs, 0) / 50;
+            }
+        } else {
+            if (lastTick > 0) {
+                tickDifference = max(currentTick - lastTick,0);
+            }
         }
-        this.lastTick = currentTime;
+
+        int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
+
+        if (tickDifference > differenceThreshold) {
+            double multiplier = UnloadedActivity.config.unloadedSimulationSpeed;
+            TimeMachine.simulateEntity((Entity) (Object) this, (long)(tickDifference * multiplier));
+        }
+
+        this.lastTick = currentTick;
+        this.lastMs = currentMs;
     }
 
     @Inject( at = @At("RETURN"), method = "<init>")
@@ -68,6 +83,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
         CompoundTag entityData = new CompoundTag();
 
         entityData.putLong("last_tick", this.lastTick);
+        entityData.putLong("last_ms", this.lastMs);
 
         returnedNbt.put(MOD_ID, entityData);
     }
@@ -77,6 +93,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
         CompoundTag entityData = new CompoundTag();
 
         entityData.putLong("last_tick", this.lastTick);
+        entityData.putLong("last_ms", this.lastMs);
 
         nbt.store(MOD_ID, CompoundTag.CODEC, entityData);
     }
@@ -108,6 +125,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 
         if (!isEmpty) {
             this.lastTick = entityData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            this.lastMs = entityData.getLong("last_ms")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
         }
 
         if (UnloadedActivity.config.convertCCAData && isEmpty) {
@@ -128,8 +146,8 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
             }
         }
 
-        if (this.lastTick == 0) {
-            this.lastTick = GameUtils.getTime(level);
-        }
+        if (this.lastTick == 0) this.lastTick = GameUtils.getTime(level);
+        if (this.lastMs == 0) this.lastMs = System.currentTimeMillis();
+
     }
 }
