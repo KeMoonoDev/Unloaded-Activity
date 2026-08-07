@@ -31,7 +31,7 @@ public class ReplaceMethod extends GroupableSimulationMethod {
     public final Map<String, RandomizedValueExpression<Number>> setProperties;
     public final List<String> transferProperties;
 
-    public final boolean cachedShouldCalculateDuration;
+    public @Nullable Boolean cachedShouldCalculateDuration;
 
     public ReplaceMethod(SimulationConfig config, Block block, boolean hasDependants) {
         super(config, hasDependants);
@@ -40,22 +40,6 @@ public class ReplaceMethod extends GroupableSimulationMethod {
         this.dropsResources = config.getBooleanOrDefault("drops_resources", false);
         this.blockReplacement = config.getRandomizedBlockExpression("block_replacement");
         this.transferProperties = config.getStringList("transfer_properties");
-
-        boolean replacementCanSimulate = this.blockReplacement.inner.getPossibleValues().anyMatch(possibleBlock -> {
-            Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(possibleBlock);
-            if (maybeSimulationData.isEmpty()) return false;
-            SimulationData simulationData = maybeSimulationData.get();
-
-            return simulationData.hasRandTicksWithoutGroup || simulationData.hasPrecTicksWithoutGroup;
-        });
-
-        if (replacementCanSimulate) {
-            this.cachedShouldCalculateDuration = true;
-        } else {
-            this.cachedShouldCalculateDuration = this.setProperties.values().stream().anyMatch(valueExpression ->
-                valueExpression.canBeAffectedByTime || valueExpression.canBeAffectedByWeather
-            );
-        }
     }
 
     @Override
@@ -65,7 +49,24 @@ public class ReplaceMethod extends GroupableSimulationMethod {
 
     @Override
     public boolean shouldCalculateDuration(BlockState state, ServerLevel level, BlockPos pos) {
-        return this.cachedShouldCalculateDuration;
+        if (this.cachedShouldCalculateDuration == null) {
+            boolean replacementCanSimulate = this.blockReplacement.inner.getPossibleValues().anyMatch(possibleBlock -> {
+                Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(possibleBlock);
+                if (maybeSimulationData.isEmpty()) return false;
+                SimulationData simulationData = maybeSimulationData.get();
+
+                return simulationData.hasRandTicksWithoutGroup || simulationData.hasPrecTicksWithoutGroup;
+            });
+
+            if (replacementCanSimulate) {
+                this.cachedShouldCalculateDuration = true;
+            } else {
+                this.cachedShouldCalculateDuration = this.setProperties.values().stream().anyMatch(valueExpression ->
+                        valueExpression.canBeAffectedByTime || valueExpression.canBeAffectedByWeather
+                );
+            }
+        }
+        return this.cachedShouldCalculateDuration || super.shouldCalculateDuration(state, level, pos);
     }
 
     @Override
