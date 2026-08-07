@@ -27,3 +27,6 @@ side = "SERVER"
 
 ["lithium:options"]
 "world.block_entity_ticking.sleeping.furnace" = false
+
+["unloadedactivity:options"]
+disable_compat = ["examplemod"]

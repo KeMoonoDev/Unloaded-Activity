@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLPaths;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +29,12 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     public Path getConfigDirectory() {
         return FMLPaths.CONFIGDIR.get();
     }
+
+    @Override
+    public boolean isModLoaded(String modId) {
+        return ModList.get().isLoaded(modId);
+    }
+
     #if MC_VER >= MC_1_21_1
     @Override
     public float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos) {

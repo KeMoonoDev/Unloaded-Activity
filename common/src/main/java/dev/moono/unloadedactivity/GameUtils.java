@@ -146,6 +146,16 @@ public class GameUtils {
         #endif
     }
 
+    public static #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif createId(String namespace, String path) {
+        #if MC_VER >= MC_1_21_11
+        return Identifier.fromNamespaceAndPath(namespace, path);
+        #elif MC_VER >= MC_1_21_1
+        return ResourceLocation.fromNamespaceAndPath(namespace, path);
+        #else
+        return new ResourceLocation(namespace, path);
+        #endif
+    }
+
     @Nullable
     public static EntityType<?> getEntityType(#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif blockId) {
         return getEntityTypeRegistry().getOptional(blockId).orElse(null);

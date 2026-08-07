@@ -26,7 +26,10 @@ import net.minecraft.core.BlockPos;
 import java.nio.file.Path;
 
 public interface IPlatformHelper {
-   Path getConfigDirectory();
+    Path getConfigDirectory();
+
+    boolean isModLoaded(String modId);
+
     #if MC_VER >= MC_1_21_1
     float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos);
     #endif

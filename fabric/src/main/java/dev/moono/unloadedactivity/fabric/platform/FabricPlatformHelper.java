@@ -31,6 +31,12 @@ public class FabricPlatformHelper implements IPlatformHelper {
     public Path getConfigDirectory() {
         return FabricLoader.getInstance().getConfigDir();
     }
+
+    @Override
+    public boolean isModLoaded(String modId) {
+        return FabricLoader.getInstance().isModLoaded(modId);
+    }
+
     #if MC_VER >= MC_1_21_1
     @Override
     public float getGrowthSpeed(BlockState blockState, BlockGetter blockGetter, BlockPos pos) {

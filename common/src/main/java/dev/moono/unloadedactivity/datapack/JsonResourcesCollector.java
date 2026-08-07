@@ -36,6 +36,7 @@ public abstract class JsonResourcesCollector extends SimplePreparableReloadListe
 
     protected Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>> prepare(final ResourceManager manager, final ProfilerFiller profiler) {
         Map<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif, List<JsonObject>> result = new HashMap<>();
+
         #if MC_VER >= MC_1_21_4
         for(var entry : lister.listMatchingResourceStacks(manager).entrySet()) {
             var location = entry.getKey();
@@ -48,6 +49,17 @@ public abstract class JsonResourcesCollector extends SimplePreparableReloadListe
             String path = location.getPath();
             var id = GameUtils.parseId(location.getNamespace() + ":" + path.substring(pathPrefixLength, path.length() - pathSuffixLength));
         #endif
+
+            String idPath = id.getPath();
+            if (idPath.startsWith("compat/")) {
+                String[] split = idPath.substring("compat/".length()).split("/", 2);
+                if (split.length < 2) continue;
+                String compatModId = split[0];
+                if (!UnloadedActivity.shouldDoCompat(compatModId)) continue;
+                String newIdPath = split[1];
+                id = GameUtils.createId(id.getNamespace(), newIdPath);
+            }
+
             for (var resource : entry.getValue()) {
                 try (Reader reader = resource.openAsReader()) {
                     JsonElement parsed = JsonParser.parseReader(reader);
@@ -55,7 +67,7 @@ public abstract class JsonResourcesCollector extends SimplePreparableReloadListe
                         UnloadedActivity.LOGGER.error("Data file '{}' from '{}' didn't return a JsonObject. It will be ignored.", id, location);
                     }
                     result.computeIfAbsent(id, ignored -> new ArrayList<>()).add(parsed.getAsJsonObject());
-                } catch (IllegalArgumentException | IOException | JsonParseException e) {
+                } catch (Exception e) {
                     UnloadedActivity.LOGGER.error("Couldn't parse data file '{}' from '{}'", id, location, e);
                 }
             }

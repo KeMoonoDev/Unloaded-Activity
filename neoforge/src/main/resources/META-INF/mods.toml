@@ -34,3 +34,6 @@ config = "unloadedactivityneoforge.mixins.json"
 
 ["lithium:options"]
 "world.block_entity_ticking.sleeping.furnace" = false
+
+["unloadedactivity:options"]
+disable_compat = ["1", "2", 3]
