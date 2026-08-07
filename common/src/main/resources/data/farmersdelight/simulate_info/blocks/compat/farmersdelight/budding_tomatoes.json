@@ -1,0 +1,30 @@
+{
+    "convert": {
+        "simulation_method": "replace",
+        "conditions": [
+            {
+                "check": "raw_brightness",
+                "comparison": "greater_or_equal",
+                "value": 9
+            }
+        ],
+        "dependencies": ["age"],
+        "block_replacement": "farmersdelight:tomatoes",
+        "advance_probability": {
+            "value1": 1,
+            "operator": "/",
+            "value2": {
+                "operator": "floor",
+                "value": {
+                    "value1": 1,
+                    "operator": "+",
+                    "value2": {
+                        "value1": 25,
+                        "operator": "/",
+                        "value2": "growth_speed"
+                    }
+                }
+            }
+        }
+    }
+}
