@@ -1,0 +1,64 @@
+{
+  "age": {
+    "simulation_method": "property",
+    "property_name": "age",
+    "update_type": "update_clients",
+    "conditions": [
+      {
+        "check": {
+          "fetcher_id": "raw_brightness",
+          "offset": "above"
+        },
+        "comparison": "greater_or_equal",
+        "value": 6
+      }
+    ],
+    "advance_probability": {
+      "value1": 1,
+      "operator": "/",
+      "value2": {
+        "operator": "floor",
+        "value": {
+          "value1": 1,
+          "operator": "+",
+          "value2": {
+            "value1": 25,
+            "operator": "/",
+            "value2": 10
+          }
+        }
+      }
+    }
+  },
+  "grow_upper": {
+    "simulation_method": "grow_block",
+    "grow_block": "farmersdelight:rice_panicles",
+    "dependencies": ["age"],
+    "conditions": [
+      {
+        "check": {
+          "fetcher_id": "raw_brightness",
+          "offset": "above"
+        },
+        "comparison": "greater_or_equal",
+        "value": 6
+      }
+    ],
+    "advance_probability": {
+      "value1": 1,
+      "operator": "/",
+      "value2": {
+        "operator": "floor",
+        "value": {
+          "value1": 1,
+          "operator": "+",
+          "value2": {
+            "value1": 25,
+            "operator": "/",
+            "value2": 10
+          }
+        }
+      }
+    }
+  }
+}
