@@ -124,6 +124,45 @@ public enum FieldType {
             return new RandomizedValueExpression<>(numberExpression);
         }
     },
+    FIXED_STRING_EXPRESSION {
+        @Override
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
+            ValueExpression<String> stringExpression = ValueExpression.parseString(input);
+
+            if (superData != null) {
+                FixedValueExpression<String> castedSuper = (FixedValueExpression<String>)superData;
+                stringExpression.replaceSuper(castedSuper.inner);
+            }
+
+            return new FixedValueExpression<>(stringExpression);
+        }
+    },
+    UPDATING_STRING_EXPRESSION {
+        @Override
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
+            ValueExpression<String> stringExpression = ValueExpression.parseString(input);
+
+            if (superData != null) {
+                UpdatingValueExpression<String> castedSuper = (UpdatingValueExpression<String>)superData;
+                stringExpression.replaceSuper(castedSuper.inner);
+            }
+
+            return new UpdatingValueExpression<>(stringExpression);
+        }
+    },
+    RANDOMIZED_STRING_EXPRESSION {
+        @Override
+        public Object deserialize(JsonElement input, @Nullable Object superData) {
+            ValueExpression<String> stringExpression = ValueExpression.parseString(input);
+
+            if (superData != null) {
+                RandomizedValueExpression<String> castedSuper = (RandomizedValueExpression<String>)superData;
+                stringExpression.replaceSuper(castedSuper.inner);
+            }
+
+            return new RandomizedValueExpression<>(stringExpression);
+        }
+    },
     FIXED_BLOCK_EXPRESSION {
         @Override
         public Object deserialize(JsonElement input, @Nullable Object superData) {
