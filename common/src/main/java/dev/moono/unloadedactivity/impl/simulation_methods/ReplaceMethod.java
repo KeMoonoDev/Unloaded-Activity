@@ -6,10 +6,12 @@ import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
+import dev.moono.unloadedactivity.api.context.RandomizedContext;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
 import dev.moono.unloadedactivity.datapack.simulation_data.SimulationData;
 import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
+import dev.moono.unloadedactivity.impl.SimulationUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
@@ -29,6 +31,7 @@ public class ReplaceMethod extends GroupableSimulationMethod {
     public final boolean dropsResources;
     public final RandomizedValueExpression<Block> blockReplacement;
     public final Map<String, RandomizedValueExpression<Number>> setProperties;
+    public final Map<String, RandomizedValueExpression<String>> setNamedProperties;
     public final List<String> transferProperties;
 
     public @Nullable Boolean cachedShouldCalculateDuration;
@@ -37,6 +40,7 @@ public class ReplaceMethod extends GroupableSimulationMethod {
         super(config, hasDependants);
 
         this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
+        this.setNamedProperties = config.getRandomizedStringExpressionMap("set_named_properties");
         this.dropsResources = config.getBooleanOrDefault("drops_resources", false);
         this.blockReplacement = config.getRandomizedBlockExpression("block_replacement");
         this.transferProperties = config.getStringList("transfer_properties");
@@ -50,21 +54,10 @@ public class ReplaceMethod extends GroupableSimulationMethod {
     @Override
     public boolean shouldCalculateDuration(BlockState state, ServerLevel level, BlockPos pos) {
         if (this.cachedShouldCalculateDuration == null) {
-            boolean replacementCanSimulate = this.blockReplacement.inner.getPossibleValues().anyMatch(possibleBlock -> {
-                Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(possibleBlock);
-                if (maybeSimulationData.isEmpty()) return false;
-                SimulationData simulationData = maybeSimulationData.get();
-
-                return simulationData.hasRandTicksWithoutGroup || simulationData.hasPrecTicksWithoutGroup;
-            });
-
-            if (replacementCanSimulate) {
-                this.cachedShouldCalculateDuration = true;
-            } else {
-                this.cachedShouldCalculateDuration = this.setProperties.values().stream().anyMatch(valueExpression ->
-                        valueExpression.canBeAffectedByTime || valueExpression.canBeAffectedByWeather
-                );
-            }
+            this.cachedShouldCalculateDuration =
+                SimulationUtils.resultingBlocksMayNeedDuration(this.blockReplacement.inner) ||
+                SimulationUtils.anyNeedsDuration(this.setProperties.values()) ||
+                SimulationUtils.anyNeedsDuration(this.setNamedProperties.values());
         }
         return this.cachedShouldCalculateDuration || super.shouldCalculateDuration(state, level, pos);
     }
@@ -82,7 +75,9 @@ public class ReplaceMethod extends GroupableSimulationMethod {
 
         SimulatedTime finishTime = occurrencesAndTimings.getFinalTime();
 
-        Block blockReplacement = this.blockReplacement.evaluateRandomized(level, state, pos, finishTime, Map.of(), groupSimulateData);
+        RandomizedContext context = RandomizedContext.of(level, state, pos, finishTime, groupSimulateData);
+
+        Block blockReplacement = this.blockReplacement.evaluate(context);
         BlockState newState = blockReplacement.defaultBlockState();
         for (String propertyName : this.transferProperties) {
             Optional<Property<?>> maybeNewProperty = GameUtils.getProperty(newState, propertyName);
@@ -103,23 +98,10 @@ public class ReplaceMethod extends GroupableSimulationMethod {
                 newState = newState.setValue((Property) maybeNewProperty.get(), (Comparable)oldValue);
             }
         }
-        for (var entry : this.setProperties.entrySet()) {
-            String propertyName = entry.getKey();
-            RandomizedValueExpression<Number> propertyValue = entry.getValue();
 
-            Optional<Property<?>> maybeProperty = GameUtils.getProperty(newState, propertyName);
-            if (maybeProperty.isEmpty()) continue;
+        newState = SimulationUtils.applySetProperties(newState, context, this.setProperties);
+        newState = SimulationUtils.applySetNamedProperties(newState, context, this.setNamedProperties);
 
-            Property<?> setProperty = maybeProperty.get();
-
-            if (setProperty instanceof BooleanProperty booleanProperty) {
-                float value = propertyValue.evaluateRandomized(level, newState, pos, finishTime).floatValue();
-                newState = newState.setValue(booleanProperty, value != 0);
-            } else if (setProperty instanceof IntegerProperty integerProperty) {
-                int value = propertyValue.evaluateRandomized(level, newState, pos, finishTime).intValue();
-                newState = newState.setValue(integerProperty, value);
-            }
-        }
         return new DeferredBlockPlacer.SingleBlockPlacement(newState, finishTime);
     }
 }

@@ -9,10 +9,12 @@ import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.condition.FixedCondition;
 import dev.moono.unloadedactivity.api.context.FixedContext;
+import dev.moono.unloadedactivity.api.context.RandomizedContext;
 import dev.moono.unloadedactivity.api.simulation_method.SeparableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.FixedValueExpression;
 import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
 import dev.moono.unloadedactivity.api.context.ExpressionContext;
+import dev.moono.unloadedactivity.impl.SimulationUtils;
 import dev.moono.unloadedactivity.mixin.IntegerPropertyAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -39,6 +41,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
     public final boolean resetOnHeightChange;
     public final boolean onlyInWater;
     public final Map<String, RandomizedValueExpression<Number>> setProperties;
+    public final Map<String, RandomizedValueExpression<String>> setNamedProperties;
     public final List<String> transferProperties;
     public final Integer maxHeight;
 
@@ -48,6 +51,8 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
     @Nullable public final FixedValueExpression<Number> maxValue;
 
     @Nullable public final AgeBloomConfig ageBloom;
+
+    public @Nullable Boolean cachedShouldCalculateDuration;
 
     public record AgeBloomConfig(int bloomAtAge, Block bloomBlock, FixedValueExpression<Number> bloomProbability, List<FixedCondition> conditions) {
         public AgeBloomConfig(SimulationConfig config) {
@@ -65,6 +70,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
         String propertyName = config.getString("property_name");
 
         this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
+        this.setNamedProperties = config.getRandomizedStringExpressionMap("set_named_properties");
         this.updateType = config.getNumberOrDefault("update_type", Block.UPDATE_ALL).intValue();
         this.checkConditionsEveryHeight = config.getBooleanOrDefault("check_conditions_every_height", false);
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);
@@ -104,6 +110,20 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
     @Override
     public boolean isDependable() {
         return false;
+    }
+
+    @Override
+    public boolean shouldCalculateDuration(BlockState state, ServerLevel level, BlockPos pos) {
+        if (this.cachedShouldCalculateDuration == null) {
+            this.cachedShouldCalculateDuration =
+                SimulationUtils.anyNeedsDuration(this.setProperties.values()) ||
+                SimulationUtils.anyNeedsDuration(this.setNamedProperties.values());
+
+            if (!this.cachedShouldCalculateDuration && this.bottomBlockReplacement != null) {
+                this.cachedShouldCalculateDuration = SimulationUtils.resultingBlocksMayNeedDuration(this.bottomBlockReplacement.inner);
+            }
+        }
+        return this.cachedShouldCalculateDuration || super.shouldCalculateDuration(state, level, pos);
     }
 
     @Override
@@ -321,6 +341,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
 
         boolean doUpdateType;
 
+        // TODO instead of giving everything the final time, give it the time the thing actually happened.
         SimulatedTime finalTime = occurrencesAndTimings.getFinalTime();
 
         if (growBlocks == 0) {
@@ -426,25 +447,11 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
                 }
             }
 
-            for (var entry : this.setProperties.entrySet()) {
-                String propertyName = entry.getKey();
-                RandomizedValueExpression<Number> propertyValue = entry.getValue();
-
-                Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, propertyName);
-                if (maybeProperty.isEmpty()) continue;
-
-                Property<?> setProperty = maybeProperty.get();
-
-                if (setProperty instanceof BooleanProperty booleanProperty) {
-                    float value = propertyValue.evaluateRandomized(level, state, pos, finalTime).floatValue();
-                    state = state.setValue(booleanProperty, value != 0);
-                } else if (setProperty instanceof IntegerProperty integerProperty) {
-                    int value = propertyValue.evaluateRandomized(level, state, pos, finalTime).intValue();
-                    state = state.setValue(integerProperty, value);
-                }
-            }
-
-            blockPlacer.setBlock(pos, state, updateNeighbors, finalTime);
+            BlockState newBlockState = state;
+            RandomizedContext context = RandomizedContext.of(level, state, pos, finalTime);
+            newBlockState = SimulationUtils.applySetProperties(newBlockState, context, this.setProperties);
+            newBlockState = SimulationUtils.applySetNamedProperties(newBlockState, context, this.setNamedProperties);
+            blockPlacer.setBlock(pos, newBlockState, updateNeighbors, finalTime);
         }
 
         if (bloomAtEnd) {

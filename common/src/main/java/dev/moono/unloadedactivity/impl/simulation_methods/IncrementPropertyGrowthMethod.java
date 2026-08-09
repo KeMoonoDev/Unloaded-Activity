@@ -6,9 +6,11 @@ import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
+import dev.moono.unloadedactivity.api.context.RandomizedContext;
 import dev.moono.unloadedactivity.api.simulation_method.SeparableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.FixedValueExpression;
 import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
+import dev.moono.unloadedactivity.impl.SimulationUtils;
 import dev.moono.unloadedactivity.mixin.IntegerPropertyAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -29,6 +31,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
     public final boolean reverseHeightGrowthDirection;
     public final boolean onlyInWater;
     public final Map<String, RandomizedValueExpression<Number>> setProperties;
+    public final Map<String, RandomizedValueExpression<String>> setNamedProperties;
     public final List<String> transferProperties;
 
     @Nullable public final List<Block> lowerBlocks;
@@ -37,11 +40,14 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
     @Nullable public final RandomizedValueExpression<Block> bottomBlockReplacement;
     @Nullable public final FixedValueExpression<Number> maxValue;
 
+    public @Nullable Boolean cachedShouldCalculateDuration;
+
     public IncrementPropertyGrowthMethod(SimulationConfig config, Block block, boolean hasDependants) {
         super(config, hasDependants);
         String propertyName = config.getString("property_name");
 
         this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
+        this.setNamedProperties = config.getRandomizedStringExpressionMap("set_named_properties");
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);
         this.reverseHeightGrowthDirection = config.getBooleanOrDefault("reverse_height_growth_direction", false);
         this.onlyInWater = config.getBooleanOrDefault("only_in_water", false);
@@ -74,6 +80,20 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
     @Override
     public boolean isDependable() {
         return false;
+    }
+
+    @Override
+    public boolean shouldCalculateDuration(BlockState state, ServerLevel level, BlockPos pos) {
+        if (this.cachedShouldCalculateDuration == null) {
+            this.cachedShouldCalculateDuration =
+                SimulationUtils.anyNeedsDuration(this.setProperties.values()) ||
+                SimulationUtils.anyNeedsDuration(this.setNamedProperties.values());
+
+            if (!this.cachedShouldCalculateDuration && this.bottomBlockReplacement != null) {
+                this.cachedShouldCalculateDuration = SimulationUtils.resultingBlocksMayNeedDuration(this.bottomBlockReplacement.inner);
+            }
+        }
+        return this.cachedShouldCalculateDuration || super.shouldCalculateDuration(state, level, pos);
     }
 
     @Override
@@ -174,6 +194,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
             throw new RuntimeException("Property should have been validated at this point.");
         }
 
+        // TODO instead of giving everything the final time, give it the time the thing actually happened.
         SimulatedTime finalTime = occurrencesAndTimings.getFinalTime();
 
         if (this.bottomBlockReplacement != null) {
@@ -230,25 +251,12 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
                 }
             }
 
-            for (var entry : this.setProperties.entrySet()) {
-                String propertyName = entry.getKey();
-                RandomizedValueExpression<Number> propertyValue = entry.getValue();
 
-                Optional<Property<?>> maybeProperty = GameUtils.getProperty(state, propertyName);
-                if (maybeProperty.isEmpty()) continue;
-
-                Property<?> setProperty = maybeProperty.get();
-
-                if (setProperty instanceof BooleanProperty booleanProperty) {
-                    float value = propertyValue.evaluateRandomized(level, state, pos, finalTime).floatValue();
-                    state = state.setValue(booleanProperty, value != 0);
-                } else if (setProperty instanceof IntegerProperty integerProperty) {
-                    int value = propertyValue.evaluateRandomized(level, state, pos, finalTime).intValue();
-                    state = state.setValue(integerProperty, value);
-                }
-            }
-
-            blockPlacer.setBlock(pos, state, finalTime);
+            BlockState newBlockState = state;
+            RandomizedContext context = RandomizedContext.of(level, state, pos, finalTime);
+            newBlockState = SimulationUtils.applySetProperties(newBlockState, context, this.setProperties);
+            newBlockState = SimulationUtils.applySetNamedProperties(newBlockState, context, this.setNamedProperties);
+            blockPlacer.setBlock(pos, newBlockState, finalTime);
         }
 
         return blockPlacer;
