@@ -1,21 +1,17 @@
-package dev.moono.unloadedactivity;
+package dev.moono.unloadedactivity.registrations;
 
 import com.google.gson.JsonElement;
+import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.NumberFetcherRegistry;
 import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
 import dev.moono.unloadedactivity.api.UnloadedActivityApi;
 import dev.moono.unloadedactivity.impl.number_fetchers.*;
 import dev.moono.unloadedactivity.impl.simulation_methods.*;
-import net.minecraft.core.Vec3i;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-
-import java.util.Arrays;
-import java.util.Optional;
 
 public class DefaultRegistrations implements UnloadedActivityApi {
     @Override
@@ -199,6 +195,11 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         registry.registerNumber(UnloadedActivity.id("update_none"), Block.UPDATE_NONE);
 
         GroupFetchValue.register(registry);
+
+
+        if (UnloadedActivity.shouldDoCompat("farmersdelight")) {
+            new FarmersDelightRegistrations().registerNumberFetchers(registry);
+        }
     }
 
     @Override
@@ -222,5 +223,10 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         registry.register(UnloadedActivity.id("grow_fruit"), GrowFruitMethod::new);
 
         registry.register(UnloadedActivity.id("grow_bamboo"), GrowBambooMethod::new);
+
+
+        if (UnloadedActivity.shouldDoCompat("farmersdelight")) {
+            new FarmersDelightRegistrations().registerSimulationMethods(registry);
+        }
     }
 }

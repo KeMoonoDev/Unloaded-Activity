@@ -13,3 +13,24 @@ unimined.minecraft {
         ignoreConflicts(true)
     }
 }
+
+def mc_info = new Properties()
+
+rootDir.listFiles().each { file ->
+    if (file.name == "build.properties") {
+        mc_info.load(file.newReader())
+    }
+}
+
+dependencies {
+    if (rootProject.enable_farmers_delight == "true") {
+        // https://modrinth.com/mod/farmers-delight
+        if (mc_info.MC_VER == mc_info.MC_1_21_1) {
+            modImplementation "maven.modrinth:R2OftAxM:GbNuOZ4S" // 1.21.1-1.3.2
+        }
+
+        if (mc_info.MC_VER == mc_info.MC_1_20_1) {
+            modImplementation "maven.modrinth:R2OftAxM:CsjS7EkP" // 1.20.1-1.3.2
+        }
+    }
+}

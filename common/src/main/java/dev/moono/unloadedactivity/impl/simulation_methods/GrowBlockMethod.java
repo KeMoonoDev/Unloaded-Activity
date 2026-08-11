@@ -14,8 +14,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -25,11 +28,24 @@ public class GrowBlockMethod extends SeparableSimulationMethod {
     public final RandomizedValueExpression<Block> growBlock;
     public final @Nullable RandomizedValueExpression<Block> bottomBlockReplacement;
 
+    public final @Nullable RestrictHeightConfig restrictHeight;
+
+    public final boolean replaceAboveBlock;
+
     public final Map<String, RandomizedValueExpression<Number>> setProperties;
     public final Map<String, RandomizedValueExpression<Number>> setBottomProperties;
 
     public final Map<String, RandomizedValueExpression<String>> setNamedProperties;
     public final Map<String, RandomizedValueExpression<String>> setBottomNamedProperties;
+
+    public record RestrictHeightConfig(int maxHeight, List<Block> lowerBlocks) {
+        public RestrictHeightConfig(SimulationConfig config) {
+            this(
+                config.getNumber("max_height").intValue(),
+                config.getBlockList("lower_blocks")
+            );
+        }
+    }
 
     public @Nullable Boolean cachedShouldCalculateDuration;
 
@@ -41,6 +57,11 @@ public class GrowBlockMethod extends SeparableSimulationMethod {
 
         this.growBlock = config.getRandomizedBlockExpression("grow_block");
         this.bottomBlockReplacement = config.getRandomizedBlockExpressionNullable("bottom_block_replacement");
+
+        SimulationConfig restrictHeightConfig = config.getConfigNullable("restrict_height");;
+        this.restrictHeight = restrictHeightConfig == null ? null : new RestrictHeightConfig(restrictHeightConfig);
+
+        this.replaceAboveBlock = config.getBooleanOrDefault("replace_above_block", false);
 
         this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
         this.setBottomProperties = config.getRandomizedNumberExpressionMap("set_bottom_properties");
@@ -73,6 +94,24 @@ public class GrowBlockMethod extends SeparableSimulationMethod {
 
     @Override
     public int getMaxUpdateCount(BlockState state, ServerLevel level, BlockPos pos) {
+        if (this.restrictHeight != null) {
+            int height;
+            for(height = 1; height <= this.restrictHeight.maxHeight; ++height) {
+                boolean doContinue = false;
+                for (Block lowerBlock : this.restrictHeight.lowerBlocks) {
+                    if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
+                        doContinue = true;
+                        break;
+                    }
+                }
+                if (doContinue) continue;
+                break;
+            }
+            if (height >= this.restrictHeight.maxHeight) return 0;
+        }
+
+        if (replaceAboveBlock) return 1;
+
         return level.isEmptyBlock(pos.above()) ? 1 : 0;
     }
 

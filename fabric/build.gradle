@@ -36,4 +36,6 @@ dependencies {
         modImplementation(fabric_module)
         include(fabric_module)
     }
+
+    // https://modrinth.com/mod/farmers-delight-refabricated
 }
