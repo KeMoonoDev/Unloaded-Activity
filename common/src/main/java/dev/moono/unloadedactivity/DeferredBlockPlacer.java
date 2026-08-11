@@ -4,18 +4,26 @@ import dev.moono.unloadedactivity.api.SimulatedTime;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.function.Consumer;
 
-public class DeferredBlockPlacer {
+public class DeferredBlockPlacer implements Iterable<DeferredBlockPlacer.BlockPlacementInfo> {
     private final ArrayList<BlockPlacementInfo> blockPlacements = new ArrayList<>();
     private boolean isSorted = false;
 
     public static DeferredBlockPlacer empty() {
         return new DeferredBlockPlacer();
+    }
+
+    @Override
+    public @NotNull Iterator<BlockPlacementInfo> iterator() {
+        this.sortListIfNeeded();
+        return blockPlacements.iterator();
     }
 
     public void forEach(Consumer<? super BlockPlacementInfo> action) {

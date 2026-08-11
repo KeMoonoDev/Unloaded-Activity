@@ -24,12 +24,16 @@ public abstract class SimulationMethod {
     public final List<FixedCondition> conditions;
     public final List<String> dependencies;
 
+    public boolean forceCalculateDuration;
+
     public SimulationMethod(SimulationConfig config, boolean hasDependants) {
         this.isPrecipitation = config.getBooleanOrDefault("is_precipitation", false);
         this.requiresRain = config.getBooleanOrDefault("requires_rain", this.isPrecipitation);
         this.advanceProbability = config.getUpdatingNumberExpression("advance_probability");
         this.conditions = config.getFixedConditionList("conditions");
         this.dependencies = config.getStringList("dependencies");
+
+        this.forceCalculateDuration = config.getBooleanOrDefault("force_calculate_duration", false);
 
         this.hasDependants = hasDependants;
     }
@@ -64,6 +68,6 @@ public abstract class SimulationMethod {
     }
 
     public boolean shouldCalculateDuration(BlockState state, ServerLevel level, BlockPos pos) {
-        return this.hasDependants;
+        return this.hasDependants || this.forceCalculateDuration;
     }
 }

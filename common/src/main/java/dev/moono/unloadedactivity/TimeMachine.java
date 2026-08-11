@@ -16,6 +16,8 @@ import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
 import dev.moono.unloadedactivity.datapack.simulation_data.SimulationData;
 import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.resources.*;
@@ -28,6 +30,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -744,38 +747,53 @@ public class TimeMachine {
         }
     }
 
-    public static void simulateBlock(BlockPos pos, ServerLevel level, SimulatedTime simulatedTime, int randomTickSpeed, boolean allowPrecipitationTicks) {
+    public static LongSet simulateBlock(BlockPos startingBlockPos, ServerLevel level, SimulatedTime startingSimulatedTime, int randomTickSpeed, boolean allowPrecipitationTicks) {
         float randomPickChance = MathUtils.getRandomPickProbability(randomTickSpeed);
         float precipitationPickChance = MathUtils.getPrecipitationPickProbability(randomTickSpeed);
 
-        BlockState state = level.getBlockState(pos);
+        Long2IntOpenHashMap simulationIterations = new Long2IntOpenHashMap();
+        int iterCount = 0;
 
-        boolean blockHasChanged = true;
+        ArrayList<Triple<BlockPos, BlockState, SimulatedTime>> simulationQueue = new ArrayList<>();
+        simulationQueue.add(Triple.of(startingBlockPos, level.getBlockState(startingBlockPos), startingSimulatedTime));
 
-        while (blockHasChanged) {
-            blockHasChanged = false;
+        while (!simulationQueue.isEmpty()) {
+            Triple<BlockPos, BlockState, SimulatedTime> currentSimulation = simulationQueue.remove(0);
 
-            Block block = state.getBlock();
-
-            if (UnloadedActivity.config.isBlockBlacklisted(block)) {
+            iterCount++;
+            if (iterCount > 100) {
+                UnloadedActivity.LOGGER.warn("Reached max simulation iteration count.");
                 break;
             }
+
+            final BlockPos pos = currentSimulation.getLeft();
+
+            if (simulationIterations.addTo(pos.asLong(), 1) > 5) {
+                UnloadedActivity.LOGGER.warn("Reached max simulation iteration count for a singular block position.");
+                break;
+            }
+
+            BlockState state = currentSimulation.getMiddle();
+
+            final Block currentBlock = state.getBlock();
+
+            if (UnloadedActivity.config.isBlockBlacklisted(currentBlock)) {
+                break;
+            }
+
+            final SimulatedTime simulatedTime = currentSimulation.getRight();
 
             // This is not a HashMap because most of the time a block only has 1 or 2 properties.
             // It's probably not worth the overhead.
             ArrayList<Pair<String, SimulatedTime>> finishedProperties = new ArrayList<>();
 
-            // This is not a HashSet because of the same reason above.
-            // Even if there's a duplicate, we only check if it contains, so it doesn't matter.
-            ArrayList<String> propertiesWithDependents = new ArrayList<>();
-
-            Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(block);
+            Optional<SimulationData> maybeSimulationData = SimulationDataResource.getSimulationData(currentBlock);
             if (maybeSimulationData.isEmpty()) break;
             SimulationData simulationData = maybeSimulationData.get();
 
             if (UnloadedActivity.config.debugLogs)
                 if (!state.isAir())
-                    UnloadedActivity.LOGGER.info("Simulating block " + block + " with " + simulationData.methodMap.size() + " properties.");
+                    UnloadedActivity.LOGGER.info("Simulating block " + currentBlock + " with " + simulationData.methodMap.size() + " properties.");
 
 
             ArrayList<Pair<String, SimulationMethod>> pendingProperties = new ArrayList<>(simulationData.methodMap.size());
@@ -790,17 +808,18 @@ public class TimeMachine {
                 } else {
                     pendingProperties.add(Pair.of(propertyName, simulationMethod));
                 }
-
-                propertiesWithDependents.addAll(simulationMethod.dependencies);
             }
 
-            boolean continueCheck = true;
+            boolean methodsGotFinished = true;
 
-            while (continueCheck) {
-                continueCheck = false;
+            // This loop is here to handle simulation methods that depend on other simulation methods.
+            // It will keep doing passes until there is nothing more to simulate.
+            while (methodsGotFinished) {
+                methodsGotFinished = false;
 
                 var iterator = pendingProperties.iterator();
 
+                // This loop is to try to simulate all simulation methods.
                 while (iterator.hasNext()) {
                     var entry = iterator.next();
 
@@ -862,20 +881,24 @@ public class TimeMachine {
                     }
 
                     if (UnloadedActivity.config.debugLogs)
-                        UnloadedActivity.LOGGER.info("Simulating property " + propertyName + " on block " + block);
+                        UnloadedActivity.LOGGER.info("Simulating property " + propertyName + " on block " + currentBlock);
 
                     float pickChance = simulationMethod.isPrecipitation ? precipitationPickChance : randomPickChance;
 
                     DeferredBlockPlacer blockPlacer = simulationMethod.simulate(state, level, pos, GameUtils.getRand(level), lastSimulatedTime, pickChance);
 
                     if (blockPlacer == null) {
-                        continueCheck = false;
-                        break;
+                        // We have no info about what happened. Abort entire simulation.
+                        methodsGotFinished = false;
+                        simulationQueue.clear();
+                        break; // The reason it doesn't return immediately is that we need to return a LongSet.
                     }
 
                     if (blockPlacer.isEmpty()) continue;
 
-                    blockPlacer.forEach(placeInfo -> {
+                    boolean breakPropertyLoop = false;
+
+                    for (DeferredBlockPlacer.BlockPlacementInfo placeInfo : blockPlacer) {
                         level.setBlock(placeInfo.blockPos(), placeInfo.blockState(), placeInfo.updateType());
                         if (placeInfo.updateNeighbors()) {
                             #if MC_VER >= MC_1_21_3
@@ -885,28 +908,43 @@ public class TimeMachine {
                             #endif
                             level.scheduleTick(placeInfo.blockPos(), placeInfo.blockState().getBlock(), 1);
                         }
-                    });
 
-                    DeferredBlockPlacer.BlockPlacementInfo lastBlockPlacement = blockPlacer.lastPlacedBlock();
+                        SimulatedTime placedAtTime = placeInfo.placedAtTime();
 
-                    state = lastBlockPlacement.blockState();
-                    pos = lastBlockPlacement.blockPos();
+                        BlockState newState = placeInfo.blockState();
 
-                    SimulatedTime placedAtTime = lastBlockPlacement.placedAtTime();
 
-                    if (state.getBlock() != block) {
-                        continueCheck = false;
-                        if (placedAtTime.remainingTicks() > 0) blockHasChanged = true;
-                        break;
+                        if (placeInfo.blockPos() != pos) {
+                            if (placedAtTime.remainingTicks() > 0) {
+                                simulationQueue.removeIf(t -> t.getLeft() == pos);
+                                simulationQueue.add(Triple.of(placeInfo.blockPos(), newState, placedAtTime));
+                            }
+                        } else {
+                            if (newState.getBlock() != currentBlock) {
+                                // Block is entirely different. Stop simulating.
+                                methodsGotFinished = false;
+                                breakPropertyLoop = true;
+                                if (placedAtTime.remainingTicks() > 0) {
+                                    simulationQueue.removeIf(t -> t.getLeft() == pos);
+                                    // Add to the front. Prioritize the current position.
+                                    simulationQueue.add(0, Triple.of(placeInfo.blockPos(), newState, placedAtTime));
+                                }
+                            } else {
+                                state = newState;
+                                if (!simulationMethod.canDoMore(state, level, pos)) {
+                                    methodsGotFinished = true;
+                                    finishedProperties.add(Pair.of(propertyName, placedAtTime));
+                                }
+                            }
+
+                        }
                     }
 
-                    if (!simulationMethod.canDoMore(state, level, pos)) {
-                        continueCheck = true;
-                        finishedProperties.add(Pair.of(propertyName, placedAtTime));
-                    }
+                    if (breakPropertyLoop) break;
                 }
             }
         }
+        return simulationIterations.keySet();
     }
 
     public static void simulateBlockEntity(BlockEntity blockEntity, long timeDifference) {
