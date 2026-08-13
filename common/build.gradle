@@ -16,6 +16,43 @@ rootDir.listFiles().each { file ->
         mc_info.load(file.newReader())
     }
 }
+processResources {
+    if (rootProject.using_legacy_folders) {
+        filesMatching("**/tags/block/**") {
+            path = path.replaceFirst("block", "blocks")
+        }
+    }
+
+    if (!rootProject.cactus_flowers_are_added) {
+        filesMatching("data/minecraft/simulate_info/blocks/cactus.json") {
+            filter { line ->
+                line.replace('"stop_updating_after_max_height": false', '"stop_updating_after_max_height": true')
+                        .replace('age_bloom', '_age_bloom')
+            }
+        }
+    }
+
+    if (!rootProject.lightning_rod_is_oxidizable) {
+        exclude("data/minecraft/simulate_info/blocks/lightning_rod.json")
+        filesMatching("**/oxidized_level/0.json") {
+            filter { line ->
+                line.replace("minecraft:lightning_rod", "unloadedactivity:empty")
+            }
+        }
+    }
+
+    // Farmer's Delight
+    if (mc_info.MC_VER <= mc_info.MC_1_19_4) {
+        exclude("data/farmersdelight/simulate_info/blocks/compat/farmersdelight/tomatoes.json")
+        exclude("data/farmersdelight/simulate_info/blocks/compat/farmersdelight/tomatoes_on_rope.json")
+
+        filesMatching("data/farmersdelight/simulate_info/blocks/compat/farmersdelight/1_19_tomatoes.json") {
+            path = path.replaceFirst("1_19_tomatoes", "tomatoes")
+        }
+    } else {
+        exclude("data/farmersdelight/simulate_info/blocks/compat/farmersdelight/1_19_tomatoes.json")
+    }
+}
 
 dependencies {
     // Since these are only for compiling,

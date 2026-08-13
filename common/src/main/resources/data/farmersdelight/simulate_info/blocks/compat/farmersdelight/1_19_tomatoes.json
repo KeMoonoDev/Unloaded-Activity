@@ -1,0 +1,25 @@
+{
+  "climb": {
+    "simulation_method": "grow_block",
+    "conditions": [
+      {
+        "check": "raw_brightness",
+        "comparison": "greater_or_equal",
+        "value": 9
+      },
+      "farmersdelight:can_climb"
+    ],
+    "advance_probability": 0.3,
+    "grow_block": "farmersdelight:tomatoes",
+    "replace_above_block": true,
+    "restrict_height": {
+      "max_height": 3,
+      "lower_blocks": [
+        "farmersdelight:tomatoes"
+      ]
+    },
+    "set_properties": {
+      "ropelogged": true
+    }
+  }
+}

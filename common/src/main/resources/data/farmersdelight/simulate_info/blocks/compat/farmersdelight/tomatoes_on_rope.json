@@ -1,0 +1,40 @@
+{
+  "climb": {
+    "simulation_method": "grow_block",
+    "conditions": [
+      {
+        "check": "raw_brightness",
+        "comparison": "greater_or_equal",
+        "value": 9
+      },
+      "farmersdelight:can_climb"
+    ],
+    "advance_probability": 1,
+    "grow_block": "farmersdelight:tomatoes_on_rope",
+    "replace_above_block": true,
+    "restrict_height": {
+      "max_height": 3,
+      "lower_blocks": [
+        "farmersdelight:tomatoes_on_rope"
+      ]
+    }
+  },
+  "age": {
+    "advance_probability": {
+      "value1": 1,
+      "operator": "/",
+      "value2": {
+        "operator": "floor",
+        "value": {
+          "value1": 1,
+          "operator": "+",
+          "value2": {
+            "value1": 25,
+            "operator": "/",
+            "value2": 5
+          }
+        }
+      }
+    }
+  }
+}

@@ -11,6 +11,7 @@ import vectorwing.farmersdelight.common.tag.ModTags;
 
 import java.util.function.Supplier;
 
+@SuppressWarnings("deprecation")
 public class CanClimbValue implements FixedNumberFetcher {
     final Vec3i offset;
     final Supplier<Boolean> useTagsSupplier;
