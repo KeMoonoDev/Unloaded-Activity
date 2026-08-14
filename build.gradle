@@ -90,28 +90,28 @@ if (version_range.length == 1) {
 	throw new GradleException("Wrong version format: $project.compatible_versions")
 }
 
-println(tasks.build.getOutputs().files)
-
-tasks.build.getOutputs().files.each {
-	println(it.name)
-}
-
 forgix {
 	destinationDirectory = layout.projectDirectory.dir("Merged")
 	archiveClassifier = ""
 	group = rootProject.maven_group
 
 	fabric {
-		inputJar = project(":fabric").tasks.jar.archiveFile
+		inputJar = layout.file(providers.provider {
+			file("artifacts/${archives_name}-fabric-${version}.jar")
+		})
 	}
 
 	if (using_neo) {
 		neoforge {
-			inputJar = project(":neoforge").tasks.jar.archiveFile
+			inputJar = layout.file(providers.provider {
+				file("artifacts/${archives_name}-neoforge-${version}.jar")
+			})
 		}
 	} else {
 		forge {
-			inputJar = project(":forge").tasks.jar.archiveFile
+			inputJar = layout.file(providers.provider {
+				file("artifacts/${archives_name}-forge-${version}.jar")
+			})
 		}
 	}
 }
@@ -234,5 +234,27 @@ subprojects {
 
 	clean {
 		delete "$rootDir/artifacts"
+	}
+
+	if (project.name !== 'common') {
+		tasks.register('delDevJar') {
+			doLast {
+				def tree = fileTree('build/libs')
+				tree.include '**/*-dev-shadow.jar'
+				tree.include '**/*-dev.jar'
+				tree.include '**/*-all.jar'
+				tree.include '**/*-slim.jar'
+				tree.each { it.delete() }
+			}
+		}
+		build.finalizedBy delDevJar
+
+		tasks.register('copyAllArtifacts', Copy) {
+			from "$buildDir/libs"
+			into "$rootDir/artifacts"
+			include("*.jar")
+		}
+
+		build.finalizedBy(copyAllArtifacts)
 	}
 }
