@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,8 +18,8 @@ public abstract class GroupableSimulationMethod extends SeparableSimulationMetho
     @Nullable
     public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif simulateWithGroup;
 
-    public GroupableSimulationMethod(SimulationConfig config, boolean hasDependants) {
-        super(config, hasDependants);
+    public GroupableSimulationMethod(SimulationConfig config, Block block, boolean hasDependants) {
+        super(config, block, hasDependants);
         String simulateWithGroup = config.getStringNullable("simulate_with_group");
         if (simulateWithGroup == null) {
             this.simulateWithGroup = null;

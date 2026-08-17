@@ -50,7 +50,7 @@ public class GrowBlockMethod extends SeparableSimulationMethod {
     public @Nullable Boolean cachedShouldCalculateDuration;
 
     public GrowBlockMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
 
         this.updateType = config.getNumberOrDefault("update_type", Block.UPDATE_ALL).intValue();
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);

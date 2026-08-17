@@ -54,7 +54,7 @@ public class SpeleothemMethod extends SimulationMethod {
     }
 
     public SpeleothemMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         SimulationConfig cauldronFillConfig = config.getConfigNullable("cauldron_fill");
         this.cauldronFillConfig = cauldronFillConfig != null ? new CauldronFillConfig(cauldronFillConfig) : null;
         List<SimulationConfig> convertBlocksConfig = config.getConfigList("convert_blocks");

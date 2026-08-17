@@ -66,7 +66,7 @@ public class MaxPropertyGrowthMethod extends SeparableSimulationMethod {
     }
 
     public MaxPropertyGrowthMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         String propertyName = config.getString("property_name");
 
         this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");

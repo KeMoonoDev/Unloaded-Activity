@@ -21,7 +21,7 @@ public class GrowFruitMethod extends SeparableSimulationMethod {
     public final Block fruitBlock;
 
     public GrowFruitMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         this.stemBlock = config.getBlock("stem_block");
         this.fruitBlock = config.getBlock("fruit_block");
     }

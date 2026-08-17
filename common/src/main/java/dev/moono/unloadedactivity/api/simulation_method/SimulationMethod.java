@@ -1,6 +1,5 @@
 package dev.moono.unloadedactivity.api.simulation_method;
 
-import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
@@ -10,6 +9,7 @@ import dev.moono.unloadedactivity.api.value_expression.UpdatingValueExpression;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +26,7 @@ public abstract class SimulationMethod {
 
     public boolean forceCalculateDuration;
 
-    public SimulationMethod(SimulationConfig config, boolean hasDependants) {
+    public SimulationMethod(SimulationConfig config, Block block, boolean hasDependants) {
         this.isPrecipitation = config.getBooleanOrDefault("is_precipitation", false);
         this.requiresRain = config.getBooleanOrDefault("requires_rain", this.isPrecipitation);
         this.advanceProbability = config.getUpdatingNumberExpression("advance_probability");

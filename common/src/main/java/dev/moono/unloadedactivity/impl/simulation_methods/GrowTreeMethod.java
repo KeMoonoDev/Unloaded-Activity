@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class GrowTreeMethod extends SimulationMethod {
     public GrowTreeMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
     }
 
     @Override

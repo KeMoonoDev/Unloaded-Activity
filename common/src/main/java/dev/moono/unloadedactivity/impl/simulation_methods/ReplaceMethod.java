@@ -37,7 +37,7 @@ public class ReplaceMethod extends GroupableSimulationMethod {
     public @Nullable Boolean cachedShouldCalculateDuration;
 
     public ReplaceMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
 
         this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
         this.setNamedProperties = config.getRandomizedStringExpressionMap("set_named_properties");

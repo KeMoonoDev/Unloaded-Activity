@@ -28,7 +28,7 @@ public class PropertyMethod extends GroupableSimulationMethod {
     @Nullable public final FixedValueExpression<Number> maxValue;
 
     public PropertyMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         String propertyName = config.getString("property_name");
 
         this.updateType = config.getNumberOrDefault("update_type", Block.UPDATE_ALL).intValue();

@@ -34,7 +34,7 @@ public class HatchMethod extends GroupableSimulationMethod {
     public final Integer startingAge;
 
     public HatchMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         this.dropsResources = config.getBooleanOrDefault("drops_resources", true);
         this.hatchEntity = config.getEntityType("hatch_entity");
         this.hatchCount = config.getRandomizedNumberExpression("hatch_count");

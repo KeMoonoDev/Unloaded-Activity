@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 public class GrowBambooMethod extends SimulationMethod {
     public final int maxHeight;
     public GrowBambooMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         this.maxHeight = config.getNumber("max_height").intValue();
 
         if (!(block instanceof BambooSaplingBlock) && !(block instanceof #if MC_VER >= MC_1_19_4 BambooStalkBlock #else BambooBlock #endif)) {

@@ -15,7 +15,7 @@ public class DecayMethod extends GroupableSimulationMethod {
     public final boolean dropsResources;
 
     public DecayMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         this.dropsResources = config.getBooleanOrDefault("drops_resources", true);
     }
 

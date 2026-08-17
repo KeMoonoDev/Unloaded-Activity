@@ -28,7 +28,7 @@ public class BuddingMethod extends SimulationMethod {
     public final boolean supportsWaterlogged;
 
     public BuddingMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         List<Block> onlyBuddingBlocks = config.getBlockList("budding_blocks");
 
         this.ignoreBuddingDirections = config.getStringList("ignore_budding_directions").stream().map(directionString -> {

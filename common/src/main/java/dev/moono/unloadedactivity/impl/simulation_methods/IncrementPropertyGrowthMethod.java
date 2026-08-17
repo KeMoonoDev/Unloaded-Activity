@@ -43,7 +43,7 @@ public class IncrementPropertyGrowthMethod extends SeparableSimulationMethod {
     public @Nullable Boolean cachedShouldCalculateDuration;
 
     public IncrementPropertyGrowthMethod(SimulationConfig config, Block block, boolean hasDependants) {
-        super(config, hasDependants);
+        super(config, block, hasDependants);
         String propertyName = config.getString("property_name");
 
         this.setProperties = config.getRandomizedNumberExpressionMap("set_properties");
