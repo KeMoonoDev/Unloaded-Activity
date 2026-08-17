@@ -217,6 +217,10 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         if (UnloadedActivity.shouldDoCompat("supplementaries")) {
             new SupplementariesRegistrations().registerNumberFetchers(registry);
         }
+
+        if (UnloadedActivity.shouldDoCompat("nomansland")) {
+            new NoMansLandRegistrations().registerNumberFetchers(registry);
+        }
     }
 
     @Override
@@ -248,6 +252,10 @@ public class DefaultRegistrations implements UnloadedActivityApi {
 
         if (UnloadedActivity.shouldDoCompat("supplementaries")) {
             new SupplementariesRegistrations().registerSimulationMethods(registry);
+        }
+
+        if (UnloadedActivity.shouldDoCompat("nomansland")) {
+            new NoMansLandRegistrations().registerSimulationMethods(registry);
         }
     }
 }

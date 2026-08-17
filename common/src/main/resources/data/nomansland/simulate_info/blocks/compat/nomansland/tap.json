@@ -1,0 +1,6 @@
+{
+  "tap": {
+    "simulation_method": "nomansland:tap",
+    "advance_probability": 0.05
+  }
+}
