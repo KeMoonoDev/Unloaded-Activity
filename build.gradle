@@ -162,6 +162,8 @@ subprojects {
 			name = "Cassian's Maven"
 			url = 'https://maven.cassian.cc'
 		}
+
+		maven { url "https://registry.somethingcatchy.net/repository/maven-releases/" }
 	}
 
 	unimined.minecraft(sourceSets.main, true) {
@@ -234,6 +236,7 @@ subprojects {
 
 	clean {
 		delete "$rootDir/artifacts"
+		delete "$rootDir/Merged"
 	}
 
 	if (project.name !== 'common') {

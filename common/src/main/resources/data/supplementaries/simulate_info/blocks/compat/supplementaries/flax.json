@@ -1,0 +1,35 @@
+{
+  "age": {
+    "replace": true,
+    "simulation_method": "supplementaries:grow_flax",
+    "conditions": [
+      {
+        "check": "raw_brightness",
+        "comparison": "greater_or_equal",
+        "value": 9
+      },
+      {
+        "fetcher_id": "named_property",
+        "property_name": "half",
+        "value_equals": "lower"
+      }
+    ],
+
+    "advance_probability": {
+      "value1": 1,
+      "operator": "/",
+      "value2": {
+        "operator": "floor",
+        "value": {
+          "value1": 1,
+          "operator": "+",
+          "value2": {
+            "value1": 25,
+            "operator": "/",
+            "value2": "growth_speed"
+          }
+        }
+      }
+    }
+  }
+}

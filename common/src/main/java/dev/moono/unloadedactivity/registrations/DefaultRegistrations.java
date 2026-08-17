@@ -185,6 +185,19 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         );
 
         registry.register(
+            UnloadedActivity.id("named_property"),
+            data -> {
+                JsonElement unparsedPropertyName = data.get("property_name");
+                JsonElement unparsedCheckForValue = data.get("value_equals");
+                if (unparsedPropertyName == null)
+                    throw new RuntimeException("Required field \"property_name\" is missing.");
+                if (unparsedCheckForValue == null)
+                    throw new RuntimeException("Required field \"value_equals\" is missing.");
+                return new NamedPropertyValue(unparsedPropertyName.getAsString(), unparsedCheckForValue.getAsString());
+            }
+        );
+
+        registry.register(
             UnloadedActivity.id("provided"),
             data -> new CustomValue(data.get("value").getAsString())
         );
@@ -199,6 +212,10 @@ public class DefaultRegistrations implements UnloadedActivityApi {
 
         if (UnloadedActivity.shouldDoCompat("farmersdelight")) {
             new FarmersDelightRegistrations().registerNumberFetchers(registry);
+        }
+
+        if (UnloadedActivity.shouldDoCompat("supplementaries")) {
+            new SupplementariesRegistrations().registerNumberFetchers(registry);
         }
     }
 
@@ -227,6 +244,10 @@ public class DefaultRegistrations implements UnloadedActivityApi {
 
         if (UnloadedActivity.shouldDoCompat("farmersdelight")) {
             new FarmersDelightRegistrations().registerSimulationMethods(registry);
+        }
+
+        if (UnloadedActivity.shouldDoCompat("supplementaries")) {
+            new SupplementariesRegistrations().registerSimulationMethods(registry);
         }
     }
 }
