@@ -26,13 +26,17 @@ public abstract class SeparableSimulationMethod extends SimulationMethod {
 
     public abstract DeferredBlockPlacer getNewBlockStates(BlockState state, ServerLevel level, BlockPos pos, OccurrencesAndTimings occurrencesAndTimings);
 
+    public float probabilityMultiplier(BlockState state, ServerLevel level, BlockPos pos) {
+        return 1f;
+    }
+
     @Override
     public DeferredBlockPlacer simulate(BlockState state, ServerLevel level, BlockPos pos, RandomSource random, SimulatedTime simulatedTime, float randomPickProbability) {
         int updateCount = this.getMaxUpdateCount(state, level, pos);
         if (updateCount <= 0)
             return DeferredBlockPlacer.empty();
 
-        OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this, updateCount, randomPickProbability);
+        OccurrencesAndTimings result = MathUtils.getOccurrences(level, state, pos, simulatedTime, this, updateCount, randomPickProbability * this.probabilityMultiplier(state, level, pos));
 
         if (result.occurrences() == 0)
             return DeferredBlockPlacer.empty();

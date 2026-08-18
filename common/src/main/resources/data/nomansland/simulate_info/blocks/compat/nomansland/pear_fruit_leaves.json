@@ -1,0 +1,30 @@
+{
+  "grow_fruit": {
+    "simulation_method": "nomansland:grow_fruit_leaves",
+    "conditions": [
+      {
+        "check": {
+          "fetcher_id": "raw_brightness",
+          "offset": "below"
+        },
+        "comparison": "greater_or_equal",
+        "value": 9
+      }
+    ],
+    "advance_probability": 1
+  },
+  "rot": {
+    "simulation_method": "nomansland:rot_fruit_leaves",
+    "conditions": [
+      {
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "persistent"
+        },
+        "comparison": "not_equal",
+        "value": true
+      }
+    ],
+    "advance_probability": 1
+  }
+}

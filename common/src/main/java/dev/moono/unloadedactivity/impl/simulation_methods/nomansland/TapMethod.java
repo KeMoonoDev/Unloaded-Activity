@@ -12,6 +12,7 @@ import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SeparableSimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.mixin.IntegerPropertyAccessor;
+import net.mehvahdjukaar.supplementaries.common.block.blocks.FlaxBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
@@ -31,6 +32,9 @@ import java.util.List;
 public class TapMethod extends SimulationMethod {
     public TapMethod(SimulationConfig config, Block block, boolean hasDependants) {
         super(config, block, hasDependants);
+        if (!(block instanceof TapBlock)) {
+            throw new RuntimeException("The block " + block + " cannot have this simulation method.");
+        }
     }
 
     @Override
@@ -53,7 +57,7 @@ public class TapMethod extends SimulationMethod {
             boolean hasBlock = false;
             for (BlockStateProvider blockStateProvider : tapInteractionReference.value().sources()) {
                 // blockStateProvider.getState takes a RandomSource.
-                // This function assumes that the result won't be random.
+                // The simulate function assumes that the result won't be random.
                 // If getState gives a random result, the simulation result will be incorrect.
                 BlockState neededState = blockStateProvider.getState(level.random, pos.relative(state.getValue(TapBlock.FACING).getOpposite()));
                 if (stateBehind == neededState) {
