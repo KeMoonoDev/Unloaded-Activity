@@ -58,8 +58,9 @@ dependencies {
     // Since these are only for compiling,
     // I can mix and match both (neo)forge and fabric versions and game versions.
 
-    // To not have to deal with conditionally supporting mods, Minecraft versions without
-    // any mod support for it will get the closest mod version for that Minecraft version.
+    // To not have to deal with conditionally supporting mods depending on the Minecraft version,
+    // and also hopefully add some future proofing, Minecraft versions without any mod support
+    // for it will get the closest mod version for that Minecraft version.
 
     // Farmer's Delight
     if (mc_info.MC_VER >= mc_info.MC_1_21_1) {
@@ -96,5 +97,7 @@ dependencies {
 
     // No Man's Land
     // This mod only supports 1.21.1.
-    compileOnly "maven.modrinth:kjZCvAn6:bcszfrVc" // 1.5.12
+    if (mc_info.MC_VER == mc_info.MC_1_21_1) {
+        compileOnly "maven.modrinth:kjZCvAn6:bcszfrVc" // 1.5.12
+    }
 }

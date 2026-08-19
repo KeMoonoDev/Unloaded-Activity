@@ -1,10 +1,12 @@
 package dev.moono.unloadedactivity.impl.simulation_methods.nomansland;
 
+#if MC_VER == MC_1_21_1
 import com.farcr.nomansland.common.block.cauldrons.FourLayeredCauldronBlock;
 import com.farcr.nomansland.common.block.tap.TapBlock;
 import com.farcr.nomansland.common.block.tap.TapInteraction;
 import com.farcr.nomansland.common.registry.NMLRegistries;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
+import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.MathUtils;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
@@ -59,7 +61,7 @@ public class TapMethod extends SimulationMethod {
                 // blockStateProvider.getState takes a RandomSource.
                 // The simulate function assumes that the result won't be random.
                 // If getState gives a random result, the simulation result will be incorrect.
-                BlockState neededState = blockStateProvider.getState(level.random, pos.relative(state.getValue(TapBlock.FACING).getOpposite()));
+                BlockState neededState = blockStateProvider.getState(GameUtils.getRand(level), pos.relative(state.getValue(TapBlock.FACING).getOpposite()));
                 if (stateBehind == neededState) {
                     if (neededState.is(BlockTags.LOGS)) {
                         if (stateBehind == TapBlock.getBlockStateBehind(level, pos.above(), state) && stateBehind == TapBlock.getBlockStateBehind(level, pos.below(), state))
@@ -145,3 +147,6 @@ public class TapMethod extends SimulationMethod {
         return DeferredBlockPlacer.empty();
     }
 }
+#else
+public class TapMethod {}
+#endif

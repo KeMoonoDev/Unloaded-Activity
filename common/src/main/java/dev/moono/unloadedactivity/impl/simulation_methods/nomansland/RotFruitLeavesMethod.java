@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity.impl.simulation_methods.nomansland;
 
+#if MC_VER == MC_1_21_1
 import com.farcr.nomansland.common.block.fruit_trees.FruitBlock;
 import com.farcr.nomansland.common.block.fruit_trees.FruitLeavesBlock;
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
@@ -68,3 +69,6 @@ public class RotFruitLeavesMethod extends SeparableSimulationMethod {
         return blockPlacer;
     }
 }
+#else
+public class RotFruitLeavesMethod {}
+#endif
