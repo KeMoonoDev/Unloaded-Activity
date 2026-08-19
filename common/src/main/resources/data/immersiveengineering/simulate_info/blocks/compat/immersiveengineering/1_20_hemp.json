@@ -1,0 +1,58 @@
+{
+  "age": {
+    "conditions": [
+      {
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "top"
+        },
+        "comparison": "equal",
+        "value": false
+      }
+    ]
+  },
+  "age_final": {
+    "simulation_method": "grow_block",
+    "dependencies": [
+      "age"
+    ],
+    "conditions": [
+      {
+        "check": "raw_brightness",
+        "comparison": "greater_or_equal",
+        "value": 9
+      },
+      {
+        "check": {
+          "fetcher_id": "property",
+          "property_name": "top"
+        },
+        "comparison": "equal",
+        "value": false
+      }
+    ],
+
+    "grow_block": "immersiveengineering:hemp",
+    "set_properties": {
+      "top": true,
+      "age": 4
+    },
+
+    "advance_probability": {
+      "value1": 1,
+      "operator": "/",
+      "value2": {
+        "operator": "floor",
+        "value": {
+          "value1": 1,
+          "operator": "+",
+          "value2": {
+            "value1": 25,
+            "operator": "/",
+            "value2": "growth_speed"
+          }
+        }
+      }
+    }
+  }
+}

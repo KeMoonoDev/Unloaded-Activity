@@ -52,6 +52,26 @@ processResources {
     } else {
         exclude("data/farmersdelight/simulate_info/blocks/compat/farmersdelight/1_19_tomatoes.json")
     }
+
+    // Immersive Engineering
+    if (mc_info.MC_VER <= mc_info.MC_1_19_4) {
+        exclude("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/hemp.json")
+        exclude("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/1_20_hemp.json")
+
+        filesMatching("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/1_19_hemp.json") {
+            path = path.replaceFirst("1_19_hemp", "hemp")
+        }
+    } else if (mc_info.MC_VER <= mc_info.MC_1_20_6) {
+        exclude("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/hemp.json")
+        exclude("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/1_19_hemp.json")
+
+        filesMatching("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/1_20_hemp.json") {
+            path = path.replaceFirst("1_20_hemp", "hemp")
+        }
+    } else {
+        exclude("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/1_19_hemp.json")
+        exclude("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/1_20_hemp.json")
+    }
 }
 
 dependencies {

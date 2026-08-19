@@ -1,0 +1,98 @@
+{
+  "age": {
+    "replace": true,
+    "simulation_method": "property",
+    "property_name": "growth",
+    "progress_values": [
+      "bottom0",
+      "bottom1",
+      "bottom2",
+      "bottom3",
+      "bottom4"
+    ],
+
+    "conditions": [
+      {
+        "check": {
+          "fetcher_id": "named_property",
+          "property_name": "growth",
+          "value_equals": "top0"
+        },
+        "comparison": "equal",
+        "value": false
+      }
+    ],
+
+    "advance_probability": {
+      "predicate": {
+        "check": "local_brightness",
+        "comparison": "greater_or_equal",
+        "value": 12
+      },
+      "fail": 0,
+      "success": {
+        "value1": 1,
+        "operator": "/",
+        "value2": {
+          "operator": "floor",
+          "value": {
+            "value1": 1,
+            "operator": "+",
+            "value2": {
+              "value1": 50,
+              "operator": "/",
+              "value2": "growth_speed"
+            }
+          }
+        }
+      }
+    }
+  },
+  "age_final": {
+    "simulation_method": "grow_block",
+    "dependencies": [
+      "age"
+    ],
+    "conditions": [
+      {
+        "check": {
+          "fetcher_id": "named_property",
+          "property_name": "growth",
+          "value_equals": "top0"
+        },
+        "comparison": "equal",
+        "value": false
+      }
+    ],
+
+    "grow_block": "immersiveengineering:hemp",
+    "set_named_properties": {
+      "growth": "top0"
+    },
+
+    "advance_probability": {
+      "predicate": {
+        "check": "local_brightness",
+        "comparison": "greater_or_equal",
+        "value": 12
+      },
+      "fail": 0,
+      "success": {
+        "value1": 1,
+        "operator": "/",
+        "value2": {
+          "operator": "floor",
+          "value": {
+            "value1": 1,
+            "operator": "+",
+            "value2": {
+              "value1": 50,
+              "operator": "/",
+              "value2": "growth_speed"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "age": {
+    "conditions": [
+      {
+        "fetcher_id": "named_property",
+        "property_name": "half",
+        "value_equals": "lower"
+      }
+    ]
+  },
+  "age_final": {
+    "simulation_method": "grow_block",
+    "dependencies": [
+      "age"
+    ],
+    "conditions": [
+      {
+        "check": "raw_brightness",
+        "comparison": "greater_or_equal",
+        "value": 9
+      },
+      {
+        "fetcher_id": "named_property",
+        "property_name": "half",
+        "value_equals": "lower"
+      }
+    ],
+
+    "grow_block": "immersiveengineering:hemp",
+    "set_properties": {
+      "age": 4
+    },
+    "set_named_properties": {
+      "half": "upper"
+    },
+
+    "advance_probability": {
+      "value1": 1,
+      "operator": "/",
+      "value2": {
+        "operator": "floor",
+        "value": {
+          "value1": 1,
+          "operator": "+",
+          "value2": {
+            "value1": 25,
+            "operator": "/",
+            "value2": "growth_speed"
+          }
+        }
+      }
+    }
+  }
+}
