@@ -210,6 +210,7 @@ public class MathUtils {
     }
 
     public static long sampleNegativeBinomial(int successes, double odds, RandomSource random) {
+        if (odds <= 0.0) return Long.MAX_VALUE;
         return samplePoisson(sampleGamma(successes, (1.0-odds)/odds, random), random);
     }
 
