@@ -1,0 +1,9 @@
+{
+  "age": {
+    "simulation_method": "increment_property_growth",
+    "property_name": "age",
+    "bottom_block_replacement": "biomesoplenty:high_grass",
+    "max_value": 8,
+    "advance_probability": 0.01
+  }
+}
