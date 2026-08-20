@@ -53,6 +53,11 @@ processResources {
         exclude("data/farmersdelight/simulate_info/blocks/compat/farmersdelight/1_19_tomatoes.json")
     }
 
+    // No Man's Land
+    if (mc_info.MC_VER != mc_info.MC_1_21_1) {
+        exclude("data/nomansland")
+    }
+
     // Immersive Engineering
     if (mc_info.MC_VER <= mc_info.MC_1_19_4) {
         exclude("data/immersiveengineering/simulate_info/blocks/compat/immersiveengineering/hemp.json")
