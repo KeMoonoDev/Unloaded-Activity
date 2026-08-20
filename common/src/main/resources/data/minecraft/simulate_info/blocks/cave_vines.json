@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_vine": {
     "simulation_method": "increment_property_growth",
     "property_name": "age",
     "bottom_block_replacement": "minecraft:cave_vines_plant",

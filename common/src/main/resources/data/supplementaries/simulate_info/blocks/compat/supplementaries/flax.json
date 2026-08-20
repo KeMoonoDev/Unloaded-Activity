@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_crop": {
     "replace": true,
     "simulation_method": "supplementaries:grow_flax",
     "conditions": [

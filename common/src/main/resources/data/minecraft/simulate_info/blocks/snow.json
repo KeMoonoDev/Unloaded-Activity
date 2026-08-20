@@ -1,5 +1,5 @@
 {
-  "layers": {
+  "snow_layers": {
     "is_precipitation": true,
     "simulation_method": "property",
     "property_name": "layers",

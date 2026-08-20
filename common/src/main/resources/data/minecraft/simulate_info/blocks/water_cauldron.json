@@ -1,5 +1,5 @@
 {
-  "level": {
+  "fill_water": {
     "is_precipitation": true,
     "simulation_method": "property",
     "property_name": "level",

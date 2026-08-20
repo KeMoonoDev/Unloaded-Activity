@@ -10,7 +10,7 @@
       "available_space_for_gourd"
     ],
     "dependencies": [
-      "age"
+      "grow_crop"
     ],
     "advance_probability": {
       "value1": {

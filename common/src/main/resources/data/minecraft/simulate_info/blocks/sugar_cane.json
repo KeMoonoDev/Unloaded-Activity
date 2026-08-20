@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_sugar_cane": {
     "simulation_method": "max_property_growth",
     "property_name": "age",
     "update_type": "update_invisible",

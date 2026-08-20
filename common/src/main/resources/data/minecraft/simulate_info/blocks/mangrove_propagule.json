@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_sapling": {
     "simulation_method": "property",
     "property_name": "age",
     "advance_probability": 1,
@@ -15,7 +15,7 @@
       }
     ]
   },
-  "stage": {
+  "grow_tree": {
     "conditions": [
       {
         "check": {
@@ -28,7 +28,7 @@
     ]
   },
 
-  "grow_tree": {
+  "grow_tree_final": {
     "conditions": [
       {
         "check": {

@@ -1,5 +1,5 @@
 {
-  "final_grow": {
+  "grow_crop_final": {
     "simulation_method": "replace",
     "conditions": [
       {
@@ -11,7 +11,7 @@
     "block_replacement": "minecraft:torchflower",
     "drops_resources": false,
     "dependencies": [
-      "age"
+      "grow_crop"
     ],
     "advance_probability": {
       "value1": {
@@ -34,7 +34,7 @@
       "value2": 3
     }
   },
-  "age": {
+  "grow_crop": {
     "advance_probability": {
       "value1": "super",
       "operator": "/",

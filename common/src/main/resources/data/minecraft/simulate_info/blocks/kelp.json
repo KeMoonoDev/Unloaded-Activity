@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_kelp": {
     "simulation_method": "increment_property_growth",
     "property_name": "age",
     "bottom_block_replacement": "minecraft:kelp_plant",

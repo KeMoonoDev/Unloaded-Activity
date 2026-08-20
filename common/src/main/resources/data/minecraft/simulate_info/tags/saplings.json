@@ -1,5 +1,5 @@
 {
-  "stage": {
+  "grow_tree": {
     "simulation_method": "property",
     "property_name": "stage",
     "update_type": "update_none",
@@ -29,7 +29,7 @@
     }
   },
 
-  "grow_tree": {
+  "grow_tree_final": {
     "simulation_method": "grow_tree",
     "conditions": [
       {
@@ -42,7 +42,7 @@
       }
     ],
     "dependencies": [
-      "stage"
+      "grow_tree"
     ],
     "advance_probability":
 {

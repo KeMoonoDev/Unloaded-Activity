@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_cactus": {
     "simulation_method": "max_property_growth",
     "conditions": [
       {

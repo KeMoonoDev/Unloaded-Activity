@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_cocoa": {
     "simulation_method": "property",
     "property_name": "age",
     "update_type": "update_clients",

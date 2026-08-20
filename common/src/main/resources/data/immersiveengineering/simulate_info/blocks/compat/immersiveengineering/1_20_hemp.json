@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_crop": {
     "conditions": [
       {
         "check": {
@@ -11,10 +11,10 @@
       }
     ]
   },
-  "age_final": {
+  "grow_crop_final": {
     "simulation_method": "grow_block",
     "dependencies": [
-      "age"
+      "grow_crop"
     ],
     "conditions": [
       {

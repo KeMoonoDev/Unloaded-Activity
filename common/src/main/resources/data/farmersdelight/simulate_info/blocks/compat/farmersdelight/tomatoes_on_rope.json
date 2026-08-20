@@ -19,7 +19,7 @@
       ]
     }
   },
-  "age": {
+  "grow_crop": {
     "advance_probability": {
       "value1": 1,
       "operator": "/",

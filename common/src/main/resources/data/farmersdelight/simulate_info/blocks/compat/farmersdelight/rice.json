@@ -1,5 +1,5 @@
 {
-  "age": {
+  "grow_crop": {
     "simulation_method": "property",
     "property_name": "age",
     "update_type": "update_clients",
@@ -30,10 +30,10 @@
       }
     }
   },
-  "grow_upper": {
+  "grow_crop_final": {
     "simulation_method": "grow_block",
     "grow_block": "farmersdelight:rice_panicles",
-    "dependencies": ["age"],
+    "dependencies": ["grow_crop"],
     "conditions": [
       {
         "check": {

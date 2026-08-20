@@ -1,5 +1,5 @@
 {
-  "level": {
+  "fill_snow": {
     "is_precipitation": true,
     "simulation_method": "property",
     "property_name": "level",

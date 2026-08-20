@@ -8,7 +8,7 @@
                 "value": 9
             }
         ],
-        "dependencies": ["age"],
+        "dependencies": ["grow_crop"],
         "block_replacement": "farmersdelight:tomatoes",
         "advance_probability": {
             "value1": 1,
