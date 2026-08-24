@@ -76,9 +76,9 @@ public class HatchMethod extends GroupableSimulationMethod {
                     continue;
 
                 #if MC_VER >= MC_1_21_5
-                hatchedEntity.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
+                hatchedEntity.snapTo(pos.getX() + 0.3 + i * 0.2, pos.getY(), pos.getZ() + 0.3, 0, 0);
                 #else
-                hatchedEntity.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
+                hatchedEntity.moveTo(pos.getX() + 0.3 + i * 0.2, pos.getY(), pos.getZ() + 0.3, 0, 0);
                 #endif
 
                 if (this.startingAge != null && hatchedEntity instanceof AgeableMob ageableMob) {
