@@ -13,7 +13,7 @@
   },
 
   "name": "Unloaded Activity",
-  "description": "Make certain blocks such as crops grow as if they've always grown when put into simulation distance.",
+  "description": "Simulates blocks/entities, like crops, furnaces or baby mobs, to make them catch up after having been unloaded for a while.",
   "authors": [
     "Moono"
   ],
