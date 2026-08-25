@@ -13,7 +13,7 @@
   },
 
   "name": "Unloaded Activity",
-  "description": "Simulates blocks/entities, like crops, furnaces or baby mobs, to make them catch up after having been unloaded for a while.",
+  "description": "Simulates blocks/entities to make them catch up after having been unloaded for a while.",
   "authors": [
     "Moono"
   ],
