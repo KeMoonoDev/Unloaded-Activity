@@ -8,7 +8,7 @@ modId = "unloadedactivity"
 version = "${version}"
 displayName = "Unloaded Activity"
 authors = "Moono"
-description = "Simulates blocks/entities to make them catch up after having been unloaded for a while."
+description = "Simulates blocks/entities to catch up after having been unloaded for a while."
 logoFile = "icon256.png"
 
 [[dependencies.unloadedactivity]]
