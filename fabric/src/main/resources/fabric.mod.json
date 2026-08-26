@@ -13,7 +13,7 @@
   },
 
   "name": "Unloaded Activity",
-  "description": "Simulates blocks/entities to catch up after having been unloaded for a while.",
+  "description": "Simulates blocks and entities to catch up after being unloaded for a period of time.",
   "authors": [
     "Moono"
   ],
