@@ -53,7 +53,7 @@ public class WeatherTickHistory extends WeatherHistory {
 			#if MC_VER >= MC_26_1_2
             UnloadedActivity.id(DATA_NAME),
 			#else
-            MOD_ID + "-" + WeatherMsHistory.DATA_NAME,
+            MOD_ID + "-" + WeatherTickHistory.DATA_NAME,
 			#endif
 			#if MC_VER >= MC_1_21_11
             WeatherTickHistory::new,
