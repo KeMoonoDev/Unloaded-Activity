@@ -51,37 +51,37 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
     @Shadow int cookingTimer;
     @Shadow int cookingTotalTime;
 
-    @Unique
-    private int getLitTimeRemaining() {
+
+    private int unloadedactivity$getLitTimeRemaining() {
         return this.litTimeRemaining;
     }
-    @Unique
-    private int getLitTotalTime() {
+
+    private int unloadedactivity$getLitTotalTime() {
         return this.litTotalTime;
     }
-    @Unique
-    private int getCookingTimer() {
+
+    private int unloadedactivity$getCookingTimer() {
         return this.cookingTimer;
     }
-    @Unique
-    private int getCookingTotalTime() {
+
+    private int unloadedactivity$getCookingTotalTime() {
         return this.cookingTotalTime;
     }
 
-    @Unique
-    private void setLitTimeRemaining(int value) {
+
+    private void unloadedactivity$setLitTimeRemaining(int value) {
         this.litTimeRemaining = value;
     }
-    @Unique
-    private void setLitTotalTime(int value) {
+
+    private void unloadedactivity$setLitTotalTime(int value) {
         this.litTotalTime = value;
     }
-    @Unique
-    private void setCookingTimer(int value) {
+
+    private void unloadedactivity$setCookingTimer(int value) {
         this.cookingTimer = value;
     }
-    @Unique
-    private void setCookingTotalTime(int value) {
+
+    private void unloadedactivity$setCookingTotalTime(int value) {
         this.cookingTotalTime = value;
     }
     #else
@@ -90,35 +90,35 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
     @Shadow int cookingProgress;
     @Shadow int cookingTotalTime;
 
-    @Unique
-    private int getLitTimeRemaining() {
+
+    private int unloadedactivity$getLitTimeRemaining() {
         return this.litTime;
     }
-    @Unique
-    private int getLitTotalTime() {
+
+    private int unloadedactivity$getLitTotalTime() {
         return this.litDuration;
     }
-    @Unique
-    private int getCookingTimer() {return this.cookingProgress;}
-    @Unique
-    private int getCookingTotalTime() {
+
+    private int unloadedactivity$getCookingTimer() {return this.cookingProgress;}
+
+    private int unloadedactivity$getCookingTotalTime() {
         return this.cookingTotalTime;
     }
 
-    @Unique
-    private void setLitTimeRemaining(int value) {
+
+    private void unloadedactivity$setLitTimeRemaining(int value) {
         this.litTime = value;
     }
-    @Unique
-    private void setLitTotalTime(int value) {
+
+    private void unloadedactivity$setLitTotalTime(int value) {
         this.litDuration = value;
     }
-    @Unique
-    private void setCookingTimer(int value) {
+
+    private void unloadedactivity$setCookingTimer(int value) {
         this.cookingProgress = value;
     }
-    @Unique
-    private void setCookingTotalTime(int value) {
+
+    private void unloadedactivity$setCookingTotalTime(int value) {
         this.cookingTotalTime = value;
     }
     #endif
@@ -140,7 +140,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
 
     @Unique
     private boolean isLit() {
-        return getLitTimeRemaining() > 0;
+        return unloadedactivity$getLitTimeRemaining() > 0;
     }
     @Shadow protected NonNullList<ItemStack> items;
 
@@ -194,11 +194,11 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
             int burnDuration = this.getBurnDuration(fuelStack);
             #endif
             if (burnDuration == 0)
-                burnDuration = this.getCookingTimer();
+                burnDuration = this.unloadedactivity$getCookingTimer();
 
             if (burnDuration != 0) {
-                if (this.getCookingTotalTime() == 0)
-                    this.setCookingTotalTime(getTotalCookTime( (ServerLevel) level, furnace));
+                if (this.unloadedactivity$getCookingTotalTime() == 0)
+                    this.unloadedactivity$setCookingTotalTime(getTotalCookTime( (ServerLevel) level, furnace));
 
                 int spacesLeft = getMaxStackSize() - finishedStack.getCount();
 
@@ -206,17 +206,17 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 int availableBurning = 0;
 
                 if (recipe != null) { //if recipe is null then availableBurning will remain 0
-                    availableBurning = (int) min(timeDifference, (long) this.getCookingTotalTime() * min(inputCount, spacesLeft) - this.getCookingTimer());
-                    availableBurning = min(availableBurning, burnDuration * fuelCount + this.getLitTimeRemaining());
+                    availableBurning = (int) min(timeDifference, (long) this.unloadedactivity$getCookingTotalTime() * min(inputCount, spacesLeft) - this.unloadedactivity$getCookingTimer());
+                    availableBurning = min(availableBurning, burnDuration * fuelCount + this.unloadedactivity$getLitTimeRemaining());
                 }
 
                 long leftoverTime = timeDifference - availableBurning;
 
-                int fuelsConsumed = (int) ceil((float) max(availableBurning - this.getLitTimeRemaining(), 0) / (float) burnDuration);
-                this.setLitTimeRemaining((int) max((this.getLitTimeRemaining() - availableBurning + fuelsConsumed * burnDuration) - (int) leftoverTime, 0));
+                int fuelsConsumed = (int) ceil((float) max(availableBurning - this.unloadedactivity$getLitTimeRemaining(), 0) / (float) burnDuration);
+                this.unloadedactivity$setLitTimeRemaining((int) max((this.unloadedactivity$getLitTimeRemaining() - availableBurning + fuelsConsumed * burnDuration) - (int) leftoverTime, 0));
 
-                int itemsCrafted = (availableBurning + this.getCookingTimer()) / this.getCookingTotalTime();
-                this.setCookingTimer((int) max(((availableBurning + this.getCookingTimer()) % this.getCookingTotalTime()) - leftoverTime * 2, 0));
+                int itemsCrafted = (availableBurning + this.unloadedactivity$getCookingTimer()) / this.unloadedactivity$getCookingTotalTime();
+                this.unloadedactivity$setCookingTimer((int) max(((availableBurning + this.unloadedactivity$getCookingTimer()) % this.unloadedactivity$getCookingTotalTime()) - leftoverTime * 2, 0));
 
                 if (fuelsConsumed > 0) {
                     stateChanged = true;
@@ -259,7 +259,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 }
 
                 if (ingredient.getCount() == 0 || getMaxStackSize() - finishedStack.getCount() == 0)
-                    this.setCookingTimer(0);
+                    this.unloadedactivity$setCookingTimer(0);
 
                 if (oldIsLit != isLit()) {
                     stateChanged = true;
@@ -268,7 +268,7 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 }
 
                 if (!isLit())
-                    this.setLitTotalTime(0);
+                    this.unloadedactivity$setLitTotalTime(0);
 
                 if (stateChanged) {
                     AbstractFurnaceBlockEntity.setChanged(level, pos, state);
