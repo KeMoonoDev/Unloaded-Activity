@@ -43,7 +43,48 @@ markdown_extensions:
 nav:
   - About Unloaded Activity: index.md
   - For players:
+      - Blacklisting blocks: players/blacklisting_blocks.md
       - Config options: players/config.md
+      - Available config options:
+
+        - General:
+          - fallbackToOverworldTime: players/options/general/fallbackToOverworldTime.md
+          - useSystemTime: players/options/general/useSystemTime.md
+          - unloadedSimulationSpeed: players/options/general/unloadedSimulationSpeed.md
+          - tickDifferenceThreshold: players/options/general/tickDifferenceThreshold.md
+          - debugLogs: players/options/general/debugLogs.md
+          - convertCCAData: players/options/general/convertCCAData.md
+
+        - Chunk simulations:
+          - enableSimulatingRandomTicks: players/options/chunk_simulations/enableSimulatingRandomTicks.md
+          - enableSimulatingPrecipitationTicks: players/options/chunk_simulations/enableSimulatingPrecipitationTicks.md
+          - maxChunksIndexedPerTick: players/options/chunk_simulations/maxChunksIndexedPerTick.md
+          - maxChunkUpdatesPerTick: players/options/chunk_simulations/maxChunkUpdatesPerTick.md
+          - multiplyMaxChunkUpdatesPerPlayer: players/options/chunk_simulations/multiplyMaxChunkUpdatesPerPlayer.md
+          - multiplyMaxChunksIndexedPerPlayer: players/options/chunk_simulations/multiplyMaxChunksIndexedPerPlayer.md
+          - randomizeBlockUpdates: players/options/chunk_simulations/randomizeBlockUpdates.md
+          - blacklistedBlocks: players/options/chunk_simulations/blacklistedBlocks.md
+
+        - Group simulations:
+          - enableSimulatingGroups: players/options/group_simulations/enableSimulatingGroups.md
+          - maxGroupUpdatesPerTick: players/options/group_simulations/maxGroupUpdatesPerTick.md
+          - groupTickDifferenceThreshold: players/options/group_simulations/groupTickDifferenceThreshold.md
+          - maxGroupTickDeviationScale: players/options/group_simulations/maxGroupTickDeviationScale.md
+          - maxForcedChunkLoads: players/options/group_simulations/maxForcedChunkLoads.md
+          - maxGroupTickIterations: players/options/group_simulations/maxGroupTickIterations.md
+          - minGroupTickIterations: players/options/group_simulations/minGroupTickIterations.md
+          - groupTickUpdateStrength: players/options/group_simulations/groupTickUpdateStrength.md
+          - maxGroupTickSize: players/options/group_simulations/maxGroupTickSize.md
+
+        - Entity simulations:
+          - enableSimulatingEntities: players/options/entity_simulations/enableSimulatingEntities.md
+          - simulateEntitiesAgeing: players/options/entity_simulations/simulateEntitiesAgeing.md
+          - simulateSheepDesireToEat: players/options/entity_simulations/simulateSheepDesireToEat.md
+
+        - BlockEntity simulations:
+          - enableSimulatingBlockEntities: players/options/blockentity_simulations/enableSimulatingBlockEntities.md
+          - simulateFurnaceSmelting: players/options/blockentity_simulations/simulateFurnaceSmelting.md
+
   - For developers:
       - Introduction: developers/index.md
       - Things that exist and how to use them:
