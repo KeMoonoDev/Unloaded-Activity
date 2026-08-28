@@ -343,28 +343,11 @@ public class GameUtils {
         return Optional.empty();
     }
 
-
-    public static <R> DataResult<R> returnError(DataResult<?> dataResult) {
-        #if MC_VER >= MC_1_19_4
-        return DataResult.error(() -> dataResult.error().get().message());
+    public static int getCropAge(CropBlock block, BlockState state) {
+        #if MC_VER >= MC_1_20_1
+        return block.getAge(state);
         #else
-        return DataResult.error(dataResult.error().get().message());
-        #endif
-    }
-
-    public static <R> DataResult<R> returnError(String info, DataResult<?> dataResult) {
-        #if MC_VER >= MC_1_19_4
-        return DataResult.error(() -> info + dataResult.error().get().message());
-        #else
-        return DataResult.error(info + "\n" + dataResult.error().get().message());
-        #endif
-    }
-
-    public static <R> DataResult<R> returnError(String info) {
-        #if MC_VER >= MC_1_19_4
-        return DataResult.error(() -> info);
-        #else
-        return DataResult.error(info);
+        return state.getValue(block.getAgeProperty());
         #endif
     }
 }
