@@ -22,6 +22,7 @@ def mc_1_19_2 = Integer.parseInt((String)mc_info.MC_1_19_2)
 def mc_1_19_4 = Integer.parseInt((String)mc_info.MC_1_19_4)
 def mc_1_20_1 = Integer.parseInt((String)mc_info.MC_1_20_1)
 def mc_1_21_1 = Integer.parseInt((String)mc_info.MC_1_21_1)
+def mc_26_1_2 = Integer.parseInt((String)mc_info.MC_26_1_2)
 
 processResources {
     exclude("dev_icons")
@@ -146,6 +147,11 @@ dependencies {
         compileOnly "maven.modrinth:neapolitan:5.1.0"
     } else if (mc_ver >= mc_1_19_2) {
         compileOnly "maven.modrinth:neapolitan:4.1.0"
+    }
+
+    // Snow! Real Magic! (Not a magic mod)
+    if (mc_ver >= mc_26_1_2) {
+        compileOnly "maven.modrinth:snow-real-magic:26.0.3+fabric"
     }
 
     // No Man's Land

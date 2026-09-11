@@ -1,0 +1,9 @@
+{
+  "snow": {
+    "replace": true,
+    "is_precipitation": true,
+    "simulation_method": "snowrealmagic:convert_to_snowy",
+    "conditions": [],
+    "advance_probability": 1
+  }
+}

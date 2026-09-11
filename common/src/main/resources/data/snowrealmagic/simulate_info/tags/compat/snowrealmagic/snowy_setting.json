@@ -1,0 +1,13 @@
+{
+  "snow": {
+    "simulation_method": "property",
+    "property_name": "layers",
+
+    "conditions": [
+      "snowrealmagic:can_snow_survive"
+    ],
+
+    "max_value": "snowrealmagic:max_simulation_layers",
+    "advance_probability": 1
+  }
+}
