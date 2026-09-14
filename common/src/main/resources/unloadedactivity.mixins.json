@@ -13,7 +13,9 @@
     "IntegerPropertyAccessor",
     "LevelChunkMixin",
     "MinecraftServerMixin",
+    "PointedDripstoneBlockAccessor",
     "ServerLevelMixin",
+    "SpeleothemBlockAccessor",
     "block_entities.AbstractFurnaceBlockEntityMixin",
     "entities.AgeableMobMixin",
     "entities.SheepMixin"

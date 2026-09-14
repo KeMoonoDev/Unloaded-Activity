@@ -1,11 +1,16 @@
 package dev.moono.unloadedactivity.impl.simulation_methods;
 
+#if MC_VER >= MC_26_2
+import dev.moono.unloadedactivity.mixin.SpeleothemBlockAccessor;
+#endif
+
 import dev.moono.unloadedactivity.*;
 import dev.moono.unloadedactivity.api.condition.FixedCondition;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
+import dev.moono.unloadedactivity.mixin.PointedDripstoneBlockAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -63,17 +68,17 @@ public class SpeleothemMethod extends SimulationMethod {
 
     public int getMaxGrowthLength(#if MC_VER >= MC_26_2 SpeleothemBlock thisBlock #else PointedDripstoneBlock thisBlock #endif) {
         #if MC_VER >= MC_26_2
-        return thisBlock.getMaxGrowthLength();
+        return ((SpeleothemBlockAccessor)thisBlock).unloadedactivity$invokeGetMaxGrowthLength();
         #else
-        return PointedDripstoneBlock.MAX_GROWTH_LENGTH;
+        return PointedDripstoneBlockAccessor.unloadedactivity$getMaxGrowthLength();
         #endif
     }
 
     public int getBottomSearchRange() {
         #if MC_VER >= MC_26_2
-        return SpeleothemBlock.MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING;
+        return SpeleothemBlockAccessor.unloadedactivity$getMaxStalagmiteSearchRangeWhenGrowing();
         #else
-        return PointedDripstoneBlock.MAX_STALAGMITE_SEARCH_RANGE_WHEN_GROWING;
+        return PointedDripstoneBlockAccessor.unloadedactivity$getMaxStalagmiteSearchRangeWhenGrowing();
         #endif
     }
 
@@ -107,9 +112,9 @@ public class SpeleothemMethod extends SimulationMethod {
 
     private @Nullable BlockPos getExtendedCauldronPos(Level world, BlockPos pos, Fluid fluid) {
         if (this.cauldronFillConfig == null) return null;
-        BlockPos cauldronPos = PointedDripstoneBlock.findFillableCauldronBelowStalactiteTip(world, pos, fluid);
+        BlockPos cauldronPos = PointedDripstoneBlockAccessor.unloadedactivity$invokeFindFillableCauldronBelowStalactiteTip(world, pos, fluid);
         if (cauldronPos == null) {
-            cauldronPos = PointedDripstoneBlock.findFillableCauldronBelowStalactiteTip(world, pos.below(this.cauldronFillConfig.maxDistanceBetweenTipAndCauldron()-1), fluid);
+            cauldronPos = PointedDripstoneBlockAccessor.unloadedactivity$invokeFindFillableCauldronBelowStalactiteTip(world, pos.below(this.cauldronFillConfig.maxDistanceBetweenTipAndCauldron()-1), fluid);
         }
         return cauldronPos;
     }
@@ -254,7 +259,7 @@ public class SpeleothemMethod extends SimulationMethod {
         while (successesUntilReachGround > 0 && totalUpperDripGrowth > 0) {
             --successesUntilReachGround;
             --totalUpperDripGrowth;
-            thisBlock.grow(level, tipPos, Direction.DOWN);
+            GameUtils.grow(level, tipPos, Direction.DOWN, thisBlock);
             //recalculate tip so if tryGrow fails, we wont grow past any blocking blocks. Simply doing tipPos.down() doesn't account for fail.
             tipPos = GameUtils.findTip(level.getBlockState(pos), level, pos, 12, false);
             if (tipPos == null) return null;
@@ -267,20 +272,20 @@ public class SpeleothemMethod extends SimulationMethod {
                     return null;
 
                 --totalLowerDripGrowth;
-                thisBlock.growStalagmiteBelow(level, tipPos);
+                GameUtils.growStalagmiteBelow(level, tipPos, thisBlock);
             } else if (totalLowerDripGrowth == 0) {
                 --totalUpperDripGrowth;
-                thisBlock.grow(level, tipPos, Direction.DOWN);
+                GameUtils.grow(level, tipPos, Direction.DOWN, thisBlock);
                 //recalculate tip so if tryGrow fails, we wont grow past any blocking blocks. Simply doing tipPos.down() doesnt account for fail.
                 tipPos = GameUtils.findTip(level.getBlockState(pos), level, pos, 12, false);
                 if (tipPos == null) return null;
 
             } else if (random.nextBoolean()) {
                 --totalLowerDripGrowth;
-                thisBlock.growStalagmiteBelow(level, tipPos);
+                GameUtils.growStalagmiteBelow(level, tipPos, thisBlock);
             } else {
                 --totalUpperDripGrowth;
-                thisBlock.grow(level, tipPos, Direction.DOWN);
+                GameUtils.grow(level, tipPos, Direction.DOWN, thisBlock);
                 //recalculate tip so if tryGrow fails, we wont grow past any blocking blocks. Simply doing tipPos.down() doesnt account for fail.
                 tipPos = GameUtils.findTip(level.getBlockState(pos), level, pos, 12, false);
                 if (tipPos == null) return null;

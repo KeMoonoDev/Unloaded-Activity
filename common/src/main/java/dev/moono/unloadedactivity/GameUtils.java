@@ -1,6 +1,7 @@
 package dev.moono.unloadedactivity;
 
 #if MC_VER >= MC_1_21_11
+import dev.moono.unloadedactivity.mixin.SpeleothemBlockAccessor;
 import net.minecraft.resources.Identifier;
 #else
 import net.minecraft.resources.ResourceLocation;
@@ -20,6 +21,7 @@ import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
+import dev.moono.unloadedactivity.mixin.PointedDripstoneBlockAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Direction;
@@ -270,17 +272,17 @@ public class GameUtils {
 
     public static boolean canGrow(ServerLevel level, BlockPos basePos, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif) {
         #if MC_VER >= MC_26_2
-        return speleothemBlock.canGrow(level, basePos);
+        return ((SpeleothemBlockAccessor)speleothemBlock).unloadedactivity$invokeCanGrow(level, basePos);
         #else
         BlockState rootState = level.getBlockState(basePos.above(1));
         BlockState aboveState = level.getBlockState(basePos.above(2));
-        return PointedDripstoneBlock.canGrow(rootState, aboveState);
+        return PointedDripstoneBlockAccessor.unloadedactivity$invokeCanGrow(rootState, aboveState);
         #endif
     }
 
     public static boolean isFreeHangingStalactite(final BlockState tipState) {
         #if MC_VER >= MC_26_2
-        return SpeleothemBlock.isFreeHangingStalactite(tipState);
+        return SpeleothemBlockAccessor.unloadedactivity$invokeIsFreeHangingStalactite(tipState);
         #else
         return PointedDripstoneBlock.canDrip(tipState);
         #endif
@@ -288,49 +290,65 @@ public class GameUtils {
 
     public static boolean blocksStalagmiteScan(final LevelReader level, final BlockPos pos, final BlockState state, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif) {
         #if MC_VER >= MC_26_2
-        return speleothemBlock.blocksStalagmiteScan(level, pos, state);
+        return ((SpeleothemBlockAccessor)speleothemBlock).unloadedactivity$invokeBlocksStalagmiteScan(level, pos, state);
         #else
-        return !PointedDripstoneBlock.canDripThrough(level, pos, state);
+        return !PointedDripstoneBlockAccessor.unloadedactivity$invokeCanDripThrough(level, pos, state);
         #endif
     }
 
     public static boolean isUnmergedTipWithDirection(BlockState state, Direction direction, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif) {
         #if MC_VER >= MC_26_2
-        return speleothemBlock.isUnmergedTipWithDirection(state, direction);
+        return ((SpeleothemBlockAccessor)speleothemBlock).unloadedactivity$invokeIsUnmergedTipWithDirection(state, direction);
         #else
-        return PointedDripstoneBlock.isUnmergedTipWithDirection(state, direction);
+        return PointedDripstoneBlockAccessor.unloadedactivity$invokeIsUnmergedTipWithDirection(state, direction);
         #endif
     }
 
     public static boolean canTipGrow(final BlockState tipState, final ServerLevel level, final BlockPos tipPos, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif ) {
         #if MC_VER >= MC_26_2
-        return speleothemBlock.canTipGrow(tipState, level, tipPos);
+        return ((SpeleothemBlockAccessor)speleothemBlock).unloadedactivity$invokeCanTipGrow(tipState, level, tipPos);
         #else
-        return PointedDripstoneBlock.canTipGrow(tipState, level, tipPos);
+        return PointedDripstoneBlockAccessor.unloadedactivity$invokeCanTipGrow(tipState, level, tipPos);
         #endif
     }
 
     public static boolean isValidSpeleothemPlacement(final ServerLevel level, final BlockPos pos, final Direction tipDirection, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif ) {
         #if MC_VER >= MC_26_2
-        return speleothemBlock.isValidSpeleothemPlacement(level, pos, tipDirection);
+        return ((SpeleothemBlockAccessor)speleothemBlock).unloadedactivity$invokeIsValidSpeleothemPlacement(level, pos, tipDirection);
         #else
-        return PointedDripstoneBlock.isValidPointedDripstonePlacement(level, pos, tipDirection);
+        return PointedDripstoneBlockAccessor.unloadedactivity$invokeIsValidPointedDripstonePlacement(level, pos, tipDirection);
         #endif
     }
 
     public static boolean isStalactiteStartPos(BlockState state, ServerLevel level, BlockPos pos) {
         #if MC_VER >= MC_26_2
-        return SpeleothemBlock.isStalactiteStartPos(state, level, pos);
+        return SpeleothemBlockAccessor.unloadedactivity$invokeIsStalactiteStartPos(state, level, pos);
         #else
-        return PointedDripstoneBlock.isStalactiteStartPos(state, level, pos);
+        return PointedDripstoneBlockAccessor.unloadedactivity$invokeIsStalactiteStartPos(state, level, pos);
         #endif
     }
 
     public static @Nullable BlockPos findTip(BlockState state, ServerLevel level, BlockPos pos, int maxSearchLength, boolean includeMergedTip) {
         #if MC_VER >= MC_26_2
-        return SpeleothemBlock.findTip(state, level, pos, maxSearchLength, includeMergedTip);
+        return SpeleothemBlockAccessor.unloadedactivity$invokeFindTip(state, level, pos, maxSearchLength, includeMergedTip);
         #else
-        return PointedDripstoneBlock.findTip(state, level, pos, maxSearchLength, includeMergedTip);
+        return PointedDripstoneBlockAccessor.unloadedactivity$invokeFindTip(state, level, pos, maxSearchLength, includeMergedTip);
+        #endif
+    }
+
+    public static void grow(ServerLevel level, BlockPos growFromPos, Direction growToDirection, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif) {
+        #if MC_VER >= MC_26_2
+        ((SpeleothemBlockAccessor)speleothemBlock).unloadedactivity$invokeGrow(level, growFromPos, growToDirection);
+        #else
+        PointedDripstoneBlockAccessor.unloadedactivity$invokeGrow(level, growFromPos, growToDirection);
+        #endif
+    }
+
+    public static void growStalagmiteBelow(ServerLevel level, BlockPos growFromPos, #if MC_VER >= MC_26_2 SpeleothemBlock speleothemBlock #else PointedDripstoneBlock pointedDripstoneBlock #endif) {
+        #if MC_VER >= MC_26_2
+        ((SpeleothemBlockAccessor)speleothemBlock).unloadedactivity$invokeGrowStalagmiteBelow(level, growFromPos);
+        #else
+        PointedDripstoneBlockAccessor.unloadedactivity$invokeGrowStalagmiteBelow(level, growFromPos);
         #endif
     }
 
