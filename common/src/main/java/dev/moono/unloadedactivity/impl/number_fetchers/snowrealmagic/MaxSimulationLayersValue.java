@@ -1,5 +1,6 @@
 package dev.moono.unloadedactivity.impl.number_fetchers.snowrealmagic;
 
+#if MC_VER >= MC_1_20_1
 import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
 import net.minecraft.tags.BlockTags;
@@ -29,3 +30,6 @@ public class MaxSimulationLayersValue implements FixedNumberFetcher {
         return layers;
     }
 }
+#else
+public class MaxSimulationLayersValue {}
+#endif

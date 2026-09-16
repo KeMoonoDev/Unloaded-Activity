@@ -150,8 +150,11 @@ dependencies {
     }
 
     // Snow! Real Magic! (Not a magic mod)
+    //Not gonna support for 1.19.x
     if (mc_ver >= mc_26_1_2) {
         compileOnly "maven.modrinth:snow-real-magic:26.0.3+fabric"
+    } else if (mc_ver >= mc_1_20_1) {
+        compileOnly "maven.modrinth:iJNje1E8:aQw97T9l" // 10.7.0 Forge
     }
 
     // No Man's Land

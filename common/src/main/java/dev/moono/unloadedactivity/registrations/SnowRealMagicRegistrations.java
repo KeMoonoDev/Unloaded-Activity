@@ -7,17 +7,20 @@ import dev.moono.unloadedactivity.api.UnloadedActivityApi;
 import dev.moono.unloadedactivity.impl.number_fetchers.snowrealmagic.CanSnowSurviveValue;
 import dev.moono.unloadedactivity.impl.number_fetchers.snowrealmagic.MaxSimulationLayersValue;
 import dev.moono.unloadedactivity.impl.simulation_methods.snowrealmagic.SnowMethod;
-import snownee.snow.SnowRealMagic;
 
 public class SnowRealMagicRegistrations implements UnloadedActivityApi {
     @Override
     public void registerNumberFetchers(NumberFetcherRegistry registry) {
-        registry.register(GameUtils.createId(SnowRealMagic.ID, "max_simulation_layers"), new MaxSimulationLayersValue());
-        registry.register(GameUtils.createId(SnowRealMagic.ID, "can_snow_survive"), new CanSnowSurviveValue());
+        #if MC_VER >= MC_1_20_1
+        registry.register(GameUtils.createId("snowrealmagic", "max_simulation_layers"), new MaxSimulationLayersValue());
+        registry.register(GameUtils.createId("snowrealmagic", "can_snow_survive"), new CanSnowSurviveValue());
+        #endif
     }
 
     @Override
     public void registerSimulationMethods(SimulationMethodRegistry registry) {
-        registry.register(GameUtils.createId(SnowRealMagic.ID, "convert_to_snowy"), SnowMethod::new);
+        #if MC_VER >= MC_1_20_1
+        registry.register(GameUtils.createId("snowrealmagic", "convert_to_snowy"), SnowMethod::new);
+        #endif
     }
 }
