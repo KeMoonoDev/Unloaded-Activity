@@ -83,7 +83,11 @@ public class GroupInfo {
         switch (this.shape) {
             case DIAMOND -> {
                 return () -> new AbstractIterator<>() {
+                    #if MC_VER >= MC_26_3
+                    private final Iterator<BlockPos> iterator = BlockPos.withinClippedManhattan(BlockPos.ZERO, width, height, width).iterator();
+                    #else
                     private final Iterator<BlockPos> iterator = BlockPos.withinManhattan(BlockPos.ZERO, width, height, width).iterator();
+                    #endif
                     @Override
                     protected Vec3i computeNext() {
                         if (!iterator.hasNext())
@@ -103,7 +107,11 @@ public class GroupInfo {
             }
             case BLOCK -> {
                 return () -> new AbstractIterator<>() {
+                    #if MC_VER >= MC_26_3
+                    private final Iterator<BlockPos> iterator = BlockPos.withinBoxByManhattanDistance(BlockPos.ZERO, width, height, width).iterator();
+                    #else
                     private final Iterator<BlockPos> iterator = BlockPos.withinManhattan(BlockPos.ZERO, width, height, width).iterator();
+                    #endif
                     @Override
                     protected Vec3i computeNext() {
                         if (!iterator.hasNext())

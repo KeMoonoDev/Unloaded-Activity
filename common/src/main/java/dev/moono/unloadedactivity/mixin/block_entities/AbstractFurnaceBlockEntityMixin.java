@@ -4,7 +4,8 @@ package dev.moono.unloadedactivity.mixin.block_entities;
 import net.minecraft.world.item.ItemStackTemplate;
 #endif
 
-#if MC_VER >= MC_1_21_3
+#if MC_VER >= MC_26_3
+#elif MC_VER >= MC_1_21_3
 import net.minecraft.world.level.block.entity.FuelValues;
 #endif
 
@@ -144,7 +145,9 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
     }
     @Shadow protected NonNullList<ItemStack> items;
 
-    #if MC_VER >= MC_1_21_3
+    #if MC_VER >= MC_26_3
+    @Shadow protected abstract int getBurnDuration(ServerLevel level, ItemStack fuel);
+    #elif MC_VER >= MC_1_21_3
     @Shadow protected abstract int getBurnDuration(FuelValues fuelValues, ItemStack fuel);
     #else
     @Shadow protected abstract int getBurnDuration(ItemStack fuel);
@@ -188,7 +191,9 @@ public abstract class AbstractFurnaceBlockEntityMixin extends BaseContainerBlock
                 #endif
             : null;
 
-            #if MC_VER >= MC_1_21_3
+            #if MC_VER >= MC_26_3
+            int burnDuration = this.getBurnDuration((ServerLevel) level, fuelStack);
+            #elif MC_VER >= MC_1_21_3
             int burnDuration = this.getBurnDuration(level.fuelValues(), fuelStack);
             #else
             int burnDuration = this.getBurnDuration(fuelStack);

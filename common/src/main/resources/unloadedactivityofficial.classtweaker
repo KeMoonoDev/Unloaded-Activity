@@ -19,5 +19,6 @@ accessible method net/minecraft/world/level/block/AbstractCauldronBlock receiveS
 accessible field net/minecraft/world/level/block/SaplingBlock treeGrower Lnet/minecraft/world/level/block/grower/TreeGrower;
 
 accessible method net/minecraft/world/level/block/BambooSaplingBlock growBamboo (Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)V
+accessible method net/minecraft/world/level/block/BambooStalkBlock growBamboo (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;I)V
 accessible method net/minecraft/world/level/block/BambooStalkBlock getHeightBelowUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I
 accessible method net/minecraft/world/level/block/BambooStalkBlock getHeightAboveUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I

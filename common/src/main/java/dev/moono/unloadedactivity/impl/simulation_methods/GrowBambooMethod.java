@@ -92,14 +92,22 @@ public class GrowBambooMethod extends SimulationMethod {
             int totalGrowth = 0;
 
             for(int i=0;i<result.occurrences();i++) {
+                #if MC_VER >= MC_26_3
+                bambooBlock.growBamboo(state, level,  pos, random, height + 1);
+                #else
                 bambooBlock.performBonemeal(level, random, pos, state);
+                #endif
 
                 int grew = bambooBlock.getHeightAboveUpToMax(level, pos);
 
+                height += grew;
                 totalGrowth += grew;
 
                 pos = pos.above(grew);
                 state = level.getBlockState(pos);
+
+                if (height >= maxHeight)
+                    return null;
 
                 if (!this.canDoMore(state, level, pos)) {
                     return null;
