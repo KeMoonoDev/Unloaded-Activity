@@ -1,0 +1,59 @@
+{
+  "grow_up": {
+    "simulation_method": "grow_block",
+    "conditions": [
+      {
+        "fetcher_id": "named_property",
+        "property_name": "facing",
+        "value_equals": "up"
+      },
+      {
+        "value1": "has_occluding_neighbors",
+        "operator": "+",
+        "value2": {
+          "fetcher_id": "has_tag",
+          "tag": "neapolitan:vanilla_plantable_on",
+          "offset": "below"
+        }
+      }
+    ],
+    "advance_probability": 0.1,
+    "grow_block": "neapolitan:vanilla_vine",
+    "bottom_block_replacement": "neapolitan:vanilla_vine_plant",
+    "set_named_properties": {
+      "facing": "up"
+    },
+    "set_bottom_named_properties": {
+      "facing": "up"
+    }
+  },
+  "grow_down": {
+    "simulation_method": "grow_block",
+    "reverse_growth_direction": true,
+    "conditions": [
+      {
+        "fetcher_id": "named_property",
+        "property_name": "facing",
+        "value_equals": "down"
+      },
+      {
+        "value1": "has_occluding_neighbors",
+        "operator": "+",
+        "value2": {
+          "fetcher_id": "has_tag",
+          "tag": "neapolitan:vanilla_plantable_on",
+          "offset": "above"
+        }
+      }
+    ],
+    "advance_probability": 0.1,
+    "grow_block": "neapolitan:vanilla_vine",
+    "bottom_block_replacement": "neapolitan:vanilla_vine_plant",
+    "set_named_properties": {
+      "facing": "down"
+    },
+    "set_bottom_named_properties": {
+      "facing": "down"
+    }
+  }
+}
