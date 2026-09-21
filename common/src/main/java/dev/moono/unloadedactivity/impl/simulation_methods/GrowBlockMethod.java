@@ -25,6 +25,7 @@ import java.util.Optional;
 public class GrowBlockMethod extends SeparableSimulationMethod {
     public final int updateType;
     public final boolean updateNeighbors;
+    public final boolean reverseGrowthDirection;
     public final RandomizedValueExpression<Block> growBlock;
     public final @Nullable RandomizedValueExpression<Block> bottomBlockReplacement;
 
@@ -54,6 +55,7 @@ public class GrowBlockMethod extends SeparableSimulationMethod {
 
         this.updateType = config.getNumberOrDefault("update_type", Block.UPDATE_ALL).intValue();
         this.updateNeighbors = config.getBooleanOrDefault("update_neighbors", false);
+        this.reverseGrowthDirection = config.getBooleanOrDefault("reverse_growth_direction", false);
 
         this.growBlock = config.getRandomizedBlockExpression("grow_block");
         this.bottomBlockReplacement = config.getRandomizedBlockExpressionNullable("bottom_block_replacement");
@@ -99,9 +101,16 @@ public class GrowBlockMethod extends SeparableSimulationMethod {
             for(height = 1; height <= this.restrictHeight.maxHeight; ++height) {
                 boolean doContinue = false;
                 for (Block lowerBlock : this.restrictHeight.lowerBlocks) {
-                    if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
-                        doContinue = true;
-                        break;
+                    if (reverseGrowthDirection) {
+                        if (level.getBlockState(pos.above(height)).is(lowerBlock)) {
+                            doContinue = true;
+                            break;
+                        }
+                    } else {
+                        if (level.getBlockState(pos.below(height)).is(lowerBlock)) {
+                            doContinue = true;
+                            break;
+                        }
                     }
                 }
                 if (doContinue) continue;
@@ -112,7 +121,7 @@ public class GrowBlockMethod extends SeparableSimulationMethod {
 
         if (replaceAboveBlock) return 1;
 
-        return level.isEmptyBlock(pos.above()) ? 1 : 0;
+        return level.isEmptyBlock(reverseGrowthDirection ? pos.below() : pos.above()) ? 1 : 0;
     }
 
     @Override
@@ -142,7 +151,7 @@ public class GrowBlockMethod extends SeparableSimulationMethod {
         BlockState aboveBlockState = aboveBlock.defaultBlockState();
         aboveBlockState = SimulationUtils.applySetProperties(aboveBlockState, context, setProperties);
         aboveBlockState = SimulationUtils.applySetNamedProperties(aboveBlockState, context, setNamedProperties);
-        deferredBlockPlacer.setBlock(pos.above(), aboveBlockState, updateNeighbors, updateType, finalTime);
+        deferredBlockPlacer.setBlock(reverseGrowthDirection ? pos.below() : pos.above(), aboveBlockState, updateNeighbors, updateType, finalTime);
 
         return deferredBlockPlacer;
     }
