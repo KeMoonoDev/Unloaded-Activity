@@ -11,6 +11,7 @@ import dev.moono.unloadedactivity.impl.simulation_methods.*;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 public class DefaultRegistrations implements UnloadedActivityApi {
@@ -125,6 +126,15 @@ public class DefaultRegistrations implements UnloadedActivityApi {
                 JsonElement offsetUnparsed = data.get("offset");
                 if (offsetUnparsed == null) return new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid());
                 return new IsBlockNeighborsMatchValue(b -> b #if MC_VER < MC_1_20_1 .getMaterial() #endif .isSolid(), GameUtils.parseOffset(offsetUnparsed));
+            }
+        );
+
+        registry.register(
+            UnloadedActivity.id("has_occluding_neighbors"),
+            data -> {
+                JsonElement offsetUnparsed = data.get("offset");
+                if (offsetUnparsed == null) return new IsBlockNeighborsMatchValue(BlockBehaviour.BlockStateBase::canOcclude);
+                return new IsBlockNeighborsMatchValue(BlockBehaviour.BlockStateBase::canOcclude, GameUtils.parseOffset(offsetUnparsed));
             }
         );
 
