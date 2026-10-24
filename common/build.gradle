@@ -151,6 +151,6 @@ dependencies {
     // No Man's Land
     // This mod only supports 1.21.1.
     if (mc_ver == mc_1_21_1) {
-        compileOnly "maven.modrinth:kjZCvAn6:bcszfrVc" // 1.5.12
+        compileOnly "maven.modrinth:kjZCvAn6:xEOvRePP" // 1.6.3
     }
 }

@@ -6,8 +6,6 @@ import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
 import dev.moono.unloadedactivity.api.UnloadedActivityApi;
 import dev.moono.unloadedactivity.impl.simulation_methods.nomansland.GrowFruitLeavesMethod;
 import dev.moono.unloadedactivity.impl.simulation_methods.nomansland.RotFruitLeavesMethod;
-import dev.moono.unloadedactivity.impl.simulation_methods.nomansland.TapMethod;
-import dev.moono.unloadedactivity.impl.simulation_methods.supplementaries.GrowFlaxMethod;
 
 public class NoMansLandRegistrations implements UnloadedActivityApi {
     @Override
@@ -19,8 +17,6 @@ public class NoMansLandRegistrations implements UnloadedActivityApi {
     public void registerSimulationMethods(SimulationMethodRegistry registry) {
 
         #if MC_VER == MC_1_21_1
-        registry.register(GameUtils.createId("nomansland", "tap"), TapMethod::new);
-
         registry.register(GameUtils.createId("nomansland", "grow_fruit_leaves"), GrowFruitLeavesMethod::new);
 
         registry.register(GameUtils.createId("nomansland", "rot_fruit_leaves"), RotFruitLeavesMethod::new);
