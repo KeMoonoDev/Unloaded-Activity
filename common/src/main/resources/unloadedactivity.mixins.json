@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "BlockEntityMixin",
+    "BoundTickingBlockEntityAccessor",
     "BoundTickingBlockEntityMixin",
     "ChunkAccessMixin",
     "ChunkSerializerMixin",
@@ -12,6 +13,7 @@
     "EntityMixin",
     "IntegerPropertyAccessor",
     "LevelChunkMixin",
+    "LithiumSleepingBlockEntityMixin",
     "MinecraftServerMixin",
     "PointedDripstoneBlockAccessor",
     "ServerLevelMixin",
