@@ -19,7 +19,6 @@
     "ServerLevelMixin",
     "SpeleothemBlockAccessor",
     "block_entities.AbstractFurnaceBlockEntityMixin",
-    "entities.AgeableMobMixin",
     "entities.SheepMixin"
   ],
   "injectors": {

@@ -5,5 +5,5 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 
 public interface ConfigOption {
-    void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder);
+    void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, CommandBuildContext context);
 }

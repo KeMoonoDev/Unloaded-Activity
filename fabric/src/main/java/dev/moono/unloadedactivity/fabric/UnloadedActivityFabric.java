@@ -70,7 +70,7 @@ public class UnloadedActivityFabric implements ModInitializer {
 
 		UnloadedActivity.init(new FabricPlatformHelper(), new ArrayList<>(disabledCompats), extraEntryPoints);
 
-		CommandRegistrationCallback.EVENT.register((dispatcher,context,environment) -> UnloadedActivityCommand.register(dispatcher));
+		CommandRegistrationCallback.EVENT.register((dispatcher,context,environment) -> UnloadedActivityCommand.register(dispatcher, context));
 		#if MC_VER >= MC_26_1_2
 		ServerChunkEvents.CHUNK_LOAD.register((level, chunk, ignored) -> UnloadedActivity.addChunkToQueue(level.getServer(), chunk));
 		#else

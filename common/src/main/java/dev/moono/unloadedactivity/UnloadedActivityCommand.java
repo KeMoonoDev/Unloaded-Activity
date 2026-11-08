@@ -30,7 +30,7 @@ import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 public class UnloadedActivityCommand {
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
         LiteralArgumentBuilder<CommandSourceStack> commandBuilder = literal(MOD_ID).requires(source -> {
             // If it's single player then the host should have access to the commands. Otherwise, only people with permission level 4 have access to them.
 
@@ -49,7 +49,7 @@ public class UnloadedActivityCommand {
             #endif
         });
 
-        addConfigs(commandBuilder);
+        addConfigs(commandBuilder, context);
         addBenchmark(commandBuilder);
 
         commandBuilder.then(
@@ -62,21 +62,21 @@ public class UnloadedActivityCommand {
             ).then(
                 argument("x", integer()).then(
                     argument("y", integer()).then(
-                        argument("z", integer()).executes(context -> {
+                        argument("z", integer()).executes(cmdctx -> {
                             try {
-                                int x = getInteger(context, "x");
-                                int y = getInteger(context, "y");
-                                int z = getInteger(context, "z");
+                                int x = getInteger(cmdctx, "x");
+                                int y = getInteger(cmdctx, "y");
+                                int z = getInteger(cmdctx, "z");
                                 BlockPos pos = new BlockPos(x, y, z);
-                                var state = context.getSource().getLevel().getBlockState(pos);
+                                var state = cmdctx.getSource().getLevel().getBlockState(pos);
                                 var properties = state.getProperties();
                                 String finalStr = "";
                                 for (var property: properties) {
                                     finalStr = finalStr + property.getName() + ": " + state.getValue(property).toString() + ", ";
                                 }
-                                context.getSource().sendSystemMessage(Component.literal(finalStr));
+                                cmdctx.getSource().sendSystemMessage(Component.literal(finalStr));
                             } catch (RuntimeException err) {
-                                context.getSource().sendSystemMessage(Component.literal(err.toString()));
+                                cmdctx.getSource().sendSystemMessage(Component.literal(err.toString()));
                             }
                             return 1;
                         })
@@ -94,18 +94,18 @@ public class UnloadedActivityCommand {
             #endif
                 ).then(
                     argument("x", integer()).then(
-                        argument("z", integer()).executes(context -> {
+                        argument("z", integer()).executes(cmdctx -> {
                             try {
-                                int x = getInteger(context, "x");
-                                int z = getInteger(context, "z");
-                                var chunk = context.getSource().getLevel().getChunk(x, z);
+                                int x = getInteger(cmdctx, "x");
+                                int z = getInteger(cmdctx, "z");
+                                var chunk = cmdctx.getSource().getLevel().getChunk(x, z);
                                 String finalStr = "";
                                 for (var groupIndex : chunk.getGroupIndexes()) {
                                     finalStr = finalStr + groupIndex.groupId + ": " + groupIndex.getPositions() + " " + groupIndex.getLastTick(0) + " or " + groupIndex.getLastTick(chunk.getLastTick()) + "\n";
                                 }
-                                context.getSource().sendSystemMessage(Component.literal(finalStr));
+                                cmdctx.getSource().sendSystemMessage(Component.literal(finalStr));
                             } catch (RuntimeException err) {
-                                context.getSource().sendSystemMessage(Component.literal(err.toString()));
+                                cmdctx.getSource().sendSystemMessage(Component.literal(err.toString()));
                             }
                             return 1;
                         })
@@ -116,11 +116,11 @@ public class UnloadedActivityCommand {
         dispatcher.register(commandBuilder);
     }
 
-    public static void addConfigs(LiteralArgumentBuilder<CommandSourceStack> commandBuilder) {
+    public static void addConfigs(LiteralArgumentBuilder<CommandSourceStack> commandBuilder, CommandBuildContext context) {
         LiteralArgumentBuilder<CommandSourceStack> configBuilder = literal("config");
 
         for (ConfigOption configOption : UnloadedActivity.config.configOptions) {
-            configOption.addCommand(configBuilder);
+            configOption.addCommand(configBuilder, context);
         }
 
         commandBuilder.then(configBuilder);

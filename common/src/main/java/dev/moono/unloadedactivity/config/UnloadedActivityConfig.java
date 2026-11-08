@@ -3,7 +3,10 @@ package dev.moono.unloadedactivity.config;
 #if MC_VER >= MC_1_19_4
 import net.minecraft.core.registries.Registries;
 import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
+import net.minecraft.commands.arguments.ResourceArgument;
 #else
+import net.minecraft.commands.arguments.EntitySummonArgument;
+import net.minecraft.commands.synchronization.SuggestionProviders;
 import net.minecraft.core.Registry;
 import net.minecraft.commands.arguments.ResourceOrTagLocationArgument;
 #endif
@@ -21,9 +24,13 @@ import com.mojang.datafixers.util.Either;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.*;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
@@ -39,6 +46,7 @@ import static net.minecraft.commands.Commands.literal;
 public class UnloadedActivityConfig {
 
     private transient final Reference2BooleanOpenHashMap<Block> blacklistCache = new Reference2BooleanOpenHashMap<>();
+    private transient final Reference2BooleanOpenHashMap<EntityType<?>> blacklistEntitiesCache = new Reference2BooleanOpenHashMap<>();
 
     public static class SimpleOption<T> implements ConfigOption {
         public final ArgumentType<T> argumentType;
@@ -79,18 +87,133 @@ public class UnloadedActivityConfig {
         }
 
         @Override
-        public void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder) {
+        public void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, CommandBuildContext context) {
             argumentBuilder.then(literal(this.name).executes(this::executeConfigGet)
                 .then(argument("value", this.argumentType).executes(this::executeConfigSet))
             );
         }
     }
 
-    public static class IdList implements ConfigOption {
+    public static class EntityList implements ConfigOption {
+        public final String name;
+        public final Supplier<List<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif>> getter;
+
+        public EntityList(String name, Supplier<List<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif>> getter) {
+            this.name = name;
+            this.getter = getter;
+        }
+
+        int executeConfigGet(CommandContext<CommandSourceStack> context) {
+            var list = this.getter.get();
+            #if MC_VER >= MC_1_20_1
+            context.getSource().sendSuccess(() -> Component.literal(this.name + " has the following values: " + list.toString()), false);
+            #else
+            context.getSource().sendSuccess(Component.literal(this.name + " has the following values: " + list.toString()), false);
+            #endif
+            return 0;
+        }
+
+        int executeConfigAdd(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+            #if MC_VER >= MC_1_19_4
+            Holder.Reference<EntityType<?>> entityType = ResourceArgument.getResource(context, "value", Registries.ENTITY_TYPE);
+            #if MC_VER >= MC_1_21_11
+            var entityId = entityType.key().identifier();
+            #else
+            var entityId = entityType.key().location();
+            #endif
+            #else
+            var entityId = EntitySummonArgument.getSummonableEntity(context, "value");
+            #endif
+
+            var list = this.getter.get();
+
+            if (list.contains(entityId)) {
+                #if MC_VER >= MC_1_20_1
+                context.getSource().sendSuccess(() -> Component.literal(this.name + " already has the value " + entityId), true);
+                #else
+                context.getSource().sendSuccess(Component.literal(this.name + " already has the value " + entityId), true);
+                #endif
+                return 0;
+            }
+            list.add(entityId);
+            UnloadedActivity.config.blacklistCache.clear();
+            UnloadedActivity.saveConfig();
+            #if MC_VER >= MC_1_20_1
+            context.getSource().sendSuccess(() -> Component.literal(entityId + " has been added to " + this.name), true);
+            #else
+            context.getSource().sendSuccess(Component.literal(entityId + " has been added to " + this.name), true);
+            #endif
+            return 0;
+        }
+
+        int executeConfigRemove(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+            String input = context.getArgument("value", String.class);
+
+            String finalValue = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.read(new StringReader(input)).toString();
+
+            var list = this.getter.get();
+
+            boolean removed = list.removeIf(entityId -> entityId.toString().equals(finalValue));
+
+            if (!removed) {
+                #if MC_VER >= MC_1_20_1
+                context.getSource().sendSuccess(() -> Component.literal(this.name + " doesn't have the value " + finalValue), true);
+                #else
+                context.getSource().sendSuccess(Component.literal(this.name + " doesn't have the value " + finalValue), true);
+                #endif
+                return 0;
+            }
+
+            UnloadedActivity.config.blacklistEntitiesCache.clear();
+            UnloadedActivity.saveConfig();
+            #if MC_VER >= MC_1_20_1
+            context.getSource().sendSuccess(() -> Component.literal(finalValue + " has been removed from " + this.name), true);
+            #else
+            context.getSource().sendSuccess(Component.literal(finalValue + " has been removed from " + this.name), true);
+            #endif
+            return 0;
+        }
+
+        @Override
+        public void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, CommandBuildContext context) {
+            var listGetter = this.getter;
+            var stringListSuggestions = new SuggestionProvider<CommandSourceStack>() {
+                @Override
+                public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) throws CommandSyntaxException {
+                    var list = listGetter.get();
+                    String input = builder.getRemainingLowerCase();
+                    for (var option : list) {
+                        String optionString = option.toString();
+                        if (optionString.contains(input)) {
+                            builder.suggest(option.toString());
+                        }
+                    }
+                    return builder.buildFuture();
+                }
+            };
+
+            #if MC_VER >= MC_1_19_4
+            ResourceArgument<EntityType<?>> argumentType = new ResourceArgument<>(context, Registries.ENTITY_TYPE);
+            #else
+            EntitySummonArgument argumentType = new EntitySummonArgument();
+            #endif
+
+            argumentBuilder.then(literal(this.name)
+                .then(literal("list").executes(this::executeConfigGet))
+                .then(literal("add").then(argument("value", argumentType)
+                    #if MC_VER < MC_1_19_4 .suggests(SuggestionProviders.SUMMONABLE_ENTITIES) #endif
+                    .executes(this::executeConfigAdd)
+                ))
+                .then(literal("remove").then(argument("value", StringArgumentType.greedyString()).suggests(stringListSuggestions).executes(this::executeConfigRemove)))
+            );
+        }
+    }
+
+    public static class BlockOrTagList implements ConfigOption {
         public final String name;
         public final Supplier<List<BlockOrTag>> getter;
 
-        public IdList(String name, Supplier<List<BlockOrTag>> getter) {
+        public BlockOrTagList(String name, Supplier<List<BlockOrTag>> getter) {
             this.name = name;
             this.getter = getter;
         }
@@ -181,7 +304,7 @@ public class UnloadedActivityConfig {
         }
 
         @Override
-        public void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder) {
+        public void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, CommandBuildContext context) {
             var listGetter = this.getter;
             var stringListSuggestions = new SuggestionProvider<CommandSourceStack>() {
                 @Override
@@ -232,8 +355,12 @@ public class UnloadedActivityConfig {
         configOptions.add(configOption);
     }
 
-    public void registerIdList(String name, Supplier<List<BlockOrTag>> getter) {
-        configOptions.add(new IdList(name, getter));
+    public void registerEntityList(String name, Supplier<List<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif>> getter) {
+        configOptions.add(new EntityList(name, getter));
+    }
+
+    public void registerBlockOrTagList(String name, Supplier<List<BlockOrTag>> getter) {
+        configOptions.add(new BlockOrTagList(name, getter));
     }
 
     public boolean isBlockBlacklisted(Block block) {
@@ -244,14 +371,24 @@ public class UnloadedActivityConfig {
                 boolean isBlacklisted;
                 if (blacklisted.isTag) {
                     isBlacklisted = GameUtils.getBlockTags(block)
-                        .anyMatch(tagKey -> tagKey.location().equals(blacklisted.id));
+                            .anyMatch(tagKey -> tagKey.location().equals(blacklisted.id));
                 } else {
                     isBlacklisted = blockId.equals(blacklisted.id);
                 }
 
-                if (isBlacklisted) {
-                    return true;
-                }
+                if (isBlacklisted) return true;
+            }
+            return false;
+        });
+    }
+
+    public boolean isEntityBlacklisted(Entity entity) {
+        boolean blacklistHasEntities = !blacklistedEntities.isEmpty();
+        return blacklistHasEntities && blacklistEntitiesCache.computeIfAbsent(entity.getType(), (entityType) -> {
+            var entityId = EntityType.getKey(entityType);
+            for (var blacklistedEntityId : blacklistedEntities) {
+                boolean isBlacklisted = entityId.equals(blacklistedEntityId);
+                if (isBlacklisted) return true;
             }
             return false;
         });
@@ -368,7 +505,8 @@ public class UnloadedActivityConfig {
                 val -> randomizeBlockUpdates = val
         );
 
-        registerIdList("blacklistedBlocks", () -> blacklistedBlocks);
+        registerBlockOrTagList("blacklistedBlocks", () -> blacklistedBlocks);
+        registerEntityList("blacklistedEntities", () -> blacklistedEntities);
 
         registerBoolean(
                 "multiplyMaxChunkUpdatesPerPlayer", multiplyMaxChunkUpdatesPerPlayer,
@@ -458,6 +596,7 @@ public class UnloadedActivityConfig {
     public int maxChunkUpdatesPerTick = 24;
     public boolean randomizeBlockUpdates = false;
     public final ArrayList<BlockOrTag> blacklistedBlocks = new ArrayList<>();
+    public final ArrayList<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif> blacklistedEntities = new ArrayList<>();
     public boolean multiplyMaxChunkUpdatesPerPlayer = false;
     public boolean multiplyMaxChunksIndexedPerPlayer = false;
 

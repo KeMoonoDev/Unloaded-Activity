@@ -53,8 +53,7 @@ public abstract class BoundTickingBlockEntityMixin<T extends BlockEntity> {
             int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
 
             if (tickDifference > differenceThreshold) {
-                double multiplier = UnloadedActivity.config.unloadedSimulationSpeed;
-                TimeMachine.simulateBlockEntity(blockEntity, (long)(tickDifference * multiplier));
+                TimeMachine.simulateBlockEntity(blockEntity, tickDifference);
             }
 
             this.blockEntity.setLastTick(currentTick);

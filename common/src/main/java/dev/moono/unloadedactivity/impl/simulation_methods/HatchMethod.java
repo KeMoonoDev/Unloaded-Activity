@@ -13,10 +13,11 @@ import net.minecraft.world.entity.animal.Turtle;
 import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulatedTime;
-import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.api.SimulationConfig;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.value_expression.RandomizedValueExpression;
+import dev.moono.unloadedactivity.DeferredBlockPlacer;
+import dev.moono.unloadedactivity.TimeMachine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.AgeableMob;
@@ -90,7 +91,7 @@ public class HatchMethod extends GroupableSimulationMethod {
                 }
 
                 level.addFreshEntity(hatchedEntity);
-                hatchedEntity.unloadedactivity$simulateTime(finalTime.remainingTicks());
+                TimeMachine.simulateEntity(hatchedEntity, finalTime.remainingTicks());
             }
         }
 

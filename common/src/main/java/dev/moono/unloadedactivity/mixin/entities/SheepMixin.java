@@ -7,7 +7,7 @@ import net.minecraft.world.entity.animal.Sheep;
 #endif
 
 import dev.moono.unloadedactivity.MathUtils;
-import dev.moono.unloadedactivity.UnloadedActivity;
+import dev.moono.unloadedactivity.interfaces.SimulateEntityHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Shearable;
@@ -22,7 +22,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 @Mixin(Sheep.class)
-abstract public class SheepMixin extends Animal implements Shearable {
+abstract public class SheepMixin extends Animal implements Shearable, SimulateEntityHelper {
     protected SheepMixin(EntityType<? extends Animal> entityType, Level level) {
         super(entityType, level);
     }
@@ -35,7 +35,6 @@ abstract public class SheepMixin extends Animal implements Shearable {
 
     @Unique
     private boolean shouldSimulate() {
-        if (!UnloadedActivity.config.simulateSheepDesireToEat) return false;
         if (this.isRemoved()) return false;
         if (!this.isAlive()) return false;
 
@@ -55,14 +54,14 @@ abstract public class SheepMixin extends Animal implements Shearable {
     }
 
     @Override
-    public void unloadedactivity$simulateTime(long timeDifference) {
-        super.unloadedactivity$simulateTime(timeDifference);
-
+    public void unloadedactivity$simulate(long ticksPassed, double multiplier) {
         if (!shouldSimulate())
             return;
 
+        ticksPassed = (long) (ticksPassed * multiplier);
+
         RandomSource randomSource = this.getRandom();
-        int doesWantToEat = MathUtils.getOccurrencesSimple(timeDifference / 3, 1.0f/1000.0f, 1, randomSource);
+        int doesWantToEat = MathUtils.getOccurrencesSimple(ticksPassed / 3, 1.0f/1000.0f, 1, randomSource);
 
         if (doesWantToEat == 0) {
             return;

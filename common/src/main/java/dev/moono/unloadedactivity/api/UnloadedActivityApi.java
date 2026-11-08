@@ -1,6 +1,8 @@
 package dev.moono.unloadedactivity.api;
 
 public interface UnloadedActivityApi {
-    void registerNumberFetchers(NumberFetcherRegistry registry);
-    void registerSimulationMethods(SimulationMethodRegistry registry);
+    default void registerNumberFetchers(NumberFetcherRegistry registry) {}
+    default void registerSimulationMethods(SimulationMethodRegistry registry) {}
+    default void registerBlockEntitySimulations(BlockEntitySimulationRegistry registry) {}
+    default void registerEntitySimulations(EntitySimulationRegistry registry) {}
 }

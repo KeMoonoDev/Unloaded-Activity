@@ -48,7 +48,7 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
-        UnloadedActivityCommand.register(event.getDispatcher());
+        UnloadedActivityCommand.register(event.getDispatcher(), event.getBuildContext());
     }
 
     @SubscribeEvent

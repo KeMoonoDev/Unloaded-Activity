@@ -52,7 +52,7 @@ public class NeoForgeEventHandler {
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
-        UnloadedActivityCommand.register(event.getDispatcher());
+        UnloadedActivityCommand.register(event.getDispatcher(), event.getBuildContext());
     }
 
     #if MC_VER >= MC_1_21_4

@@ -1,15 +1,14 @@
 package dev.moono.unloadedactivity;
 
 
-import dev.moono.unloadedactivity.api.ActiveGroupSimulateData;
-import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
-import dev.moono.unloadedactivity.api.SimulatedTime;
+import dev.moono.unloadedactivity.api.*;
 import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
 import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
+import dev.moono.unloadedactivity.config.UnloadedActivityConfig;
 import dev.moono.unloadedactivity.datapack.group.GroupInfo;
 import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
 import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
@@ -41,6 +40,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class TimeMachine {
     /// Returns how many groups were simulated and if the last ticked time should be updated/if normal ticks were simulated.
@@ -947,13 +947,23 @@ public class TimeMachine {
         return simulationIterations.keySet();
     }
 
-    public static void simulateBlockEntity(BlockEntity blockEntity, long timeDifference) {
+    public static void simulateBlockEntity(BlockEntity blockEntity, long ticksPassed) {
         if (!UnloadedActivity.config.enableSimulatingBlockEntities) return;
-        blockEntity.unloadedactivity$simulateTime(timeDifference);
+        if (UnloadedActivity.config.isBlockBlacklisted(blockEntity.getBlockState().getBlock())) return;
+
+        List<EntitySimulation<BlockEntity>> simulations = UnloadedActivity.blockEntitySimulationRegistry.getSimulations(blockEntity.getClass());
+        for (EntitySimulation<BlockEntity> blockEntitySimulation : simulations) {
+            blockEntitySimulation.consume(blockEntity, ticksPassed, UnloadedActivity.config.unloadedSimulationSpeed);
+        }
     }
 
-    public static void simulateEntity(Entity entity, long timeDifference) {
+    public static void simulateEntity(Entity entity, long ticksPassed) {
         if (!UnloadedActivity.config.enableSimulatingEntities) return;
-        entity.unloadedactivity$simulateTime(timeDifference);
+        if (UnloadedActivity.config.isEntityBlacklisted(entity)) return;
+
+        List<EntitySimulation<Entity>> simulations = UnloadedActivity.entitySimulationRegistry.getSimulations(entity.getClass());
+        for (EntitySimulation<Entity> entitySimulation : simulations) {
+            entitySimulation.consume(entity, ticksPassed, UnloadedActivity.config.unloadedSimulationSpeed);
+        }
     }
 }

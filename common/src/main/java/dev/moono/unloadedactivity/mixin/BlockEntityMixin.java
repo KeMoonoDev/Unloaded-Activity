@@ -10,7 +10,6 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.interfaces.BlockEntityTimeData;
-import dev.moono.unloadedactivity.interfaces.SimulateBlockEntity;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
@@ -26,7 +25,7 @@ import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
 import static dev.moono.unloadedactivity.UnloadedActivity.OLD_MOD_ID;
 
 @Mixin(value = BlockEntity.class, priority = 999)
-public abstract class BlockEntityMixin implements SimulateBlockEntity, BlockEntityTimeData {
+public abstract class BlockEntityMixin implements BlockEntityTimeData {
     @Unique
     private long lastTick = 0;
     @Unique

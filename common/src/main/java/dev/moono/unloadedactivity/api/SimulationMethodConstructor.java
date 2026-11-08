@@ -5,5 +5,5 @@ import net.minecraft.world.level.block.Block;
 
 @FunctionalInterface
 public interface SimulationMethodConstructor {
-    public SimulationMethod apply(SimulationConfig config, Block block, boolean hasDependants);
+    SimulationMethod apply(SimulationConfig config, Block block, boolean hasDependants);
 }

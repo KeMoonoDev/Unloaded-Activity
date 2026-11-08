@@ -1,9 +1,7 @@
 classTweaker v1 named
 
 inject-interface net/minecraft/world/level/block/state/properties/IntegerProperty dev/moono/unloadedactivity/mixin/IntegerPropertyAccessor
-inject-interface net/minecraft/world/level/block/entity/BlockEntity dev/moono/unloadedactivity/interfaces/SimulateBlockEntity
 inject-interface net/minecraft/world/level/block/entity/BlockEntity dev/moono/unloadedactivity/interfaces/BlockEntityTimeData
-inject-interface net/minecraft/world/entity/Entity dev/moono/unloadedactivity/interfaces/SimulateEntity
 inject-interface net/minecraft/world/level/chunk/ChunkAccess dev/moono/unloadedactivity/interfaces/ChunkTimeData
 inject-interface net/minecraft/server/MinecraftServer dev/moono/unloadedactivity/interfaces/ChunkIndexQueue
 

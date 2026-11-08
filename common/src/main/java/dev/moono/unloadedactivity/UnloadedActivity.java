@@ -6,13 +6,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceLocation;
 #endif
 
-import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
-import dev.moono.unloadedactivity.api.UnloadedActivityApi;
+import dev.moono.unloadedactivity.api.*;
 import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
 import dev.moono.unloadedactivity.datapack.simulation_data.SimulationDataResource;
 import dev.moono.unloadedactivity.config.BlockOrTag;
 import dev.moono.unloadedactivity.config.UnloadedActivityConfig;
-import dev.moono.unloadedactivity.api.NumberFetcherRegistry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.moono.unloadedactivity.platform.IPlatformHelper;
@@ -43,6 +41,8 @@ public class UnloadedActivity {
 
     public static final NumberFetcherRegistry numberFetcherRegistry = new NumberFetcherRegistry();
     public static final SimulationMethodRegistry simulationMethodRegistry = new SimulationMethodRegistry();
+    public static final BlockEntitySimulationRegistry blockEntitySimulationRegistry = new BlockEntitySimulationRegistry();
+    public static final EntitySimulationRegistry entitySimulationRegistry= new EntitySimulationRegistry();
 
     public static void init(IPlatformHelper platformHelper, List<String> providedDisabledCompats) {
         init(platformHelper, providedDisabledCompats, List.of());
@@ -64,11 +64,15 @@ public class UnloadedActivity {
         for (UnloadedActivityApi entrypoint : loader) {
             entrypoint.registerNumberFetchers(numberFetcherRegistry);
             entrypoint.registerSimulationMethods(simulationMethodRegistry);
+            entrypoint.registerBlockEntitySimulations(blockEntitySimulationRegistry);
+            entrypoint.registerEntitySimulations(entitySimulationRegistry);
         }
 
         for (UnloadedActivityApi entrypoint : extraEntryPoints) {
             entrypoint.registerNumberFetchers(numberFetcherRegistry);
             entrypoint.registerSimulationMethods(simulationMethodRegistry);
+            entrypoint.registerBlockEntitySimulations(blockEntitySimulationRegistry);
+            entrypoint.registerEntitySimulations(entitySimulationRegistry);
         }
 
     }

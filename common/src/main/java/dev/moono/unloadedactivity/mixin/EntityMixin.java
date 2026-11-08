@@ -1,8 +1,6 @@
 package dev.moono.unloadedactivity.mixin;
 
 import dev.moono.unloadedactivity.GameUtils;
-import dev.moono.unloadedactivity.api.SimulatedTime;
-import dev.moono.unloadedactivity.interfaces.SimulateEntity;
 import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import net.minecraft.commands.CommandSource;
@@ -31,7 +29,7 @@ import static dev.moono.unloadedactivity.UnloadedActivity.OLD_MOD_ID;
 
 
 @Mixin(value = Entity.class, priority = 999)
-public abstract class EntityMixin implements Nameable, EntityAccess, CommandSource, SimulateEntity {
+public abstract class EntityMixin implements Nameable, EntityAccess, CommandSource {
 
     @Unique
     private long lastTick = 0;

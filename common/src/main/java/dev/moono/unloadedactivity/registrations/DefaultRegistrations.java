@@ -1,16 +1,24 @@
 package dev.moono.unloadedactivity.registrations;
 
+#if MC_VER >= MC_1_21_11
+import net.minecraft.world.entity.animal.sheep.Sheep;
+#else
+import net.minecraft.world.entity.animal.Sheep;
+#endif
+
 import com.google.gson.JsonElement;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
-import dev.moono.unloadedactivity.api.NumberFetcherRegistry;
-import dev.moono.unloadedactivity.api.SimulationMethodRegistry;
-import dev.moono.unloadedactivity.api.UnloadedActivityApi;
+import dev.moono.unloadedactivity.api.*;
+import dev.moono.unloadedactivity.impl.entity_simulations.AgeableMobSimulation;
 import dev.moono.unloadedactivity.impl.number_fetchers.*;
 import dev.moono.unloadedactivity.impl.simulation_methods.*;
+import dev.moono.unloadedactivity.interfaces.SimulateEntityHelper;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
@@ -293,5 +301,20 @@ public class DefaultRegistrations implements UnloadedActivityApi {
             new NoMansLandRegistrations().registerSimulationMethods(registry);
         }
         #endif
+    }
+
+    public void registerBlockEntitySimulations(BlockEntitySimulationRegistry registry) {
+        registry.register(AbstractFurnaceBlockEntity.class, (blockEntity, ticksPassed, multiplier) -> {
+            ((SimulateEntityHelper)blockEntity).unloadedactivity$simulate(ticksPassed, multiplier);
+        });
+    }
+
+    @Override
+    public void registerEntitySimulations(EntitySimulationRegistry registry) {
+        registry.register(AgeableMob.class, AgeableMobSimulation::simulate);
+
+        registry.register(Sheep.class, (sheep, ticksPassed, multiplier) -> {
+            ((SimulateEntityHelper)sheep).unloadedactivity$simulate(ticksPassed, multiplier);
+        });
     }
 }
