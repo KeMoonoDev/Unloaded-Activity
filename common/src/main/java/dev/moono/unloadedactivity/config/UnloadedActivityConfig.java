@@ -549,24 +549,6 @@ public class UnloadedActivityConfig {
                 unused -> enableSimulatingEntities,
                 val -> enableSimulatingEntities = val
         );
-
-        registerBoolean(
-                "simulateFurnaceSmelting", simulateFurnaceSmelting,
-                unused -> simulateFurnaceSmelting,
-                val -> simulateFurnaceSmelting = val
-        );
-
-        registerBoolean(
-                "simulateEntitiesAgeing", simulateEntitiesAgeing,
-                unused -> simulateEntitiesAgeing,
-                val -> simulateEntitiesAgeing = val
-        );
-
-        registerBoolean(
-                "simulateSheepDesireToEat", simulateSheepDesireToEat,
-                unused -> simulateSheepDesireToEat,
-                val -> simulateSheepDesireToEat = val
-        );
     }
 
 
@@ -606,11 +588,4 @@ public class UnloadedActivityConfig {
     public boolean enableSimulatingGroups = true;
     public boolean enableSimulatingBlockEntities = true;
     public boolean enableSimulatingEntities = true;
-
-    //Block Entities
-    public boolean simulateFurnaceSmelting = true;
-
-    //Entities
-    public boolean simulateEntitiesAgeing = true;
-    public boolean simulateSheepDesireToEat = true;
 }
