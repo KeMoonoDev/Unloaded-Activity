@@ -6,6 +6,7 @@ import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
 import net.minecraft.commands.arguments.ResourceArgument;
 #else
 import net.minecraft.commands.arguments.EntitySummonArgument;
+import net.minecraft.commands.arguments.StringRepresentableArgument;
 import net.minecraft.commands.synchronization.SuggestionProviders;
 import net.minecraft.core.Registry;
 import net.minecraft.commands.arguments.ResourceOrTagLocationArgument;
@@ -90,6 +91,64 @@ public class UnloadedActivityConfig {
         public void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, CommandBuildContext context) {
             argumentBuilder.then(literal(this.name).executes(this::executeConfigGet)
                 .then(argument("value", this.argumentType).executes(this::executeConfigSet))
+            );
+        }
+    }
+
+    public record SimulationClockOption(
+        String name,
+        Supplier<SimulationClock> getter,
+        Consumer<SimulationClock> setter
+    ) implements ConfigOption {
+
+        int executeConfigGet(CommandContext<CommandSourceStack> context) {
+                #if MC_VER >= MC_1_20_1
+                context.getSource().sendSuccess(() -> Component.literal(this.name + " is currently set to: " + this.getter.get().name()), false);
+                #else
+                context.getSource().sendSuccess(Component.literal(this.name + " is currently set to: " + this.getter.get().name()), false);
+                #endif
+                return 0;
+            }
+
+        int executeConfigSet(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+            String input = context.getArgument("value", String.class);
+
+            for (SimulationClock clock : SimulationClock.values()) {
+                if (clock.name().equals(input)) {
+                    this.setter.accept(clock);
+                    UnloadedActivity.saveConfig();
+                    #if MC_VER >= MC_1_20_1
+                    context.getSource().sendSuccess(() -> Component.literal(this.name + " has been set to: " + clock.name()), true);
+                    #else
+                    context.getSource().sendSuccess(Component.literal(this.name + " has been set to: " + clock.name()), true);
+                    #endif
+                    return 0;
+                }
+            }
+
+            throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument().create();
+        }
+
+        @Override
+        public void addCommand(LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, CommandBuildContext context) {
+            var stringListSuggestions = new SuggestionProvider<CommandSourceStack>() {
+                @Override
+                public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) throws CommandSyntaxException {
+                    String input = builder.getRemainingLowerCase();
+                    for (SimulationClock clock : SimulationClock.values()) {
+                        if (clock.name().toLowerCase().startsWith(input))
+                            builder.suggest(clock.name());
+                    }
+                    return builder.buildFuture();
+                }
+            };
+
+            argumentBuilder.then(literal(this.name).executes(this::executeConfigGet)
+                .then(
+                    argument("value", StringArgumentType.word())
+                        .suggests(stringListSuggestions)
+                        .executes(this::executeConfigSet)
+                )
             );
         }
     }
@@ -355,6 +414,10 @@ public class UnloadedActivityConfig {
         configOptions.add(configOption);
     }
 
+    public void registerSimulationClock(String name, Supplier<SimulationClock> getter, Consumer<SimulationClock> setter) {
+        configOptions.add(new SimulationClockOption(name, getter, setter));
+    }
+
     public void registerEntityList(String name, Supplier<List<#if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif>> getter) {
         configOptions.add(new EntityList(name, getter));
     }
@@ -403,10 +466,10 @@ public class UnloadedActivityConfig {
         );
         #endif
 
-        registerBoolean(
-            "useSystemTime", useSystemTime,
-            unused -> useSystemTime,
-            val -> useSystemTime = val
+        registerSimulationClock(
+            "simulationClock",
+            () -> simulationClock,
+            val -> simulationClock = val
         );
 
         registerFloat(
@@ -556,7 +619,7 @@ public class UnloadedActivityConfig {
     #if MC_VER >= MC_26_1_2
     public boolean fallbackToOverworldTime = true;
     #endif
-    public boolean useSystemTime = false;
+    public SimulationClock simulationClock = SimulationClock.DAY_TIME;
     public float unloadedSimulationSpeed = 1.0f;
     public int tickDifferenceThreshold = 100;
     public int maxNegativeBinomialAttempts = 20;

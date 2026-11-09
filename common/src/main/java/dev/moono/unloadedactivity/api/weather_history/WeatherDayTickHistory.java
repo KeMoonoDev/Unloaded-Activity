@@ -22,25 +22,25 @@ import java.util.stream.LongStream;
 
 import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
 
-public class WeatherTickHistory extends WeatherHistory {
+public class WeatherDayTickHistory extends WeatherHistory {
     public static final String DATA_NAME = "weather_list";
 
     #if MC_VER >= MC_1_21_11
-    public static final Codec<WeatherTickHistory> CODEC = Codec.LONG_STREAM.xmap(
-            WeatherTickHistory::new,
-            WeatherTickHistory::getWeatherStream
+    public static final Codec<WeatherDayTickHistory> CODEC = Codec.LONG_STREAM.xmap(
+            WeatherDayTickHistory::new,
+            WeatherDayTickHistory::getWeatherStream
     );
     #endif
 
-    public WeatherTickHistory() {
+    public WeatherDayTickHistory() {
         super();
     }
 
-    public WeatherTickHistory(ArrayList<Long> weatherList) {
+    public WeatherDayTickHistory(ArrayList<Long> weatherList) {
         super(weatherList);
     }
 
-    public WeatherTickHistory(LongStream weatherList) {
+    public WeatherDayTickHistory(LongStream weatherList) {
         super(weatherList);
     }
 
@@ -49,20 +49,20 @@ public class WeatherTickHistory extends WeatherHistory {
     }
 
     #if MC_VER >= MC_1_21_5
-    public static final SavedDataType<WeatherTickHistory> type = new SavedDataType<>(
+    public static final SavedDataType<WeatherDayTickHistory> type = new SavedDataType<>(
 			#if MC_VER >= MC_26_1_2
             UnloadedActivity.id(DATA_NAME),
 			#else
-            MOD_ID + "-" + WeatherTickHistory.DATA_NAME,
+            MOD_ID + "-" + WeatherDayTickHistory.DATA_NAME,
 			#endif
 			#if MC_VER >= MC_1_21_11
-            WeatherTickHistory::new,
-            WeatherTickHistory.CODEC,
+            WeatherDayTickHistory::new,
+            WeatherDayTickHistory.CODEC,
 			#else
-			(ctx) -> new WeatherTickHistory(),
+			(ctx) -> new WeatherDayTickHistory(),
 			(ctx) -> {
 				return CompoundTag.CODEC.xmap(
-						WeatherTickHistory::load,
+						WeatherDayTickHistory::load,
 						weatherData -> weatherData.save(new CompoundTag())
 				);
 			},
@@ -70,9 +70,9 @@ public class WeatherTickHistory extends WeatherHistory {
             DataFixTypes.LEVEL
     );
     #elif MC_VER >= MC_1_20_2
-    public static final SavedData.Factory<WeatherTickHistory> type = new SavedData.Factory<>(
-            WeatherTickHistory::new,
-            WeatherTickHistory::load,
+    public static final SavedData.Factory<WeatherDayTickHistory> type = new SavedData.Factory<>(
+            WeatherDayTickHistory::new,
+            WeatherDayTickHistory::load,
             net.minecraft.util.datafix.DataFixTypes.LEVEL
     );
     #endif
@@ -99,11 +99,11 @@ public class WeatherTickHistory extends WeatherHistory {
     }
 
     #if MC_VER <= MC_1_20_4
-    public static WeatherTickHistory load(CompoundTag nbt)
+    public static WeatherDayTickHistory load(CompoundTag nbt)
     #elif MC_VER >= MC_1_21_5
-    public static WeatherTickHistory load(CompoundTag nbt)
+    public static WeatherDayTickHistory load(CompoundTag nbt)
     #else
-    public static WeatherTickHistory load(CompoundTag nbt, HolderLookup.Provider holderLookup)
+    public static WeatherDayTickHistory load(CompoundTag nbt, HolderLookup.Provider holderLookup)
     #endif
     {
         #if MC_VER >= MC_1_21_5
@@ -121,7 +121,7 @@ public class WeatherTickHistory extends WeatherHistory {
             longArrayList.add(value);
         }
 
-        return new WeatherTickHistory(longArrayList);
+        return new WeatherDayTickHistory(longArrayList);
     }
     #endif
 }

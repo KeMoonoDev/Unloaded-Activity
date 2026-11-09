@@ -95,11 +95,24 @@ public abstract class LevelChunkMixin extends ChunkAccess {
 
     @Inject(method = "<init>(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/level/chunk/ProtoChunk;Lnet/minecraft/world/level/chunk/LevelChunk$PostLoadProcessor;)V", at = @At("RETURN"))
     private void initLevelChunk(ServerLevel level, ProtoChunk protoChunk, LevelChunk.PostLoadProcessor postLoadProcessor, CallbackInfo ci) {
-        if (protoChunk.getLastTick() == 0) {
-            this.setLastTick(GameUtils.getTime(level));
+        if (protoChunk.getLastDayTick() == 0) {
+            this.setLastDayTick(GameUtils.getDayTime(level));
         } else {
-            this.setLastTick(protoChunk.getLastTick());
+            this.setLastDayTick(protoChunk.getLastDayTick());
         }
+
+        if (protoChunk.getLastGameTick() == 0) {
+            this.setLastGameTick(level.getGameTime());
+        } else {
+            this.setLastGameTick(protoChunk.getLastGameTick());
+        }
+
+        if (protoChunk.getLastMs() == 0) {
+            this.setLastMs(System.currentTimeMillis());
+        } else {
+            this.setLastMs(protoChunk.getLastMs());
+        }
+
         this.setGroupIndexes(protoChunk.getGroupIndexes());
         this.setSimulationVersion(protoChunk.getSimulationVersion());
         this.setSimulationBlocks(protoChunk.getSimulationBlocks());

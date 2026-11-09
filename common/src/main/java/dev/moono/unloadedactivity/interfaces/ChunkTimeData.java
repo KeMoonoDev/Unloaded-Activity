@@ -11,9 +11,13 @@ import dev.moono.unloadedactivity.GroupChunkIndex;
 import java.util.ArrayList;
 
 public interface ChunkTimeData {
-    long getLastTick();
+    long getLastDayTick();
 
-    void setLastTick(long tick);
+    void setLastDayTick(long tick);
+
+    long getLastGameTick();
+
+    void setLastGameTick(long tick);
 
     long getLastMs();
 
@@ -34,7 +38,7 @@ public interface ChunkTimeData {
             }
         }
 
-        GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), getLastTick(), getLastMs(), groupId);
+        GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), getLastDayTick(), getLastGameTick(), getLastMs(), groupId);
         groupChunkIndexes.add(groupChunkIndex);
         return groupChunkIndex;
     }

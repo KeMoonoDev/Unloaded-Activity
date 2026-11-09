@@ -95,7 +95,7 @@ public class MathUtils {
             float totalProbability = odds * randomPickProbability;
 
             if (UnloadedActivity.config.debugLogs)
-                UnloadedActivity.LOGGER.info("Simulating from " + activeSimulatedTime.currentTick() + " to " + (activeSimulatedTime.currentTick() + simulateForTicks) + " (difference: " + simulateForTicks + ") with odds " + odds);
+                UnloadedActivity.LOGGER.info("Simulating from " + activeSimulatedTime.currentDayTicks() + " to " + (activeSimulatedTime.currentDayTicks() + simulateForTicks) + " (difference: " + simulateForTicks + ") with odds " + odds);
 
             int successesThisRound = getOccurrencesSimple(simulateForTicks, totalProbability, maxOccurrences - successes, random);
 
@@ -148,7 +148,7 @@ public class MathUtils {
             float totalProbability = odds * randomPickProbability;
 
             if (UnloadedActivity.config.debugLogs)
-                UnloadedActivity.LOGGER.info("Simulating from " + activeSimulatedTime.currentTick() + " to " + (activeSimulatedTime.currentTick() + simulatingTicksForProbability) + " (difference: " + simulatingTicksForProbability + ") with odds " + odds);
+                UnloadedActivity.LOGGER.info("Simulating from " + activeSimulatedTime.currentDayTicks() + " to " + (activeSimulatedTime.currentDayTicks() + simulatingTicksForProbability) + " (difference: " + simulatingTicksForProbability + ") with odds " + odds);
 
             long tempRemainingTime = activeSimulatedTime.remainingTicks();
 
@@ -167,7 +167,7 @@ public class MathUtils {
             activeSimulatedTime = activeSimulatedTime.passTicks(simulatingTicksForProbability);
         }
 
-        return new OccurrencesAndTimings(successes, remainingTimes, simulatedTime.endTick(), simulatedTime.endMs());
+        return new OccurrencesAndTimings(successes, remainingTimes, simulatedTime.endDayTick(), simulatedTime.endGameTick(), simulatedTime.endMs());
     }
 
     public static int getOccurrencesSimple(long ticksPassed, double totalProbability, int maxOccurrences, RandomSource random) {

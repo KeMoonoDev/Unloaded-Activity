@@ -101,7 +101,7 @@ public class UnloadedActivityCommand {
                                 var chunk = cmdctx.getSource().getLevel().getChunk(x, z);
                                 String finalStr = "";
                                 for (var groupIndex : chunk.getGroupIndexes()) {
-                                    finalStr = finalStr + groupIndex.groupId + ": " + groupIndex.getPositions() + " " + groupIndex.getLastTick(0) + " or " + groupIndex.getLastTick(chunk.getLastTick()) + "\n";
+                                    finalStr = finalStr + groupIndex.groupId + ": " + groupIndex.getPositions() + " " + groupIndex.getLastGameTick(0) + " or " + groupIndex.getLastGameTick(chunk.getLastGameTick()) + "\n";
                                 }
                                 cmdctx.getSource().sendSystemMessage(Component.literal(finalStr));
                             } catch (RuntimeException err) {

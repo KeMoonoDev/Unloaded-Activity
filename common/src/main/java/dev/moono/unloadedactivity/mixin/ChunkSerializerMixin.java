@@ -54,10 +54,12 @@ public abstract class ChunkSerializerMixin {
 
         CompoundTag chunkData = new CompoundTag();
 
-        long chunkLastTick = chunk.getLastTick();
+        long chunkLastDayTick = chunk.getLastDayTick();
+        long chunkLastGameTick = chunk.getLastGameTick();
         long chunkLastMs = chunk.getLastMs();
 
-        chunkData.putLong("last_tick", chunkLastTick);
+        chunkData.putLong("last_day_tick", chunkLastDayTick);
+        chunkData.putLong("last_game_tick", chunkLastGameTick);
         chunkData.putLong("last_ms", chunkLastMs);
         chunkData.putLong("ver", chunk.getSimulationVersion());
         chunkData.putLongArray("sim_blocks", chunk.getSimulationBlocks());
@@ -68,7 +70,8 @@ public abstract class ChunkSerializerMixin {
             CompoundTag groupData = new CompoundTag();
 
             groupData.putLongArray("positions", groupChunkIndex.getPositions());
-            groupData.putLong("last_tick", groupChunkIndex.getLastTick(chunkLastTick));
+            groupData.putLong("last_day_tick", groupChunkIndex.getLastDayTick(chunkLastDayTick));
+            groupData.putLong("last_game_tick", groupChunkIndex.getLastGameTick(chunkLastGameTick));
             groupData.putLong("last_ms", groupChunkIndex.getLastMs(chunkLastMs));
 
             groupsData.put(groupId.toString(), groupData);
@@ -99,7 +102,12 @@ public abstract class ChunkSerializerMixin {
         if (isEmpty) {
             protoChunk.setUnsaved(true);
         } else {
-            protoChunk.setLastTick(chunkData.getLong("last_tick"));
+            if (chunkData.contains("last_day_tick")) {
+                protoChunk.setLastDayTick(chunkData.getLong("last_day_tick"));
+            } else {
+                protoChunk.setLastDayTick(chunkData.getLong("last_tick"));
+            }
+            protoChunk.setLastGameTick(chunkData.getLong("last_game_tick"));
             protoChunk.setLastMs(chunkData.getLong("last_ms"));
             protoChunk.setSimulationVersion(chunkData.getLong("ver"));
             protoChunk.setSimulationBlocks(chunkData.getLongArray("sim_blocks"));
@@ -116,10 +124,20 @@ public abstract class ChunkSerializerMixin {
 
                 CompoundTag groupData = groupsData.getCompound(groupKey);
 
-                long groupLastTick = groupData.getLong("last_tick");
+                long groupLastDayTick;
+                if (groupData.contains("last_day_tick")) {
+                    groupLastDayTick = groupData.getLong("last_day_tick");
+                } else {
+                    groupLastDayTick = groupData.getLong("last_tick");
+                }
+                long groupLastGameTick = groupData.getLong("last_game_tick");
                 long groupLastMs = groupData.getLong("last_ms");
 
-                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastTick, groupLastMs, groupId);
+                if (groupLastDayTick == 0L) groupLastDayTick = protoChunk.getLastDayTick();
+                if (groupLastGameTick == 0L) groupLastGameTick = protoChunk.getLastGameTick();
+                if (groupLastMs == 0L) groupLastMs = protoChunk.getLastMs();
+
+                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastDayTick, groupLastGameTick, groupLastMs, groupId);
                 groupChunkIndex.setPositions(groupData.getLongArray("positions"));
 
                 groupIndexes.add(groupChunkIndex);
@@ -135,7 +153,7 @@ public abstract class ChunkSerializerMixin {
             if (!cardinalData.isEmpty()) {
                 CompoundTag lastChunkTick = cardinalData.getCompound("unloadedactivity:last-chunk-tick");
                 if (!lastChunkTick.isEmpty()) {
-                    protoChunk.setLastTick(lastChunkTick.getLong("last-tick"));
+                    protoChunk.setLastDayTick(lastChunkTick.getLong("last-tick"));
                 }
 
                 CompoundTag chunkSimVer = cardinalData.getCompound("unloadedactivity:chunk-sim-ver");
@@ -156,9 +174,10 @@ public abstract class ChunkSerializerMixin {
             }
         }
 
-        if (protoChunk.getLastTick() == 0) {
+        if (protoChunk.getLastDayTick() == 0) {
             protoChunk.setUnsaved(true);
-            protoChunk.setLastTick(level.getDayTime());
+            protoChunk.setLastDayTick(level.getDayTime());
+            protoChunk.setLastGameTick(level.getGameTime());
             protoChunk.setLastMs(System.currentTimeMillis());
         }
     }
@@ -171,7 +190,9 @@ public abstract class ChunkSerializerMixin {
     @Unique
     private ArrayList<GroupChunkIndex> groupIndexes = new ArrayList<>();
     @Unique
-    private long lastTick = 0;
+    private long lastDayTick = 0;
+    @Unique
+    private long lastGameTick = 0;
     @Unique
     private long lastMs = 0;
     @Unique
@@ -187,7 +208,8 @@ public abstract class ChunkSerializerMixin {
 
         CompoundTag chunkData = new CompoundTag();
 
-        chunkData.putLong("last_tick", lastTick);
+        chunkData.putLong("last_day_tick", lastDayTick);
+        chunkData.putLong("last_game_tick", lastGameTick);
         chunkData.putLong("last_ms", lastMs);
         chunkData.putLong("ver", ver);
         chunkData.putLongArray("sim_blocks", simBlocks);
@@ -198,8 +220,9 @@ public abstract class ChunkSerializerMixin {
             CompoundTag groupData = new CompoundTag();
 
             groupData.putLongArray("positions", groupChunkIndex.getPositions().stream().mapToLong(l -> l).toArray());
-            groupData.putLong("last_tick", groupChunkIndex.getLastTick(lastTick));
-            groupData.putLong("last_ms", groupChunkIndex.getLastTick(lastMs));
+            groupData.putLong("last_day_tick", groupChunkIndex.getLastDayTick(lastDayTick));
+            groupData.putLong("last_game_tick", groupChunkIndex.getLastGameTick(lastGameTick));
+            groupData.putLong("last_ms", groupChunkIndex.getLastMs(lastMs));
 
             groupsData.put(groupId.toString(), groupData);
         }
@@ -214,14 +237,16 @@ public abstract class ChunkSerializerMixin {
 
         ChunkAccess chunk = (protoChunkTemp instanceof ImposterProtoChunk imposterChunk) ? imposterChunk.getWrapped() : protoChunkTemp;
 
-        chunk.setLastTick(lastTick);
+        chunk.setLastDayTick(lastDayTick);
+        chunk.setLastGameTick(lastGameTick);
         chunk.setLastMs(lastMs);
         chunk.setSimulationVersion(ver);
         chunk.setSimulationBlocks(simBlocks);
         chunk.setGroupIndexes(groupIndexes);
-        if (lastTick == 0) {
+        if (lastDayTick == 0) {
             chunk.markUnsaved();
-            chunk.setLastTick(GameUtils.getTime(level));
+            chunk.setLastDayTick(GameUtils.getDayTime(level));
+            chunk.setLastGameTick(level.getGameTime());
             chunk.setLastMs(System.currentTimeMillis());
         } else if (needsSaving) {
             chunk.markUnsaved();
@@ -232,7 +257,8 @@ public abstract class ChunkSerializerMixin {
     private static void fromChunk(ServerLevel level, ChunkAccess chunk, CallbackInfoReturnable<SerializableChunkData> cir) {
         ChunkSerializerMixin serializedChunk = (ChunkSerializerMixin) (Object) cir.getReturnValue();
         if (serializedChunk != null) {
-            serializedChunk.lastTick = chunk.getLastTick();
+            serializedChunk.lastDayTick = chunk.getLastDayTick();
+            serializedChunk.lastGameTick = chunk.getLastGameTick();
             serializedChunk.lastMs = chunk.getLastMs();
             serializedChunk.ver = chunk.getSimulationVersion();
             serializedChunk.simBlocks = chunk.getSimulationBlocks().stream().mapToLong(l -> l).toArray();
@@ -241,11 +267,13 @@ public abstract class ChunkSerializerMixin {
     }
 
     @Inject(method = "parse", at = @At("RETURN"))
+    private static void fromNbt(
     #if MC_VER >= MC_1_21_10
-    private static void fromNbt(LevelHeightAccessor world, PalettedContainerFactory palettesFactory, CompoundTag nbt, CallbackInfoReturnable<SerializableChunkData> cir) {
+        LevelHeightAccessor world, PalettedContainerFactory palettesFactory, CompoundTag nbt, CallbackInfoReturnable<SerializableChunkData> cir
     #else
-    private static void parse(LevelHeightAccessor levelHeightAccessor, RegistryAccess registryAccess, CompoundTag nbt, CallbackInfoReturnable<SerializableChunkData> cir) {
+        LevelHeightAccessor levelHeightAccessor, RegistryAccess registryAccess, CompoundTag nbt, CallbackInfoReturnable<SerializableChunkData> cir
     #endif
+    ) {
         ChunkSerializerMixin serializedChunk = (ChunkSerializerMixin)(Object)cir.getReturnValue();
 
         if (serializedChunk == null) {
@@ -262,7 +290,12 @@ public abstract class ChunkSerializerMixin {
         if (isEmpty) {
             serializedChunk.needsSaving = true;
         } else {
-            serializedChunk.lastTick = chunkData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            if (chunkData.contains("last_day_tick")) {
+                serializedChunk.lastDayTick = chunkData.getLong("last_day_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            } else {
+                serializedChunk.lastDayTick = chunkData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            }
+            serializedChunk.lastGameTick = chunkData.getLong("last_game_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.lastMs = chunkData.getLong("last_ms")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.ver = chunkData.getLong("ver")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             serializedChunk.simBlocks = chunkData.getLongArray("sim_blocks")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif;
@@ -271,10 +304,11 @@ public abstract class ChunkSerializerMixin {
 
             CompoundTag groupsData = chunkData.getCompound("groups")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
             #if MC_VER >= MC_1_21_5
-            for (String key : groupsData.keySet()) {
+            var keySet = groupsData.keySet();
             #else
-            for (String key : groupsData.getAllKeys()) {
+            var keySet = groupsData.getAllKeys();
             #endif
+            for (String key : keySet) {
                 var maybeId = #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif.read(key);
                 if (maybeId.result().isEmpty())
                     continue;
@@ -283,10 +317,20 @@ public abstract class ChunkSerializerMixin {
 
                 CompoundTag groupData = groupsData.getCompound(key)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
 
-                long groupLastTick = groupData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(serializedChunk.lastTick)#endif;
-                long groupLastMs = groupData.getLong("last_ms")#if MC_VER >= MC_1_21_5 .orElse(serializedChunk.lastMs)#endif;
+                long groupLastDayTick;
+                if (groupData.contains("last_day_tick")) {
+                    groupLastDayTick = groupData.getLong("last_day_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+                } else {
+                    groupLastDayTick = groupData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+                }
+                long groupLastGameTick = groupData.getLong("last_game_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+                long groupLastMs = groupData.getLong("last_ms")#if MC_VER >= MC_1_21_5 .orElse(0L)#endif;
 
-                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastTick, groupLastMs, groupId);
+                if (groupLastDayTick == 0L) groupLastDayTick = serializedChunk.lastDayTick;
+                if (groupLastGameTick == 0L) groupLastGameTick = serializedChunk.lastGameTick;
+                if (groupLastMs == 0L) groupLastMs = serializedChunk.lastMs;
+
+                GroupChunkIndex groupChunkIndex = new GroupChunkIndex(new ArrayList<>(), groupLastDayTick, groupLastGameTick, groupLastMs, groupId);
                 groupChunkIndex.setPositions(groupData.getLongArray("positions")#if MC_VER >= MC_1_21_5 .orElse(new long[]{})#endif);
 
                 groupIndexes.add(groupChunkIndex);
@@ -302,7 +346,7 @@ public abstract class ChunkSerializerMixin {
             if (!cardinalData.isEmpty()) {
                 CompoundTag lastChunkTick = cardinalData.getCompound("unloadedactivity:last-chunk-tick")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
                 if (!lastChunkTick.isEmpty()) {
-                    serializedChunk.lastTick = lastChunkTick.getLong("last-tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+                    serializedChunk.lastDayTick = lastChunkTick.getLong("last-tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
                 }
 
                 CompoundTag chunkSimVer = cardinalData.getCompound("unloadedactivity:chunk-sim-ver")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;

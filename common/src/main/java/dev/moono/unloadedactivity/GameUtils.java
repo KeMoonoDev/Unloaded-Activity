@@ -19,8 +19,9 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
+import dev.moono.unloadedactivity.api.weather_history.WeatherDayTickHistory;
+import dev.moono.unloadedactivity.api.weather_history.WeatherGameTickHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
-import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
 import dev.moono.unloadedactivity.mixin.PointedDripstoneBlockAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.DefaultedRegistry;
@@ -77,10 +78,39 @@ public class GameUtils {
         return vec3iResult.result().get().getFirst();
     }
 
+    public static WeatherDayTickHistory getWeatherDayTickHistory(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(
+        #if MC_VER >= MC_1_20_2
+            WeatherDayTickHistory.type
+        #else
+            WeatherDayTickHistory::load,
+            WeatherDayTickHistory::new
+        #endif
+        #if MC_VER < MC_1_21_5
+        , MOD_ID + "-" + WeatherDayTickHistory.DATA_NAME
+        #endif
+        );
+    }
+
+
+    public static WeatherGameTickHistory getWeatherGameTickHistory(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(
+        #if MC_VER >= MC_1_20_2
+            WeatherGameTickHistory.type
+        #else
+            WeatherGameTickHistory::load,
+            WeatherGameTickHistory::new
+        #endif
+        #if MC_VER < MC_1_21_5
+        , MOD_ID + "-" + WeatherGameTickHistory.DATA_NAME
+        #endif
+        );
+    }
+
     public static WeatherMsHistory getWeatherMsHistory(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(
         #if MC_VER >= MC_1_20_2
-                WeatherMsHistory.type
+            WeatherMsHistory.type
         #else
             WeatherMsHistory::load,
             WeatherMsHistory::new
@@ -91,35 +121,45 @@ public class GameUtils {
         );
     }
 
-    public static WeatherTickHistory getWeatherTickHistory(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(
-        #if MC_VER >= MC_1_20_2
-            WeatherTickHistory.type
-        #else
-            WeatherTickHistory::load,
-            WeatherTickHistory::new
-        #endif
-        #if MC_VER < MC_1_21_5
-        , MOD_ID + "-" + WeatherTickHistory.DATA_NAME
-        #endif
-        );
-    }
-
-    public static WeatherHistory getWeatherHistory(ServerLevel level) {
-        return UnloadedActivity.config.useSystemTime ? getWeatherMsHistory(level) : getWeatherTickHistory(level);
-    }
-
     public static boolean isRainingAtTime(ServerLevel level, SimulatedTime simulatedTime) {
-        long currentTime = UnloadedActivity.config.useSystemTime ? simulatedTime.currentMs() : simulatedTime.currentTick();
-        if (currentTime <= 0) return false;
-        return getWeatherHistory(level).getWeatherAtTime(currentTime);
+        switch (UnloadedActivity.config.simulationClock) {
+            case DAY_TIME -> {
+                long currentTime = simulatedTime.currentDayTicks();
+                if (currentTime <= 0) return false;
+                return getWeatherDayTickHistory(level).getWeatherAtTime(currentTime);
+            }
+            case GAME_TIME -> {
+                long currentTime = simulatedTime.currentGameTicks();
+                if (currentTime <= 0) return false;
+                return getWeatherGameTickHistory(level).getWeatherAtTime(currentTime);
+            }
+            case SYSTEM_TIME -> {
+                long currentTime = simulatedTime.currentMs();
+                if (currentTime <= 0) return false;
+                return getWeatherMsHistory(level).getWeatherAtTime(currentTime);
+            }
+        }
+        return false;
     }
 
     public static long nextWeatherSwitchTickDuration(ServerLevel level, SimulatedTime simulatedTime) {
-        long currentTime = UnloadedActivity.config.useSystemTime ? simulatedTime.currentMs() : simulatedTime.currentTick();
-        long changeDuration = getWeatherHistory(level).getNextWeatherChangeDuration(currentTime);
-        if (changeDuration >= Long.MAX_VALUE - 50) return changeDuration;
-        return UnloadedActivity.config.useSystemTime ? (changeDuration + 49) / 50 : changeDuration;
+        switch (UnloadedActivity.config.simulationClock) {
+            case DAY_TIME -> {
+                long currentTime = simulatedTime.currentDayTicks();
+                return getWeatherDayTickHistory(level).getNextWeatherChangeDuration(currentTime);
+            }
+            case GAME_TIME -> {
+                long currentTime = simulatedTime.currentGameTicks();
+                return getWeatherGameTickHistory(level).getNextWeatherChangeDuration(currentTime);
+            }
+            case SYSTEM_TIME -> {
+                long currentTime = simulatedTime.currentMs();
+                long changeDuration = getWeatherMsHistory(level).getNextWeatherChangeDuration(currentTime);
+                if (changeDuration >= Long.MAX_VALUE - 50) return Long.MAX_VALUE;
+                return  (changeDuration + 49) / 50;
+            }
+        }
+        return Long.MAX_VALUE;
     }
 
     public static DefaultedRegistry<EntityType<?>> getEntityTypeRegistry() {
@@ -180,7 +220,7 @@ public class GameUtils {
         return getBlockRegistry().getKey(block);
     }
 
-    public static long getTime(Level level) {
+    public static long getDayTime(Level level) {
         #if MC_VER >= MC_26_1_2
         if (level.dimensionType().defaultClock().isEmpty()) {
             if (UnloadedActivity.config.fallbackToOverworldTime) {
@@ -194,6 +234,10 @@ public class GameUtils {
         #else
         return level.getDayTime();
         #endif
+    }
+
+    public static long getGameTime(Level level) {
+        return level.getGameTime();
     }
 
     public static ChunkPos chunkPosFromWorldPos(BlockPos pos) {

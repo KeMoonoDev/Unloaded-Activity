@@ -47,7 +47,7 @@ public class ExpressionContext extends RandomizedContext {
         this.level = level;
         this.state = state;
         this.pos = pos;
-        this.currentTick = simulatedTime.currentTick();
+        this.currentTick = simulatedTime.currentDayTicks();
 
         this.isRaining = GameUtils.isRainingAtTime(level, simulatedTime);
         this.isThundering = false; // todo make thunder be recorded in the weather history

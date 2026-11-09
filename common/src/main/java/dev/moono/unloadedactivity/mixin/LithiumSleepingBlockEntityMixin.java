@@ -33,9 +33,11 @@ public interface LithiumSleepingBlockEntityMixin {
             BlockEntity blockEntity = accessor.unloadedactivity$getBlockEntity();
             Level level = blockEntity.getLevel();
             if (level instanceof ServerLevel serverLevel) {
-                long currentTick = GameUtils.getTime(serverLevel);
+                long currentDayTick = GameUtils.getDayTime(serverLevel);
+                long currentGameTick = serverLevel.getGameTime();
                 long currentMs = System.currentTimeMillis();
-                blockEntity.setLastTick(currentTick);
+                blockEntity.setLastDayTick(currentDayTick);
+                blockEntity.setLastGameTick(currentGameTick);
                 blockEntity.setLastMs(currentMs);
             }
         }

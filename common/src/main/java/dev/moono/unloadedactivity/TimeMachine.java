@@ -5,10 +5,6 @@ import dev.moono.unloadedactivity.api.*;
 import dev.moono.unloadedactivity.api.context.UpdatingContext;
 import dev.moono.unloadedactivity.api.simulation_method.SimulationMethod;
 import dev.moono.unloadedactivity.api.simulation_method.GroupableSimulationMethod;
-import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
-import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
-import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
-import dev.moono.unloadedactivity.config.UnloadedActivityConfig;
 import dev.moono.unloadedactivity.datapack.group.GroupInfo;
 import dev.moono.unloadedactivity.datapack.group.GroupInfoResource;
 import dev.moono.unloadedactivity.datapack.group.GroupMemberInfo;
@@ -130,7 +126,7 @@ public class TimeMachine {
                                     UnloadedActivity.LOGGER.info("Adding position to group list " + groupId + " " + levelBlockPos.asLong());
 
                                 var positions = newGroupIndexes
-                                        .computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), chunk.getLastTick(), chunk.getLastMs(), id))
+                                        .computeIfAbsent(groupId, (id) -> new GroupChunkIndex(new ArrayList<>(), chunk.getLastDayTick(), chunk.getLastGameTick(), chunk.getLastMs(), id))
                                         .getPositions();
 
                                 positions.add(levelBlockPos.asLong());
@@ -250,21 +246,25 @@ public class TimeMachine {
 
             long tickDifference = 0;
 
-            if (UnloadedActivity.config.useSystemTime) {
-                long lastMs = groupChunkIndex.getLastMs(chunk.getLastMs());
-                if (lastMs > 0) {
-                    // 50ms per tick
-                    tickDifference = Math.max(simulatedTime.endMs() - lastMs, 0) / 50;
+
+            switch (UnloadedActivity.config.simulationClock) {
+                case DAY_TIME -> {
+                    long lastDayTick = groupChunkIndex.getLastDayTick(chunk.getLastDayTick());
+                    if (lastDayTick > 0) tickDifference = Math.max(simulatedTime.endDayTick() - lastDayTick, 0);
                 }
-            } else {
-                long lastTick = groupChunkIndex.getLastTick(chunk.getLastTick());
-                if (lastTick > 0) {
-                    tickDifference = Math.max(simulatedTime.endTick() - lastTick, 0);
+                case GAME_TIME -> {
+                    long lastGameTick = groupChunkIndex.getLastGameTick(chunk.getLastGameTick());
+                    if (lastGameTick > 0) tickDifference = Math.max(simulatedTime.endGameTick() - lastGameTick, 0);
+                }
+                case SYSTEM_TIME -> {
+                    long lastMs = groupChunkIndex.getLastMs(chunk.getLastMs());
+                    if (lastMs > 0) tickDifference = Math.max(simulatedTime.endMs() - lastMs, 0) / 50;
                 }
             }
 
             if (tickDifference <= UnloadedActivity.config.groupTickDifferenceThreshold) {
-                groupChunkIndex.setLastTick(simulatedTime.endTick());
+                groupChunkIndex.setLastDayTick(simulatedTime.endDayTick());
+                groupChunkIndex.setLastGameTick(simulatedTime.endGameTick());
                 groupChunkIndex.setLastMs(simulatedTime.endMs());
                 continue;
             }
@@ -281,7 +281,8 @@ public class TimeMachine {
             }
 
             if (isAllInactive) {
-                groupChunkIndex.setLastTick(simulatedTime.endTick());
+                groupChunkIndex.setLastDayTick(simulatedTime.endDayTick());
+                groupChunkIndex.setLastGameTick(simulatedTime.endGameTick());
                 groupChunkIndex.setLastMs(simulatedTime.endMs());
                 #if MC_VER >= MC_1_21_3
                 chunk.markUnsaved();
@@ -616,14 +617,21 @@ public class TimeMachine {
                 if (newGroupChunkIndex == null)
                     continue;
 
-                long newGroupTickDifference;
+                long newGroupTickDifference = 0;
 
-                if (UnloadedActivity.config.useSystemTime) {
-                    long lastMs = newGroupChunkIndex.getLastMs(newChunk.getLastMs());
-                    newGroupTickDifference = Math.max(simulatedTime.endMs() - lastMs, 0) / 50;
-                } else {
-                    long lastTick = newGroupChunkIndex.getLastTick(newChunk.getLastTick());
-                    newGroupTickDifference = Math.max(simulatedTime.endTick() - lastTick, 0);
+                switch (UnloadedActivity.config.simulationClock) {
+                    case DAY_TIME -> {
+                        long lastDayTick = newGroupChunkIndex.getLastDayTick(newChunk.getLastDayTick());
+                        newGroupTickDifference = Math.max(simulatedTime.endDayTick() - lastDayTick, 0);
+                    }
+                    case GAME_TIME -> {
+                        long lastGameTick = newGroupChunkIndex.getLastGameTick(newChunk.getLastGameTick());
+                        newGroupTickDifference = Math.max(simulatedTime.endGameTick() - lastGameTick, 0);
+                    }
+                    case SYSTEM_TIME -> {
+                        long lastMs = newGroupChunkIndex.getLastMs(newChunk.getLastMs());
+                        newGroupTickDifference = Math.max(simulatedTime.endMs() - lastMs, 0) / 50;
+                    }
                 }
 
                 float differencePercentage = Math.abs((float)(newGroupTickDifference - groupTickDifference) / (float)groupTickDifference);
@@ -645,7 +653,8 @@ public class TimeMachine {
                         groupSimData.isActive = false;
                     }
                 } else {
-                    newGroupChunkIndex.setLastTick(simulatedTime.endTick());
+                    newGroupChunkIndex.setLastDayTick(simulatedTime.endDayTick());
+                    newGroupChunkIndex.setLastGameTick(simulatedTime.endGameTick());
                     newGroupChunkIndex.setLastMs(simulatedTime.endMs());
                     #if MC_VER >= MC_1_21_3
                     chunk.markUnsaved();
@@ -853,7 +862,7 @@ public class TimeMachine {
                             break;
                         }
 
-                        if (lastSimulatedTime.currentTick() < dependencySimulatedTime.currentTick()) {
+                        if (lastSimulatedTime.currentDayTicks() < dependencySimulatedTime.currentDayTicks()) {
                             lastSimulatedTime = dependencySimulatedTime;
                         }
                     }

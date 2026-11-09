@@ -11,8 +11,9 @@ import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.SimulatedTime;
+import dev.moono.unloadedactivity.api.weather_history.WeatherDayTickHistory;
+import dev.moono.unloadedactivity.api.weather_history.WeatherGameTickHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
-import dev.moono.unloadedactivity.api.weather_history.WeatherTickHistory;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
@@ -64,22 +65,32 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel {
 		if (this.isClientSide())
 			return;
 
-		long currentTick = GameUtils.getTime(this);
+		long currentDayTick = GameUtils.getDayTime(this);
+		long currentGameTick = this.getGameTime();
 		long currentMs = System.currentTimeMillis();
 
 		SimulatedTime simulatedTime = SimulatedTime.PLACEHOLDER;
 
-		if (UnloadedActivity.config.useSystemTime) {
-			long lastMs = chunk.getLastMs();
-			if (lastMs > 0) {
-				simulatedTime = SimulatedTime.fromLastMs(lastMs, currentTick, currentMs);
-			}
-		} else {
-			long lastTick = chunk.getLastTick();
-			if (lastTick > 0) {
-				simulatedTime = SimulatedTime.fromLastTick(lastTick, currentTick, currentMs);
-			}
-		}
+		switch (UnloadedActivity.config.simulationClock) {
+            case DAY_TIME -> {
+				long lastDayTick = chunk.getLastDayTick();
+				if (lastDayTick > 0) {
+					simulatedTime = SimulatedTime.fromLastDayTick(lastDayTick, currentDayTick, currentGameTick, currentMs);
+				}
+            }
+            case GAME_TIME -> {
+				long lastGameTick = chunk.getLastGameTick();
+				if (lastGameTick > 0) {
+					simulatedTime = SimulatedTime.fromLastGameTick(lastGameTick, currentDayTick, currentGameTick, currentMs);
+				}
+            }
+            case SYSTEM_TIME -> {
+				long lastMs = chunk.getLastMs();
+				if (lastMs > 0) {
+					simulatedTime = SimulatedTime.fromLastMs(lastMs, currentDayTick, currentGameTick, currentMs);
+				}
+            }
+        }
 
 		if (simulatedTime.remainingTicks() > 0) {
 			if (!TimeMachine.isChunkIndexed(chunk)) return;
@@ -104,7 +115,8 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel {
 			}
 		}
 
-		chunk.setLastTick(currentTick);
+		chunk.setLastDayTick(currentDayTick);
+		chunk.setLastGameTick(currentGameTick);
 		chunk.setLastMs(currentMs);
 	}
 
@@ -121,15 +133,18 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel {
 
 	@Inject(method = "tick", at = @At(value = "TAIL", target = "net/minecraft/server/level/ServerLevel.tickTime ()V"))
 	private void finishTickTime(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-		WeatherTickHistory weatherTickHistory = GameUtils.getWeatherTickHistory(this.getLevel());
-		weatherTickHistory.updateValues(GameUtils.getTime(this), this.isRaining());
+		WeatherDayTickHistory weatherDayTickHistory = GameUtils.getWeatherDayTickHistory(this.getLevel());
+		weatherDayTickHistory.updateValues(GameUtils.getDayTime(this), this.isRaining());
+		WeatherGameTickHistory weatherGameTickHistory = GameUtils.getWeatherGameTickHistory(this.getLevel());
+		weatherGameTickHistory.updateValues(this.getGameTime(), this.isRaining());
 		WeatherMsHistory weatherMsHistory = GameUtils.getWeatherMsHistory(this.getLevel());
 		weatherMsHistory.updateValues(System.currentTimeMillis(), this.isRaining());
 	}
 
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void createState(CallbackInfo ci) {
-		GameUtils.getWeatherTickHistory(this.getLevel());
+		GameUtils.getWeatherDayTickHistory(this.getLevel());
+		GameUtils.getWeatherGameTickHistory(this.getLevel());
 		GameUtils.getWeatherMsHistory(this.getLevel());
 	}
 }

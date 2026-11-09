@@ -11,9 +11,12 @@ import java.util.ArrayList;
 @Mixin(ChunkAccess.class)
 public abstract class ChunkAccessMixin implements ChunkTimeData {
 
-    // Last time the chunk was ticked.
+    // Last time the chunk was ticked in day (world) time.
     @Unique
-    private long lastTick = 0;
+    private long lastDayTick = 0;
+    // Last time the chunk was ticked in game time.
+    @Unique
+    private long lastGameTick = 0;
 
     // Last time the chunk was ticked, but it's using the time from the system clock.
     @Unique
@@ -34,13 +37,23 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     private ArrayList<GroupChunkIndex> groupIndexes = new ArrayList<>();
 
     @Override
-    public long getLastTick() {
-        return this.lastTick;
+    public long getLastDayTick() {
+        return this.lastDayTick;
     }
 
     @Override
-    public void setLastTick(long tick) {
-        this.lastTick = tick;
+    public void setLastDayTick(long tick) {
+        this.lastDayTick = tick;
+    }
+
+    @Override
+    public long getLastGameTick() {
+        return this.lastGameTick;
+    }
+
+    @Override
+    public void setLastGameTick(long tick) {
+        this.lastGameTick = tick;
     }
 
     @Override

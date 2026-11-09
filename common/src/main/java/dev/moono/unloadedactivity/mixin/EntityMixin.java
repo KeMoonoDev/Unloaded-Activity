@@ -32,7 +32,9 @@ import static dev.moono.unloadedactivity.UnloadedActivity.OLD_MOD_ID;
 public abstract class EntityMixin implements Nameable, EntityAccess, CommandSource {
 
     @Unique
-    private long lastTick = 0;
+    private long lastDayTick = 0;
+    @Unique
+    private long lastGameTick = 0;
     @Unique
     private long lastMs = 0;
 
@@ -42,18 +44,21 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
         if (level.isClientSide())
             return;
 
-        long currentTick = GameUtils.getTime(level);
+        long currentDayTick = GameUtils.getDayTime(level);
+        long currentGameTick = level.getGameTime();
         long currentMs = System.currentTimeMillis();
 
         long tickDifference = 0;
 
-        if (UnloadedActivity.config.useSystemTime) {
-            if (lastMs > 0) {
-                tickDifference = Math.max(currentMs - lastMs, 0) / 50;
+        switch (UnloadedActivity.config.simulationClock) {
+            case DAY_TIME -> {
+                if (lastDayTick > 0) tickDifference = max(currentDayTick - lastDayTick, 0);
             }
-        } else {
-            if (lastTick > 0) {
-                tickDifference = max(currentTick - lastTick,0);
+            case GAME_TIME -> {
+                if (lastGameTick > 0) tickDifference = max(currentGameTick - lastGameTick,0);
+            }
+            case SYSTEM_TIME -> {
+                if (lastMs > 0) tickDifference = Math.max(currentMs - lastMs, 0) / 50;
             }
         }
 
@@ -64,13 +69,16 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
             TimeMachine.simulateEntity((Entity) (Object) this, (long)(tickDifference * multiplier));
         }
 
-        this.lastTick = currentTick;
+        this.lastDayTick = currentDayTick;
+        this.lastGameTick = currentGameTick;
         this.lastMs = currentMs;
     }
 
     @Inject( at = @At("RETURN"), method = "<init>")
     private void init(EntityType<?> type, Level level, CallbackInfo ci) {
-        this.lastTick = GameUtils.getTime(level);
+        this.lastDayTick = GameUtils.getDayTime(level);
+        this.lastGameTick = level.getGameTime();
+        this.lastMs = System.currentTimeMillis();
     }
 
     #if MC_VER <= MC_1_21_5
@@ -80,7 +88,8 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 
         CompoundTag entityData = new CompoundTag();
 
-        entityData.putLong("last_tick", this.lastTick);
+        entityData.putLong("last_day_tick", this.lastDayTick);
+        entityData.putLong("last_game_tick", this.lastGameTick);
         entityData.putLong("last_ms", this.lastMs);
 
         returnedNbt.put(MOD_ID, entityData);
@@ -90,7 +99,8 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
     private void save(ValueOutput nbt, CallbackInfo ci) {
         CompoundTag entityData = new CompoundTag();
 
-        entityData.putLong("last_tick", this.lastTick);
+        entityData.putLong("last_day_tick", this.lastDayTick);
+        entityData.putLong("last_game_tick", this.lastGameTick);
         entityData.putLong("last_ms", this.lastMs);
 
         nbt.store(MOD_ID, CompoundTag.CODEC, entityData);
@@ -99,12 +109,12 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
 
     #if MC_VER <= MC_1_21_5
     @Inject(method = "load", at = @At(value = "INVOKE", target = "net/minecraft/world/entity/Entity.readAdditionalSaveData (Lnet/minecraft/nbt/CompoundTag;)V", shift = At.Shift.AFTER))
-    private void load(CompoundTag nbt, CallbackInfo ci) {
+    private void load(CompoundTag nbt, CallbackInfo ci)
     #else
     @Inject(method = "load", at = @At(value = "INVOKE", target = "net/minecraft/world/entity/Entity.readAdditionalSaveData (Lnet/minecraft/world/level/storage/ValueInput;)V", shift = At.Shift.AFTER))
-    private void load(ValueInput nbt, CallbackInfo ci) {
+    private void load(ValueInput nbt, CallbackInfo ci)
     #endif
-
+    {
         #if MC_VER <= MC_1_21_5
         CompoundTag entityData = nbt.getCompound(MOD_ID)#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag()) #endif;
         #else
@@ -122,7 +132,13 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
         boolean isEmpty = entityData.isEmpty();
 
         if (!isEmpty) {
-            this.lastTick = entityData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            if (entityData.contains("last_day_tick")) {
+
+                this.lastDayTick = entityData.getLong("last_day_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            } else {
+                this.lastDayTick = entityData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            }
+            this.lastGameTick = entityData.getLong("last_game_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             this.lastMs = entityData.getLong("last_ms")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
         }
 
@@ -136,7 +152,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
             if (!cardinalData.isEmpty()) {
                 CompoundTag lastEntityTick = cardinalData.getCompound("unloadedactivity:last-entity-tick")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
                 if (!lastEntityTick.isEmpty()) {
-                    this.lastTick = lastEntityTick.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+                    this.lastGameTick = lastEntityTick.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
                 }
 
                 // This is so that cardinal components doesn't start sending warnings.
@@ -144,7 +160,8 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
             }
         }
 
-        if (this.lastTick == 0) this.lastTick = GameUtils.getTime(level);
+        if (this.lastDayTick == 0) this.lastDayTick = GameUtils.getDayTime(level);
+        if (this.lastGameTick == 0) this.lastGameTick = level.getGameTime();
         if (this.lastMs == 0) this.lastMs = System.currentTimeMillis();
 
     }

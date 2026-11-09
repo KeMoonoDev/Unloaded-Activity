@@ -52,7 +52,7 @@ public class DeferredBlockPlacer implements Iterable<DeferredBlockPlacer.BlockPl
 
     private void sortListIfNeeded() {
         if (isSorted) return;
-        blockPlacements.sort(Comparator.comparingLong((blockPlacement -> blockPlacement.placedAtTime.currentTick())));
+        blockPlacements.sort(Comparator.comparingLong((blockPlacement -> blockPlacement.placedAtTime.currentDayTicks())));
         isSorted = true;
     }
 

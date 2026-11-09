@@ -27,18 +27,30 @@ import static dev.moono.unloadedactivity.UnloadedActivity.OLD_MOD_ID;
 @Mixin(value = BlockEntity.class, priority = 999)
 public abstract class BlockEntityMixin implements BlockEntityTimeData {
     @Unique
-    private long lastTick = 0;
+    private long lastDayTick = 0;
+    @Unique
+    private long lastGameTick = 0;
     @Unique
     private long lastMs = 0;
 
     @Override
-    public long getLastTick() {
-        return this.lastTick;
+    public long getLastDayTick() {
+        return this.lastDayTick;
     }
 
     @Override
-    public void setLastTick(long tick) {
-        this.lastTick = tick;
+    public void setLastDayTick(long tick) {
+        this.lastDayTick = tick;
+    }
+
+    @Override
+    public long getLastGameTick() {
+        return this.lastGameTick;
+    }
+
+    @Override
+    public void setLastGameTick(long tick) {
+        this.lastGameTick = tick;
     }
 
     @Override
@@ -74,7 +86,8 @@ public abstract class BlockEntityMixin implements BlockEntityTimeData {
     {
         CompoundTag blockData = new CompoundTag();
 
-        blockData.putLong("last_tick", this.lastTick);
+        blockData.putLong("last_day_tick", this.lastDayTick);
+        blockData.putLong("last_game_tick", this.lastGameTick);
         blockData.putLong("last_ms", this.lastMs);
 
         #if MC_VER <= MC_1_21_5
@@ -111,7 +124,12 @@ public abstract class BlockEntityMixin implements BlockEntityTimeData {
         boolean isEmpty = blockData.isEmpty();
 
         if (!isEmpty) {
-            this.lastTick = blockData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            if (blockData.contains("last_day_tick")) {
+                this.lastDayTick = blockData.getLong("last_day_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            } else {
+                this.lastDayTick = blockData.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+            }
+            this.lastGameTick = blockData.getLong("last_game_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
             this.lastMs = blockData.getLong("last_ms")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
         }
 
@@ -125,7 +143,7 @@ public abstract class BlockEntityMixin implements BlockEntityTimeData {
             if (!cardinalData.isEmpty()) {
                 CompoundTag lastEntityTick = cardinalData.getCompound("unloadedactivity:last-blockentity-tick")#if MC_VER >= MC_1_21_5 .orElse(new CompoundTag())#endif;
                 if (!lastEntityTick.isEmpty()) {
-                    this.lastTick = lastEntityTick.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
+                    this.lastDayTick = lastEntityTick.getLong("last_tick")#if MC_VER >= MC_1_21_5 .orElse(0L) #endif;
                 }
 
                 // This is so that cardinal components doesn't start sending warnings.
@@ -133,7 +151,8 @@ public abstract class BlockEntityMixin implements BlockEntityTimeData {
             }
         }
 
-        if (this.lastTick == 0 && this.hasLevel()) this.lastTick = GameUtils.getTime(this.getLevel());
+        if (this.lastDayTick == 0 && this.hasLevel()) this.lastDayTick = GameUtils.getDayTime(this.getLevel());
+        if (this.lastGameTick == 0 && this.hasLevel()) this.lastGameTick = this.getLevel().getGameTime();
         if (this.lastMs == 0 && this.hasLevel()) this.lastMs = System.currentTimeMillis();
     }
 }

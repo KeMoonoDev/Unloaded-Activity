@@ -29,16 +29,25 @@ import java.util.Optional;
 
 public class GroupChunkIndex {
     private ArrayList<Long> positions;
-    private long lastTick;
+    private long lastDayTick;
+    private long lastGameTick;
     private long lastMs;
     public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId;
 
-    public long getLastTick(long lastSimulationTick) {
-        return Math.max(lastSimulationTick, lastTick);
+    public long getLastDayTick(long lastSimulationDayTick) {
+        return Math.max(lastSimulationDayTick, lastDayTick);
     }
 
-    public void setLastTick(long currentTick) {
-        this.lastTick = currentTick;
+    public void setLastDayTick(long currentDayTick) {
+        this.lastDayTick = currentDayTick;
+    }
+
+    public long getLastGameTick(long lastSimulationGameTick) {
+        return Math.max(lastSimulationGameTick, lastGameTick);
+    }
+
+    public void setLastGameTick(long currentGameTick) {
+        this.lastGameTick = currentGameTick;
     }
 
     public long getLastMs(long lastSimulationMs) {
@@ -137,9 +146,10 @@ public class GroupChunkIndex {
         return blockInfoList;
     }
 
-    public GroupChunkIndex(ArrayList<Long> positions, long lastTick, long lastMs, #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
+    public GroupChunkIndex(ArrayList<Long> positions, long lastDayTick, long lastGameTick, long lastMs, #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId) {
         this.positions = positions;
-        this.lastTick = lastTick;
+        this.lastDayTick = lastDayTick;
+        this.lastGameTick = lastGameTick;
         this.lastMs = lastMs;
         this.groupId = groupId;
     }
