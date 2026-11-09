@@ -18,6 +18,7 @@
     "PointedDripstoneBlockAccessor",
     "ServerLevelMixin",
     "SpeleothemBlockAccessor",
+    "TrialSpawnerBlockEntityMixin",
     "block_entities.AbstractFurnaceBlockEntityMixin",
     "entities.SheepMixin"
   ],

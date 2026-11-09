@@ -6,6 +6,10 @@ import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.animal.Sheep;
 #endif
 
+#if MC_VER >= MC_1_21_1
+import net.minecraft.world.level.block.entity.TrialSpawnerBlockEntity;
+#endif
+
 import com.google.gson.JsonElement;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.UnloadedActivity;
@@ -307,6 +311,12 @@ public class DefaultRegistrations implements UnloadedActivityApi {
         registry.register(AbstractFurnaceBlockEntity.class, (blockEntity, ticksPassed, multiplier) -> {
             ((SimulateEntityHelper)blockEntity).unloadedactivity$simulate(ticksPassed, multiplier);
         });
+
+        #if MC_VER >= MC_1_21_1
+        registry.register(TrialSpawnerBlockEntity.class, (blockEntity, ticksPassed, multiplier) -> {
+            ((SimulateEntityHelper)blockEntity).unloadedactivity$simulate(ticksPassed, multiplier);
+        });
+        #endif
     }
 
     @Override

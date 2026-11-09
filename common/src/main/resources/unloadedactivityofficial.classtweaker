@@ -20,3 +20,5 @@ accessible method net/minecraft/world/level/block/BambooSaplingBlock growBamboo 
 accessible method net/minecraft/world/level/block/BambooStalkBlock growBamboo (Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/util/RandomSource;I)V
 accessible method net/minecraft/world/level/block/BambooStalkBlock getHeightBelowUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I
 accessible method net/minecraft/world/level/block/BambooStalkBlock getHeightAboveUpToMax (Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)I
+
+accessible field net/minecraft/world/level/block/entity/trialspawner/TrialSpawnerStateData cooldownEndsAt J
