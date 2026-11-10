@@ -10,6 +10,7 @@ displayName = "Unloaded Activity"
 authors = "Moono"
 description = "Simulates blocks and entities to catch up after being unloaded for a period of time."
 logoFile = "icon.png"
+iconFile = "icon.png"
 
 [[dependencies.unloadedactivity]]
 modId = "neoforge"
