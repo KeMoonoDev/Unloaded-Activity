@@ -19,8 +19,8 @@
     "ServerLevelMixin",
     "SpeleothemBlockAccessor",
     "TrialSpawnerBlockEntityMixin",
-    "block_entities.AbstractFurnaceBlockEntityMixin",
-    "entities.SheepMixin"
+    "AbstractFurnaceBlockEntityMixin",
+    "SheepMixin"
   ],
   "injectors": {
     "defaultRequire": 1

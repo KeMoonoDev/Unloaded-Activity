@@ -1,4 +1,4 @@
-package dev.moono.unloadedactivity.mixin.entities;
+package dev.moono.unloadedactivity.mixin;
 
 #if MC_VER >= MC_1_21_5
 import net.minecraft.world.entity.animal.sheep.Sheep;

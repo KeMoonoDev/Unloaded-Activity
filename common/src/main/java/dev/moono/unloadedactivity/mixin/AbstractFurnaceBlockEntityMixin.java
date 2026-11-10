@@ -1,4 +1,4 @@
-package dev.moono.unloadedactivity.mixin.block_entities;
+package dev.moono.unloadedactivity.mixin;
 
 #if MC_VER >= MC_26_1_2
 import net.minecraft.world.item.ItemStackTemplate;
