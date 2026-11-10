@@ -69,38 +69,18 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel {
 		long currentGameTick = this.getGameTime();
 		long currentMs = System.currentTimeMillis();
 
-		SimulatedTime simulatedTime = SimulatedTime.PLACEHOLDER;
+		long tickDifference = GameUtils.getTickDifference(chunk, currentDayTick, currentGameTick, currentMs);
 
-		switch (UnloadedActivity.config.simulationClock) {
-            case DAY_TIME -> {
-				long lastDayTick = chunk.getLastDayTick();
-				if (lastDayTick > 0) {
-					simulatedTime = SimulatedTime.fromLastDayTick(lastDayTick, currentDayTick, currentGameTick, currentMs);
-				}
-            }
-            case GAME_TIME -> {
-				long lastGameTick = chunk.getLastGameTick();
-				if (lastGameTick > 0) {
-					simulatedTime = SimulatedTime.fromLastGameTick(lastGameTick, currentDayTick, currentGameTick, currentMs);
-				}
-            }
-            case SYSTEM_TIME -> {
-				long lastMs = chunk.getLastMs();
-				if (lastMs > 0) {
-					simulatedTime = SimulatedTime.fromLastMs(lastMs, currentDayTick, currentGameTick, currentMs);
-				}
-            }
-        }
-
-		if (simulatedTime.remainingTicks() > 0) {
+		if (tickDifference > 0) {
 			if (!TimeMachine.isChunkIndexed(chunk)) return;
 
 			int tickDifferenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
 
-			if (simulatedTime.remainingTicks() > tickDifferenceThreshold) {
+			if (tickDifference > tickDifferenceThreshold) {
 				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier()) {
 					++updateCount;
 					int groupUpdateBudget = UnloadedActivity.config.maxGroupUpdatesPerTick - groupUpdateCount;
+					SimulatedTime simulatedTime = SimulatedTime.fromRemainingTicks(tickDifference, currentDayTick,currentGameTick,currentMs);
 					Pair<Integer, Boolean> result = TimeMachine.simulateChunk(this.getLevel(), chunk, simulatedTime, randomTickSpeed, groupUpdateBudget);
 					groupUpdateCount += result.getFirst();
 					boolean simulatedAllGroups = result.getSecond();

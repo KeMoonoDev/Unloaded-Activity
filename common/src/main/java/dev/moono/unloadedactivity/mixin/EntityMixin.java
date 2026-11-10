@@ -3,6 +3,7 @@ package dev.moono.unloadedactivity.mixin;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.UnloadedActivity;
+import dev.moono.unloadedactivity.interfaces.EntityTimeData;
 import net.minecraft.commands.CommandSource;
 #if MC_VER > MC_1_21_5
 import net.minecraft.world.level.storage.ValueInput;
@@ -29,7 +30,37 @@ import static dev.moono.unloadedactivity.UnloadedActivity.OLD_MOD_ID;
 
 
 @Mixin(value = Entity.class, priority = 999)
-public abstract class EntityMixin implements Nameable, EntityAccess, CommandSource {
+public abstract class EntityMixin implements Nameable, EntityAccess, CommandSource, EntityTimeData {
+
+    @Override
+    public long getLastDayTick() {
+        return this.lastDayTick;
+    }
+
+    @Override
+    public void setLastDayTick(long tick) {
+        this.lastDayTick = tick;
+    }
+
+    @Override
+    public long getLastGameTick() {
+        return this.lastGameTick;
+    }
+
+    @Override
+    public void setLastGameTick(long tick) {
+        this.lastGameTick = tick;
+    }
+
+    @Override
+    public long getLastMs() {
+        return this.lastMs;
+    }
+
+    @Override
+    public void setLastMs(long ms) {
+        this.lastMs = ms;
+    }
 
     @Unique
     private long lastDayTick = 0;
@@ -48,19 +79,7 @@ public abstract class EntityMixin implements Nameable, EntityAccess, CommandSour
         long currentGameTick = level.getGameTime();
         long currentMs = System.currentTimeMillis();
 
-        long tickDifference = 0;
-
-        switch (UnloadedActivity.config.simulationClock) {
-            case DAY_TIME -> {
-                if (lastDayTick > 0) tickDifference = max(currentDayTick - lastDayTick, 0);
-            }
-            case GAME_TIME -> {
-                if (lastGameTick > 0) tickDifference = max(currentGameTick - lastGameTick,0);
-            }
-            case SYSTEM_TIME -> {
-                if (lastMs > 0) tickDifference = Math.max(currentMs - lastMs, 0) / 50;
-            }
-        }
+        long tickDifference = GameUtils.getTickDifference(this, currentDayTick, currentGameTick, currentMs);
 
         int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
 

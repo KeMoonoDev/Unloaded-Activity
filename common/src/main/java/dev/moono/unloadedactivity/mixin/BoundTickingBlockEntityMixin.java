@@ -42,7 +42,7 @@ public abstract class BoundTickingBlockEntityMixin<T extends BlockEntity> {
             long currentGameTick = serverLevel.getGameTime();
             long currentMs = System.currentTimeMillis();
 
-            long tickDifference = getTickDifference(currentDayTick, currentGameTick, currentMs);
+            long tickDifference = GameUtils.getTickDifference(this.blockEntity, currentDayTick, currentGameTick, currentMs);
 
             int differenceThreshold = UnloadedActivity.config.tickDifferenceThreshold;
 
@@ -54,26 +54,5 @@ public abstract class BoundTickingBlockEntityMixin<T extends BlockEntity> {
             this.blockEntity.setLastGameTick(currentGameTick);
             this.blockEntity.setLastMs(currentMs);
         }
-    }
-
-    @Unique
-    private long getTickDifference(long currentDayTick, long currentGameTick, long currentMs) {
-        long tickDifference = 0;
-
-        switch (UnloadedActivity.config.simulationClock) {
-            case DAY_TIME -> {
-                long lastTick = blockEntity.getLastDayTick();
-                if (lastTick > 0) tickDifference = max(currentDayTick - lastTick,0);
-            }
-            case GAME_TIME -> {
-                long lastTick = blockEntity.getLastGameTick();
-                if (lastTick > 0) tickDifference = max(currentGameTick - lastTick,0);
-            }
-            case SYSTEM_TIME -> {
-                long lastMs = blockEntity.getLastMs();
-                if (lastMs > 0) tickDifference = Math.max(currentMs - lastMs, 0) / 50;
-            }
-        }
-        return tickDifference;
     }
 }

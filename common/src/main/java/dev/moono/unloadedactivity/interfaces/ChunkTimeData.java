@@ -10,6 +10,7 @@ import dev.moono.unloadedactivity.GroupChunkIndex;
 
 import java.util.ArrayList;
 
+// TODO: Rename this to ChunkIndexData and then merge BlockEntityTimeData, EntityTimeData and ChunkTimeData to one common interface.
 public interface ChunkTimeData {
     long getLastDayTick();
 

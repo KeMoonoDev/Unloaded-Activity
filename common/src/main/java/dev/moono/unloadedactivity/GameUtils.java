@@ -15,13 +15,14 @@ import net.minecraft.core.Registry;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.moono.unloadedactivity.api.SimulatedTime;
-import dev.moono.unloadedactivity.api.weather_history.WeatherHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherDayTickHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherGameTickHistory;
 import dev.moono.unloadedactivity.api.weather_history.WeatherMsHistory;
+import dev.moono.unloadedactivity.interfaces.BlockEntityTimeData;
+import dev.moono.unloadedactivity.interfaces.ChunkTimeData;
+import dev.moono.unloadedactivity.interfaces.EntityTimeData;
 import dev.moono.unloadedactivity.mixin.PointedDripstoneBlockAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.DefaultedRegistry;
@@ -46,6 +47,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
+import static java.lang.Long.max;
 
 /// A bunch of functions that are used frequently with version specific logic.
 /// Separated into here to reduce clutter elsewhere.
@@ -411,5 +413,65 @@ public class GameUtils {
         #else
         return state.getValue(block.getAgeProperty());
         #endif
+    }
+
+    public static long getTickDifference(BlockEntityTimeData timeData, long currentDayTick, long currentGameTick, long currentMs) {
+        long tickDifference = 0;
+
+        switch (UnloadedActivity.config.simulationClock) {
+            case DAY_TIME -> {
+                long lastDayTick = timeData.getLastDayTick();
+                if (lastDayTick > 0) tickDifference = max(currentDayTick - lastDayTick,0);
+            }
+            case GAME_TIME -> {
+                long lastGameTick = timeData.getLastGameTick();
+                if (lastGameTick > 0) tickDifference = max(currentGameTick - lastGameTick,0);
+            }
+            case SYSTEM_TIME -> {
+                long lastMs = timeData.getLastMs();
+                if (lastMs > 0) tickDifference = Math.max(currentMs - lastMs, 0) / 50;
+            }
+        }
+        return tickDifference;
+    }
+
+    public static long getTickDifference(EntityTimeData timeData, long currentDayTick, long currentGameTick, long currentMs) {
+        long tickDifference = 0;
+
+        switch (UnloadedActivity.config.simulationClock) {
+            case DAY_TIME -> {
+                long lastDayTick = timeData.getLastDayTick();
+                if (lastDayTick > 0) tickDifference = max(currentDayTick - lastDayTick,0);
+            }
+            case GAME_TIME -> {
+                long lastGameTick = timeData.getLastGameTick();
+                if (lastGameTick > 0) tickDifference = max(currentGameTick - lastGameTick,0);
+            }
+            case SYSTEM_TIME -> {
+                long lastMs = timeData.getLastMs();
+                if (lastMs > 0) tickDifference = Math.max(currentMs - lastMs, 0) / 50;
+            }
+        }
+        return tickDifference;
+    }
+
+    public static long getTickDifference(ChunkTimeData timeData, long currentDayTick, long currentGameTick, long currentMs) {
+        long tickDifference = 0;
+
+        switch (UnloadedActivity.config.simulationClock) {
+            case DAY_TIME -> {
+                long lastDayTick = timeData.getLastDayTick();
+                if (lastDayTick > 0) tickDifference = max(currentDayTick - lastDayTick,0);
+            }
+            case GAME_TIME -> {
+                long lastGameTick = timeData.getLastGameTick();
+                if (lastGameTick > 0) tickDifference = max(currentGameTick - lastGameTick,0);
+            }
+            case SYSTEM_TIME -> {
+                long lastMs = timeData.getLastMs();
+                if (lastMs > 0) tickDifference = Math.max(currentMs - lastMs, 0) / 50;
+            }
+        }
+        return tickDifference;
     }
 }
