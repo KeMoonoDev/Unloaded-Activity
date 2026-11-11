@@ -236,7 +236,7 @@ subprojects {
 
 	clean {
 		delete "$rootDir/artifacts"
-		delete "$rootDir/Merged"
+		//delete "$rootDir/Merged"
 	}
 
 	if (project.name !== 'common') {
@@ -260,4 +260,8 @@ subprojects {
 
 		build.finalizedBy(copyAllArtifacts)
 	}
+}
+
+tasks.register("cleanBuildMerge", Exec) {
+	commandLine './cleanBuildMerge'
 }

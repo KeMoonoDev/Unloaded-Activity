@@ -1,0 +1,5 @@
+#!/bin/sh
+# I could NOT figure out how to create a gradle task to do this, so here's a shell script!
+./gradlew clean
+./gradlew build
+./gradlew mergeJars
