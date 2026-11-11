@@ -7,7 +7,7 @@
 See the Modrinth/CurseForge description for more info.
 
 # Feedback / Suggestions
-If you got any feedback or suggestions for this mod, feel free to join my [discord server](https://discord.gg/aF3sqRN5Ja)!
+If you got any feedback or suggestions for this mod, feel free to join my [discord server](https://discord.gg/sUYyBkRma9)!
 
 # Contributing
 You are free to contribute so feel free to open issues and pull requests.
