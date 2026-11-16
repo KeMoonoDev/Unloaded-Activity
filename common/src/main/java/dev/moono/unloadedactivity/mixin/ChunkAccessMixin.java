@@ -1,8 +1,10 @@
 package dev.moono.unloadedactivity.mixin;
 
 import dev.moono.unloadedactivity.GroupChunkIndex;
+import dev.moono.unloadedactivity.SimulationInfo;
 import dev.moono.unloadedactivity.interfaces.ChunkTimeData;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -10,6 +12,11 @@ import java.util.ArrayList;
 
 @Mixin(ChunkAccess.class)
 public abstract class ChunkAccessMixin implements ChunkTimeData {
+    @Unique
+    private long simulationsSinceLoad = 0;
+
+    @Unique
+    private @Nullable SimulationInfo lastSimulationInfo = null;
 
     // Last time the chunk was ticked in day (world) time.
     @Unique
@@ -35,6 +42,22 @@ public abstract class ChunkAccessMixin implements ChunkTimeData {
     // All groups in the chunk with their blocks and when they were last ticked.
     @Unique
     private ArrayList<GroupChunkIndex> groupIndexes = new ArrayList<>();
+
+    @Override
+    public long getSimulationsSinceLoad() {
+        return this.simulationsSinceLoad;
+    }
+
+    @Override
+    public @Nullable SimulationInfo getLastSimulationInfo() {
+        return this.lastSimulationInfo;
+    }
+
+    @Override
+    public void setLastSimulationInfo(SimulationInfo simulationInfo) {
+        this.simulationsSinceLoad += 1;
+        this.lastSimulationInfo = simulationInfo;
+    }
 
     @Override
     public long getLastDayTick() {

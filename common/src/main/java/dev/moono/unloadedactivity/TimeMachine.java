@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -62,7 +63,7 @@ public class TimeMachine {
         return Pair.of(simulatedGroupCount, true);
     }
 
-    public static boolean isChunkIndexed(LevelChunk chunk) {
+    public static boolean isChunkIndexed(ChunkAccess chunk) {
         return chunk.getSimulationVersion() == UnloadedActivity.chunkSimVer;
     }
 
@@ -238,6 +239,7 @@ public class TimeMachine {
         boolean missedGroup = false;
 
         for (GroupChunkIndex groupChunkIndex : groupIndexes) {
+            long startTime = System.nanoTime();
             var groupId = groupChunkIndex.groupId;
             GroupInfo groupInfo = GroupInfoResource.GROUPS_MAP.get(groupId);
 
@@ -300,7 +302,14 @@ public class TimeMachine {
 
             simulatedGroups++;
 
-            Optional<Collection<ActiveGroupSimulateData>> maybeActiveGroupDataMap = generateActiveGroupDataMap(level, chunk, checkingBlockPositions, groupInfo, simulatedTime);
+            SimulationInfo simulationInfo = new SimulationInfo(
+                    UnloadedActivity.config.simulationClock,
+                    tickDifference
+            );
+
+            groupChunkIndex.setLastSimulationInfo(simulationInfo);
+
+            Optional<Collection<ActiveGroupSimulateData>> maybeActiveGroupDataMap = generateActiveGroupDataMap(level, chunk, checkingBlockPositions, groupInfo, simulatedTime, simulationInfo);
 
             if (maybeActiveGroupDataMap.isEmpty()) {
                 break;
@@ -497,13 +506,14 @@ public class TimeMachine {
                     }
                 }
             }
+            simulationInfo.simulationDuration = (double)(System.nanoTime() - startTime) / 1000000.0;
         }
 
         return Pair.of(simulatedGroups, !missedGroup);
     }
 
 
-    public static Optional<Collection<ActiveGroupSimulateData>> generateActiveGroupDataMap(ServerLevel level, LevelChunk chunk, ArrayList<ActiveGroupSimulateData> checkingBlockPositions, GroupInfo groupInfo, SimulatedTime simulatedTime) {
+    public static Optional<Collection<ActiveGroupSimulateData>> generateActiveGroupDataMap(ServerLevel level, LevelChunk chunk, ArrayList<ActiveGroupSimulateData> checkingBlockPositions, GroupInfo groupInfo, SimulatedTime simulatedTime, SimulationInfo simulationInfo) {
         int adjustedMaxGroupTickSize = Math.round(UnloadedActivity.config.maxGroupTickSize / groupInfo.groupSizePenalty);
 
         // This is assuming simulatedTime was just created where the remainingTicks has not been reduced
@@ -656,6 +666,7 @@ public class TimeMachine {
                     newGroupChunkIndex.setLastDayTick(simulatedTime.endDayTick());
                     newGroupChunkIndex.setLastGameTick(simulatedTime.endGameTick());
                     newGroupChunkIndex.setLastMs(simulatedTime.endMs());
+                    newGroupChunkIndex.setLastSimulationInfo(simulationInfo);
                     #if MC_VER >= MC_1_21_3
                     chunk.markUnsaved();
                     #else

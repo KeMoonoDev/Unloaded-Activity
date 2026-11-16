@@ -7,6 +7,7 @@ import net.minecraft.server.permissions.PermissionLevel;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import dev.moono.unloadedactivity.commands.ChunkInfoCommand;
 import dev.moono.unloadedactivity.config.ConfigOption;
 import net.minecraft.commands.*;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,6 +36,7 @@ public class UnloadedActivityCommand {
         });
 
         addConfigs(commandBuilder, context);
+        ChunkInfoCommand.register(commandBuilder);
 
         dispatcher.register(commandBuilder);
     }

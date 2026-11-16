@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.Holder;
 import dev.moono.unloadedactivity.TimeMachine;
 import dev.moono.unloadedactivity.GameUtils;
+import dev.moono.unloadedactivity.SimulationInfo;
 import dev.moono.unloadedactivity.UnloadedActivity;
 import dev.moono.unloadedactivity.api.SimulatedTime;
 import dev.moono.unloadedactivity.api.weather_history.WeatherDayTickHistory;
@@ -80,8 +81,16 @@ public abstract class ServerLevelMixin extends Level implements WorldGenLevel {
 				if (updateCount < UnloadedActivity.config.maxChunkUpdatesPerTick*getMultiplier()) {
 					++updateCount;
 					int groupUpdateBudget = UnloadedActivity.config.maxGroupUpdatesPerTick - groupUpdateCount;
+					long startTime = System.nanoTime();
 					SimulatedTime simulatedTime = SimulatedTime.fromRemainingTicks(tickDifference, currentDayTick,currentGameTick,currentMs);
 					Pair<Integer, Boolean> result = TimeMachine.simulateChunk(this.getLevel(), chunk, simulatedTime, randomTickSpeed, groupUpdateBudget);
+
+					chunk.setLastSimulationInfo(new SimulationInfo(
+						UnloadedActivity.config.simulationClock,
+						tickDifference,
+						(double)(System.nanoTime() - startTime) / 1000000.0
+					));
+
 					groupUpdateCount += result.getFirst();
 					boolean simulatedAllGroups = result.getSecond();
 					if (!simulatedAllGroups) {

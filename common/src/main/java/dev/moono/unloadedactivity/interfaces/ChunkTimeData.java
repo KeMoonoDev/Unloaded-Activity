@@ -7,11 +7,19 @@ import net.minecraft.resources.ResourceLocation;
 #endif
 
 import dev.moono.unloadedactivity.GroupChunkIndex;
+import dev.moono.unloadedactivity.SimulationInfo;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
 // TODO: Rename this to ChunkIndexData and then merge BlockEntityTimeData, EntityTimeData and ChunkTimeData to one common interface.
 public interface ChunkTimeData {
+    long getSimulationsSinceLoad();
+
+    @Nullable SimulationInfo getLastSimulationInfo();
+
+    void setLastSimulationInfo(SimulationInfo simulationInfo);
+
     long getLastDayTick();
 
     void setLastDayTick(long tick);

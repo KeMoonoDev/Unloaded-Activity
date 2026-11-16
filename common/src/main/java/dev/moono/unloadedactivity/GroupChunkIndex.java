@@ -32,7 +32,22 @@ public class GroupChunkIndex {
     private long lastDayTick;
     private long lastGameTick;
     private long lastMs;
+    private long simulationsSinceLoad = 0;
+    private @Nullable SimulationInfo lastSimulationInfo = null;
     public final #if MC_VER >= MC_1_21_11 Identifier #else ResourceLocation #endif groupId;
+
+    public long getSimulationsSinceLoad() {
+        return this.simulationsSinceLoad;
+    }
+
+    public @Nullable SimulationInfo getLastSimulationInfo() {
+        return this.lastSimulationInfo;
+    }
+
+    public void setLastSimulationInfo(SimulationInfo simulationInfo) {
+        this.simulationsSinceLoad += 1;
+        this.lastSimulationInfo = simulationInfo;
+    }
 
     public long getLastDayTick(long lastSimulationDayTick) {
         return Math.max(lastSimulationDayTick, lastDayTick);
