@@ -9,24 +9,9 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.moono.unloadedactivity.config.ConfigOption;
 import net.minecraft.commands.*;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
 
-import java.lang.reflect.InvocationTargetException;
-import java.time.Instant;
-
-import static com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg;
-import static com.mojang.brigadier.arguments.DoubleArgumentType.getDouble;
-import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
-import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
-import static com.mojang.brigadier.arguments.LongArgumentType.getLong;
-import static com.mojang.brigadier.arguments.LongArgumentType.longArg;
-import static com.mojang.brigadier.arguments.StringArgumentType.getString;
-import static com.mojang.brigadier.arguments.StringArgumentType.string;
 import static dev.moono.unloadedactivity.UnloadedActivity.MOD_ID;
-import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
 public class UnloadedActivityCommand {
@@ -50,68 +35,6 @@ public class UnloadedActivityCommand {
         });
 
         addConfigs(commandBuilder, context);
-        addBenchmark(commandBuilder);
-
-        commandBuilder.then(
-                literal("checkwater").requires(source ->
-                #if MC_VER >= MC_1_21_11
-                source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
-                #else
-                source.hasPermission(Commands.LEVEL_OWNERS)
-                #endif
-            ).then(
-                argument("x", integer()).then(
-                    argument("y", integer()).then(
-                        argument("z", integer()).executes(cmdctx -> {
-                            try {
-                                int x = getInteger(cmdctx, "x");
-                                int y = getInteger(cmdctx, "y");
-                                int z = getInteger(cmdctx, "z");
-                                BlockPos pos = new BlockPos(x, y, z);
-                                var state = cmdctx.getSource().getLevel().getBlockState(pos);
-                                var properties = state.getProperties();
-                                String finalStr = "";
-                                for (var property: properties) {
-                                    finalStr = finalStr + property.getName() + ": " + state.getValue(property).toString() + ", ";
-                                }
-                                cmdctx.getSource().sendSystemMessage(Component.literal(finalStr));
-                            } catch (RuntimeException err) {
-                                cmdctx.getSource().sendSystemMessage(Component.literal(err.toString()));
-                            }
-                            return 1;
-                        })
-                    )
-                )
-            )
-        );
-
-        commandBuilder.then(
-            literal("checkchunk").requires(source ->
-            #if MC_VER >= MC_1_21_11
-            source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
-            #else
-            source.hasPermission(Commands.LEVEL_OWNERS)
-            #endif
-                ).then(
-                    argument("x", integer()).then(
-                        argument("z", integer()).executes(cmdctx -> {
-                            try {
-                                int x = getInteger(cmdctx, "x");
-                                int z = getInteger(cmdctx, "z");
-                                var chunk = cmdctx.getSource().getLevel().getChunk(x, z);
-                                String finalStr = "";
-                                for (var groupIndex : chunk.getGroupIndexes()) {
-                                    finalStr = finalStr + groupIndex.groupId + ": " + groupIndex.getPositions() + " " + groupIndex.getLastGameTick(0) + " or " + groupIndex.getLastGameTick(chunk.getLastGameTick()) + "\n";
-                                }
-                                cmdctx.getSource().sendSystemMessage(Component.literal(finalStr));
-                            } catch (RuntimeException err) {
-                                cmdctx.getSource().sendSystemMessage(Component.literal(err.toString()));
-                            }
-                            return 1;
-                        })
-                    )
-                )
-        );
 
         dispatcher.register(commandBuilder);
     }
@@ -124,64 +47,5 @@ public class UnloadedActivityCommand {
         }
 
         commandBuilder.then(configBuilder);
-    }
-
-    public static void addBenchmark(LiteralArgumentBuilder<CommandSourceStack> commandBuilder) {
-        commandBuilder.then(
-            literal("benchmark").requires(source ->
-            #if MC_VER >= MC_1_21_11
-                source.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(4)))
-            #else
-                source.hasPermission(Commands.LEVEL_OWNERS)
-            #endif
-            ).then(
-                argument("method", string()).then(
-                    argument("trials", integer()).then(
-                        argument("attempts", longArg()).then(
-                            argument("maxOccurrences", integer()).then(
-                                argument("odds", doubleArg()).executes(context -> {
-
-                                    java.lang.reflect.Method method;
-
-                                    try {
-                                        method = MathUtils.class.getMethod(getString(context, "method"), long.class, double.class, int.class, RandomSource.class);
-                                    } catch (NoSuchMethodException e) {
-                                        context.getSource().sendSystemMessage(Component.literal("No such method."));
-                                        return 0;
-                                    }
-
-                                    int trials = getInteger(context, "trials");
-                                    long attempts = getLong(context, "attempts");
-                                    int maxOccurrences = getInteger(context, "maxOccurrences");
-                                    double odds = getDouble(context, "odds");
-
-                                    RandomSource random = GameUtils.getRand(context.getSource().getLevel());
-
-                                    long now = Instant.now().toEpochMilli();
-
-                                    for (int i = 0; i<trials; ++i) {
-                                        try {
-                                            long newAttempts = attempts > 0L ? attempts : random.nextIntBetweenInclusive(10_000, 100_000_000);
-                                            int newMaxOccurrences = maxOccurrences > 0 ? maxOccurrences : random.nextIntBetweenInclusive(1, 100);
-                                            double newProbability = odds > 0.0 ? odds : random.nextDouble();
-                                            method.invoke(MathUtils.class, newAttempts, newProbability, newMaxOccurrences, random);
-                                        } catch (IllegalAccessException e) {
-                                            throw new RuntimeException(e);
-                                        } catch (InvocationTargetException e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    }
-                                    long difference = Instant.now().toEpochMilli() - now;
-
-                                    float avg = (float)difference/(float)trials;
-                                    context.getSource().sendSystemMessage(Component.literal("Total: "+difference + "ms\nAverage: " + avg + "ms"));
-                                    return 1;
-                                })
-                            )
-                        )
-                    )
-                )
-            )
-        );
     }
 }
