@@ -56,8 +56,13 @@ public class DeferredBlockPlacer implements Iterable<DeferredBlockPlacer.BlockPl
         isSorted = true;
     }
 
+    public void reportBlock(BlockPos pos, BlockState state, SimulatedTime placedAtTime) {
+        this.blockPlacements.add(new BlockPlacementInfo(pos, state, false, -1, placedAtTime, true));
+        isSorted = false;
+    }
+
     public void setBlock(BlockPos pos, BlockState state, boolean updateNeighbors, int flags, SimulatedTime placedAtTime) {
-        this.blockPlacements.add(new BlockPlacementInfo(pos, state, updateNeighbors, flags, placedAtTime));
+        this.blockPlacements.add(new BlockPlacementInfo(pos, state, updateNeighbors, flags, placedAtTime, false));
         isSorted = false;
     }
 
@@ -73,7 +78,7 @@ public class DeferredBlockPlacer implements Iterable<DeferredBlockPlacer.BlockPl
         this.setBlock(pos, state, false, placedAtTime);
     }
 
-    public record BlockPlacementInfo(BlockPos blockPos, BlockState blockState, boolean updateNeighbors, int updateType, SimulatedTime placedAtTime) {}
+    public record BlockPlacementInfo(BlockPos blockPos, BlockState blockState, boolean updateNeighbors, int updateType, SimulatedTime placedAtTime, boolean alreadyPlaced) {}
 
     public record SingleBlockPlacement(BlockState blockState, int updateType, SimulatedTime placedAtTime) {
         public SingleBlockPlacement(BlockState blockState, SimulatedTime placedAtTime) {

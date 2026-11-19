@@ -1,0 +1,13 @@
+{
+  "grow_tree": {
+    "simulation_method": "dynamictrees:grow_tree",
+    "conditions": [
+    ],
+
+    "advance_probability": {
+      "value1": 1,
+      "operator": "/",
+      "value2": "dynamictrees:tree_growth_folding"
+    }
+  }
+}

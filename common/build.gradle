@@ -22,6 +22,7 @@ def mc_1_19_2 = Integer.parseInt((String)mc_info.MC_1_19_2)
 def mc_1_19_4 = Integer.parseInt((String)mc_info.MC_1_19_4)
 def mc_1_20_1 = Integer.parseInt((String)mc_info.MC_1_20_1)
 def mc_1_21_1 = Integer.parseInt((String)mc_info.MC_1_21_1)
+def mc_26_1_2 = Integer.parseInt((String)mc_info.MC_26_1_2)
 
 processResources {
     exclude("dev_icons")
@@ -146,6 +147,17 @@ dependencies {
         compileOnly "maven.modrinth:neapolitan:5.1.0"
     } else if (mc_ver >= mc_1_19_2) {
         compileOnly "maven.modrinth:neapolitan:4.1.0"
+    }
+
+    // Dynamic Trees
+    if (mc_ver >= mc_26_1_2) {
+        compileOnly "maven.modrinth:dynamictrees:DynamicTrees-NeoForge-26.1.2 1.8.0-BETA04"
+    } else if (mc_ver >= mc_1_21_1) {
+        compileOnly "maven.modrinth:dynamictrees:DynamicTrees-NeoForge-1.21.1 1.7.2"
+    } else if (mc_ver >= mc_1_20_1) {
+        compileOnly "maven.modrinth:dynamictrees:1.20.1-1.4.11"
+    } else if (mc_ver >= mc_1_19_2) {
+        compileOnly "maven.modrinth:dynamictrees:1.19.2-1.2.2"
     }
 
     // No Man's Land

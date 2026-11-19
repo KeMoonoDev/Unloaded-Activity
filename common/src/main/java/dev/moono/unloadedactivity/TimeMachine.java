@@ -919,14 +919,16 @@ public class TimeMachine {
                     boolean breakPropertyLoop = false;
 
                     for (DeferredBlockPlacer.BlockPlacementInfo placeInfo : blockPlacer) {
-                        level.setBlock(placeInfo.blockPos(), placeInfo.blockState(), placeInfo.updateType());
-                        if (placeInfo.updateNeighbors()) {
-                            #if MC_VER >= MC_1_21_3
-                                level.neighborChanged(placeInfo.blockState(), placeInfo.blockPos(), placeInfo.blockState().getBlock(), null, false);
-                            #else
-                                level.neighborChanged(placeInfo.blockState(), placeInfo.blockPos(), placeInfo.blockState().getBlock(), placeInfo.blockPos(), false);
-                            #endif
-                            level.scheduleTick(placeInfo.blockPos(), placeInfo.blockState().getBlock(), 1);
+                        if (!placeInfo.alreadyPlaced()) {
+                            level.setBlock(placeInfo.blockPos(), placeInfo.blockState(), placeInfo.updateType());
+                            if (placeInfo.updateNeighbors()) {
+                                #if MC_VER >= MC_1_21_3
+                                    level.neighborChanged(placeInfo.blockState(), placeInfo.blockPos(), placeInfo.blockState().getBlock(), null, false);
+                                #else
+                                    level.neighborChanged(placeInfo.blockState(), placeInfo.blockPos(), placeInfo.blockState().getBlock(), placeInfo.blockPos(), false);
+                                #endif
+                                level.scheduleTick(placeInfo.blockPos(), placeInfo.blockState().getBlock(), 1);
+                            }
                         }
 
                         SimulatedTime placedAtTime = placeInfo.placedAtTime();

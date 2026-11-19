@@ -258,6 +258,10 @@ public class DefaultRegistrations implements UnloadedActivityApi {
             new NeapolitanRegistrations().registerNumberFetchers(registry);
         }
 
+        if (UnloadedActivity.shouldDoCompat("dynamictrees")) {
+            new DynamicTreesRegistrations().registerNumberFetchers(registry);
+        }
+
         #if MC_VER == MC_1_21_1
         if (UnloadedActivity.shouldDoCompat("nomansland")) {
             new NoMansLandRegistrations().registerNumberFetchers(registry);
@@ -298,6 +302,10 @@ public class DefaultRegistrations implements UnloadedActivityApi {
 
         if (UnloadedActivity.shouldDoCompat("neapolitan")) {
             new NeapolitanRegistrations().registerSimulationMethods(registry);
+        }
+
+        if (UnloadedActivity.shouldDoCompat("dynamictrees")) {
+            new DynamicTreesRegistrations().registerSimulationMethods(registry);
         }
 
         #if MC_VER == MC_1_21_1

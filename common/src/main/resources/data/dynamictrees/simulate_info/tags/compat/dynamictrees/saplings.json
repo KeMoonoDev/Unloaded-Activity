@@ -1,0 +1,13 @@
+{
+  "replace": true,
+  "priority": 999,
+
+  "grow_sapling": {
+    "simulation_method": "dynamictrees:grow_sapling",
+    "conditions": [
+      "dynamictrees:can_sapling_grow_naturally"
+    ],
+
+    "advance_probability": 1
+  }
+}
