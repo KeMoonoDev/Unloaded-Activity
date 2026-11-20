@@ -1,5 +1,15 @@
 package dev.moono.unloadedactivity.impl.simulation_methods.dynamic_trees;
 
+#if MC_VER >= MC_1_21_1
+import com.dtteam.dynamictrees.api.network.MapSignal;
+import com.dtteam.dynamictrees.api.treedata.TreePart;
+import com.dtteam.dynamictrees.api.voxmap.SimpleVoxmap;
+import com.dtteam.dynamictrees.block.soil.SoilBlock;
+import com.dtteam.dynamictrees.config.DTConfigs;
+import com.dtteam.dynamictrees.systems.nodemapper.FindEndsNode;
+import com.dtteam.dynamictrees.tree.TreeHelper;
+import com.dtteam.dynamictrees.tree.species.Species;
+#else
 import com.ferreusveritas.dynamictrees.api.TreeHelper;
 import com.ferreusveritas.dynamictrees.api.network.MapSignal;
 import com.ferreusveritas.dynamictrees.api.treedata.TreePart;
@@ -8,6 +18,7 @@ import com.ferreusveritas.dynamictrees.systems.nodemapper.FindEndsNode;
 import com.ferreusveritas.dynamictrees.tree.species.Species;
 import com.ferreusveritas.dynamictrees.util.SafeChunkBounds;
 import com.ferreusveritas.dynamictrees.util.SimpleVoxmap;
+#endif
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.GameUtils;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
@@ -22,14 +33,34 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class GrowDynamicTreeMethod extends SeparableSimulationMethod {
-    private final RootyBlock rootyBlock;
 
+    #if MC_VER >= MC_1_21_1
+    private final Supplier<Double> treeGrowthMultiplier;
+
+    private final SoilBlock rootyBlock;
+    #else
+    private final RootyBlock rootyBlock;
+    #endif
+
+    @SuppressWarnings("unchecked")
     public GrowDynamicTreeMethod(SimulationConfig config, Block block, boolean hasDependants) {
         super(config, block, hasDependants);
 
-        if (block instanceof RootyBlock rooty) {
+        #if MC_VER >= MC_1_21_1
+        try {
+            this.treeGrowthMultiplier = (Supplier<Double>) DTConfigs.class.getField("treeGrowthMultiplier").get(DTConfigs.SERVER);
+        } catch (Exception err) {
+            throw new RuntimeException(err);
+        }
+
+        if (block instanceof SoilBlock rooty)
+        #else
+        if (block instanceof RootyBlock rooty)
+        #endif
+        {
             this.rootyBlock = rooty;
         }else{
             throw new RuntimeException("The block " + block + " cannot have this simulation method.");
@@ -41,7 +72,11 @@ public class GrowDynamicTreeMethod extends SeparableSimulationMethod {
         int fertility = rootyBlock.getFertility(state, level, pos);
         if (fertility == 0) return 0;
         // Limit to 500 due to trees that don't spend much fertility. (Dark oak)
+        #if MC_VER >= MC_1_21_1
+        return 500 / (int)Math.ceil(this.treeGrowthMultiplier.get());
+        #else
         return 500;
+        #endif
     }
 
     @Override
@@ -49,6 +84,8 @@ public class GrowDynamicTreeMethod extends SeparableSimulationMethod {
         int iter = 0;
         boolean viable = false;
         boolean first = true;
+
+        var worldgen = #if MC_VER >= MC_1_21_1 false #else SafeChunkBounds.ANY #endif;
 
         Species species = rootyBlock.getSpecies(rootyState, level, rootPos);
         BlockPos treePos = rootPos.relative(rootyBlock.getTrunkDirection(level, rootPos));
@@ -61,7 +98,13 @@ public class GrowDynamicTreeMethod extends SeparableSimulationMethod {
                 LongSet previousEndPositions = new LongOpenHashSet();
                 RandomSource random = GameUtils.getRand(level);
 
-                while (viable && iter < occurrencesAndTimings.occurrences()) {
+                #if MC_VER >= MC_1_21_1
+                int occurrences = occurrencesAndTimings.occurrences() * (int)Math.ceil(this.treeGrowthMultiplier.get());
+                #else
+                int occurrences = occurrencesAndTimings.occurrences();
+                #endif
+
+                while (viable && iter < occurrences) {
                     iter++;
 
                     int fertility = rootyBlock.getFertility(rootyState, level, rootPos);
@@ -85,7 +128,7 @@ public class GrowDynamicTreeMethod extends SeparableSimulationMethod {
                                         Math.min((leafMap.getLenX() - 1) / 2, 3),
                                         Math.min(leafMap.getLenY(), 3),
                                         1,
-                                        SafeChunkBounds.ANY
+                                        worldgen
                                     );
                                 }
                             }
@@ -100,7 +143,7 @@ public class GrowDynamicTreeMethod extends SeparableSimulationMethod {
 
                     first = false;
 
-                    if (species.handleRot(level, ends, rootPos, treePos, fertility, SafeChunkBounds.ANY)) {
+                    if (species.handleRot(level, ends, rootPos, treePos, fertility, worldgen)) {
                         viable = false;
                         break;
                     } else {
@@ -128,24 +171,28 @@ public class GrowDynamicTreeMethod extends SeparableSimulationMethod {
                     int fertility = rootyBlock.getFertility(rootyState, level, rootPos);
                     // We wouldn't want to clean up branches if the tree is still growing.
                     if (fertility == 0) {
-                        if (species.handleRot(level, ends, rootPos, treePos, 0, SafeChunkBounds.ANY)) {
+                        if (species.handleRot(level, ends, rootPos, treePos, 0, worldgen)) {
                             viable = false;
                         }
                     }
 
                     // Cleanup the leaves shape + remove stray leaves that sometimes appear.
-                    TreeHelper.ageVolume(level, rootPos, 8, 32, 1, SafeChunkBounds.ANY);
+                    TreeHelper.ageVolume(level, rootPos, 8, 32, 1, worldgen);
 
                     // Cleanup the leaves shape a bit more.
                     for (var endPos : ends) {
-                        TreeHelper.ageVolume(level, endPos.below((leafMap.getLenZ() - 1) / 2), (leafMap.getLenX() - 1) / 2, leafMap.getLenY(), 2, SafeChunkBounds.ANY);
+                        TreeHelper.ageVolume(level, endPos.below((leafMap.getLenZ() - 1) / 2), (leafMap.getLenX() - 1) / 2, leafMap.getLenY(), 2, worldgen);
                     }
                 }
             }
         }
 
         if (!viable) {
+            #if MC_VER >= MC_1_21_1
+            rootyBlock.doDecay(level, rootPos, rootyState);
+            #else
             level.setBlock(rootPos, rootyBlock.getDecayBlockState(rootyState, level, rootPos), 3);
+            #endif
         }
 
         return null;

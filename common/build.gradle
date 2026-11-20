@@ -151,9 +151,9 @@ dependencies {
 
     // Dynamic Trees
     if (mc_ver >= mc_26_1_2) {
-        compileOnly "maven.modrinth:dynamictrees:DynamicTrees-NeoForge-26.1.2 1.8.0-BETA04"
+        compileOnly "maven.modrinth:dynamictrees:1.8.0-BETA04"
     } else if (mc_ver >= mc_1_21_1) {
-        compileOnly "maven.modrinth:dynamictrees:DynamicTrees-NeoForge-1.21.1 1.7.2"
+        compileOnly "maven.modrinth:dynamictrees:1.7.2"
     } else if (mc_ver >= mc_1_20_1) {
         compileOnly "maven.modrinth:dynamictrees:1.20.1-1.4.11"
     } else if (mc_ver >= mc_1_19_2) {

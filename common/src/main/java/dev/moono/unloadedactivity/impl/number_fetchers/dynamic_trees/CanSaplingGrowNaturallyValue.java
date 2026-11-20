@@ -1,7 +1,13 @@
 package dev.moono.unloadedactivity.impl.number_fetchers.dynamic_trees;
 
+#if MC_VER >= MC_1_21_1
+import com.dtteam.dynamictrees.block.sapling.DynamicSaplingBlock;
+import com.dtteam.dynamictrees.tree.species.Species;
+#else
 import com.ferreusveritas.dynamictrees.block.DynamicSaplingBlock;
 import com.ferreusveritas.dynamictrees.tree.species.Species;
+#endif
+
 import dev.moono.unloadedactivity.api.context.FixedContext;
 import dev.moono.unloadedactivity.api.number_fetcher.FixedNumberFetcher;
 import net.minecraft.world.level.block.Block;
@@ -13,7 +19,7 @@ public class CanSaplingGrowNaturallyValue implements FixedNumberFetcher {
 
     public CanSaplingGrowNaturallyValue() {
         try {
-            this.getSpecies = DynamicSaplingBlock.class.getMethod("getSpecies");
+            this.getSpecies = DynamicSaplingBlock.class.getMethod("getSpecies"); // Method is public since 1.21.1
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

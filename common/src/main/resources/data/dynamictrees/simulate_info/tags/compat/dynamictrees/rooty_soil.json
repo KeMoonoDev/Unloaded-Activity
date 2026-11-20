@@ -4,10 +4,6 @@
     "conditions": [
     ],
 
-    "advance_probability": {
-      "value1": 1,
-      "operator": "/",
-      "value2": "dynamictrees:tree_growth_folding"
-    }
+    "advance_probability": "dynamictrees:tree_growth_probability"
   }
 }

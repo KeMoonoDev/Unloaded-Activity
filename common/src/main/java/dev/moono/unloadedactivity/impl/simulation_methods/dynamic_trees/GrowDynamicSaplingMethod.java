@@ -1,7 +1,13 @@
 package dev.moono.unloadedactivity.impl.simulation_methods.dynamic_trees;
 
+#if MC_VER >= MC_1_21_1
+import com.dtteam.dynamictrees.block.sapling.DynamicSaplingBlock;
+import com.dtteam.dynamictrees.tree.species.Species;
+#else
 import com.ferreusveritas.dynamictrees.block.DynamicSaplingBlock;
 import com.ferreusveritas.dynamictrees.tree.species.Species;
+#endif
+
 import dev.moono.unloadedactivity.DeferredBlockPlacer;
 import dev.moono.unloadedactivity.api.OccurrencesAndTimings;
 import dev.moono.unloadedactivity.api.SimulationConfig;
@@ -12,7 +18,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class GrowDynamicSaplingMethod extends SeparableSimulationMethod {
@@ -53,7 +58,7 @@ public class GrowDynamicSaplingMethod extends SeparableSimulationMethod {
             throw new RuntimeException(e);
         }
 
-        if (block.canSurvive(state, level, pos)) {
+        if (( #if MC_VER >= MC_1_21_1 (DynamicSaplingBlock) #endif block).canSurvive(state, level, pos)) {
             Species overrideSpecies = species.selfOrLocationOverride(level, pos);
             if (overrideSpecies.canSaplingGrow(level, pos)) {
                 overrideSpecies.transitionToTree(level, pos);
